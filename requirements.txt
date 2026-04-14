@@ -1,18 +1,9 @@
-PyYaml
-streamlit 
-os
-math
-pandas 
-whisper
-numpy 
+streamlit
+PyYAML
+pandas
+numpy
+openai-whisper
 easyocr
-Image
+Pillow
 thefuzz
 unidecode
- tempfile
-re
-copy
-shutil
-
-datetime
-defaultdict
