@@ -7,12 +7,12 @@ whisper
 numpy 
 easyocr
 Image
-process, fuzz
+thefuzz
 unidecode
  tempfile
 re
 copy
 shutil
 
-date, timedelta
+datetime
 defaultdict
