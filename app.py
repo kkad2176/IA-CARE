@@ -1694,7 +1694,7 @@ def load_data():
         inter_cortico = pd.read_csv(os.path.join(BASE_DIR, "Feuil1-Tableau 1cortico.csv"), sep=";")
         taxo = pd.read_csv(os.path.join(BASE_DIR, "TAXONOMIE-Tableau 1.csv"), sep=";")
         libelles = pd.read_csv(os.path.join(BASE_DIR, "LISTE_FINALE_AVEC_LIBELLES.csv"), sep=";")
-        sentinelles = pd.read_csv(os.path.join(BASE_DIR, "Médicaments Sentinelles-Tableau.csv"), sep=";")
+        sentinelles = pd.read_csv(os.path.join(BASE_DIR, "Medicaments Sentinelles-Tableau.csv"), sep=";")
         profils = pd.read_csv(os.path.join(BASE_DIR, "Profils Pathologiques-Tableau.csv"), sep=";")
 
         atc.columns = [normalize_colname(c) for c in atc.columns]
