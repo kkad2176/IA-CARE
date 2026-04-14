@@ -1,0 +1,18 @@
+PyYaml
+streamlit 
+os
+math
+pandas 
+whisper
+numpy 
+easyocr
+Image
+process, fuzz
+unidecode
+ tempfile
+re
+copy
+shutil
+
+date, timedelta
+defaultdict
