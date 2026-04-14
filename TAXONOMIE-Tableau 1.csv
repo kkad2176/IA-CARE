@@ -1,0 +1,72 @@
+Code SPE;Spécialité;Code GRP;Groupe;Exemple d'acte
+OPH;Ophtalmologie;ANT;Segment antérieur (cornée, cristallin);Chirurgie de la cataracte
+OPH;Ophtalmologie;POST;Segment postérieur (rétine, vitré, glaucome);Chirurgie glaucome / rétine
+OPH;Ophtalmologie;TRA;Traumatisme oculaire;Globe ouvert
+NEU;Neurochirurgie;CRA;Intracrânien (tumeur, vasculaire, urgence);Craniotomie / biopsie cérébrale
+NEU;Neurochirurgie;DER;Dérivations LCR;DVE / DVP
+NEU;Neurochirurgie;STI;Stimulation / pompe médullaire;Pose électrode / pompe baclofène
+RAC;Rachis;INS;Instrumenté avec matériel;Arthrodèse / vissage pédiculaire
+RAC;Rachis;SIM;Sans matériel;Discectomie simple
+RAC;Rachis;ABL;Ablation matériel rachis;Dépose vissage
+ORL;ORL;RHI;Rhinologie / sinus;Septoplastie / chirurgie sinusienne
+ORL;ORL;CAR;Carcinologie ORL;Laryngectomie + reconstruction
+ORL;ORL;PHA;Pharyngo-laryngé / amygdales;Amygdalectomie
+ORL;ORL;THY;Thyroïde / parathyroïde;Thyroïdectomie totale
+ORL;ORL;TRA;Trachéotomie;Trachéotomie chirurgicale
+ORL;ORL;SAL;Glandes salivaires;Parotidectomie
+ORL;ORL;LAR;Laryngoscopie en suspension;Laryngoscopie diagnostique
+ORL;ORL;OTO;Otologie;Tympanoplastie / implant cochléaire
+CMF;Cervico-maxillo-facial;ORG;Orthognatique / squelette facial;Chirurgie orthognatique
+CMF;Cervico-maxillo-facial;DEN;Dentaire / alvéolaire;Avulsion dents incluses / sinus lift
+CMF;Cervico-maxillo-facial;TRA;Traumatologie faciale;Fractures mandibule / Lefort
+CMF;Cervico-maxillo-facial;ABL;Ablation matériel CMF;Ablation ostéosynthèse face
+CAR;Chirurgie cardiaque;CHI;Chirurgie cardiaque à cœur ouvert;Remplacement valvulaire / pontage
+CAR;Chirurgie cardiaque;DRE;Drainage / décompression péricardique;Fenêtre pleuropéricardique
+CAR;Chirurgie cardiaque;ASS;Assistance circulatoire;ECMO / Impella / transplantation
+CDI;Cardiologie interventionnelle;VAL;Valves percutanées;TAVI / MitraClip
+CDI;Cardiologie interventionnelle;STR;Structurel (CIA, FOP, auricule);Fermeture CIA
+CDI;Cardiologie interventionnelle;RYT;Rythmologie (PM, DAI, ablation);Pose PM / ablation FA
+VAS;Vasculaire;AOR;Aortique / artériel majeur;Chirurgie aortique / PAC fémoral
+VAS;Vasculaire;CAR;Carotide;Endartériectomie carotidienne
+VAS;Vasculaire;PER;Périphérique (varices, FAV, amputation);Crossectomie saphène / FAV
+VAS;Vasculaire;END;Endovasculaire;TAVI aortique / stent couvert
+THO;Thoracique;RES;Résection pulmonaire;Lobectomie / pneumonectomie
+THO;Thoracique;PLR;Plèvre / paroi thoracique;Pleurectomie / talcage
+THO;Thoracique;MED;Médiastin;Thymectomie / médiastinoscopie
+THO;Thoracique;TRA;Trachée / bronche (chirurgie ouverte);Résection-anastomose trachée
+THO;Thoracique;OES;Œsophage;Œsophagectomie
+THO;Thoracique;END;Endoscopie thoracique / radio interv.;Fibroscopie bronchique / thermoablation
+PLA;Chirurgie plastique;MAM;Sein (reconstruction, réduction, prothèse);Mastoplastie / lipofilling
+PLA;Chirurgie plastique;FAC;Face (rhinoplastie, lifting, blépharoplastie);Lifting cervico-facial / rhinoplastie
+PLA;Chirurgie plastique;COR;Corps (abdominoplastie, lifting membres);Abdominoplastie / brachioplastie
+PLA;Chirurgie plastique;CUT;Cutané (greffes, lambeaux, plasties);Greffe cutanée / lambeau libre
+PLA;Chirurgie plastique;BRU;Brûlures;Excision-greffe / escarrotomie
+PLA;Chirurgie plastique;GEN;Génital / transidentité;Phalloplastie / vaginoplastie
+PLA;Chirurgie plastique;ONC;Oncologie plastique;Curage axillaire / ganglion sentinelle
+GYN;Gynécologie;MAM;Sein oncologique;Mastectomie / tumorectomie
+GYN;Gynécologie;COE;Coelioscopie gynécologique;Annexectomie / kystectomie
+GYN;Gynécologie;UTE;Utérus (hystérectomie, myome, endomètre);Hystérectomie / myomectomie
+GYN;Gynécologie;VUL;Vulve / vagin / périnée;Vulvectomie / colpectomie
+GYN;Gynécologie;PMA;Procréation médicalement assistée;Ponction ovocytes / transfert embryon
+GYN;Gynécologie;RAD;Radiologie interventionnelle gynéco;Embolisation fibromes
+OBS;Obstétrique;ACC;Accouchement / délivrance;Césarienne / EMP
+OBS;Obstétrique;HEM;Hémorragie du post-partum;Embolisation / hystérectomie obstétricale
+OBS;Obstétrique;GRO;Gestes col/utérus en grossesse;Cerclage cervical
+TRA;Traumatologie;FRA;Fractures fermées;Ostéosynthèse / enclouage
+TRA;Traumatologie;OUV;Fractures et plaies ouvertes;Fracture ouverte Gustilo / parage
+TRA;Traumatologie;MOL;Parties molles / morsures;Plaie main / morsure
+DIG;Chirurgie digestive;OES;Œsophage / estomac;Œsophagectomie / gastrectomie
+DIG;Chirurgie digestive;BAR;Bariatrique;Bypass / sleeve
+DIG;Chirurgie digestive;INT;Intestin / côlon / rectum / anus;Colectomie / appendicectomie
+DIG;Chirurgie digestive;HEP;Foie / VBP / pancréas / rate;DPC / hépatectomie / cholécystectomie
+DIG;Chirurgie digestive;HER;Paroi / hernies;Cure hernie inguinale
+END;Endoscopie digestive;CPR;CPRE / voies biliaires/pancréatiques;CPRE / extraction calcul biliaire
+END;Endoscopie digestive;ECH;Écho-endoscopie / ponctions;Ponction kyste pancréatique / EUS-FNA
+END;Endoscopie digestive;DIG;FOGD / coloscopie / gastrostomie;FOGD diagnostique / coloscopie
+END;Endoscopie digestive;VAR;Varices œsophagiennes;Ligature varices en période hémorragique
+END;Endoscopie digestive;RAD;Radiologie interventionnelle hépatique;TIPS / chimio-embolisation / drainage biliaire
+URO;Urologie;PRO;Prostate;RTUP / prostatectomie radicale
+URO;Urologie;VES;Vessie / urètre;RTUV / cystectomie / urétrotomie
+URO;Urologie;INC;Incontinence / prolapsus;TVT / cure prolapsus
+URO;Urologie;SCR;Scrotal / génital masculin;Prothèse pénienne / testiculaire
+URO;Urologie;HAU;Voies urinaires hautes (uretère, rein);Urétéroscopie / NLPC / transplantation

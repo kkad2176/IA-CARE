@@ -1,0 +1,65 @@
+Médicament sentinelle;Code ATC;Profil identifié;Seul suffit;Certitude
+Aspirine 75-160mg;B01AC06;Coronarien;OUI;Élevée
+Clopidogrel;B01AC04;Coronarien / Vasculaire;OUI;Élevée
+Ticagrélor;B01AC24;Post-SCA / Stent récent;OUI;Très élevée
+Prasugrel;B01AC22;Post-SCA / Stent récent;OUI;Très élevée
+Trinitrine;C01DA02;Angor actif;OUI;Très élevée
+Molsidomine;C01DX12;Angor;OUI;Élevée
+Amiodarone;C01BD01;FA / Arythmie ventriculaire;OUI;Très élevée
+Flécaïnide;C01BC04;FA paroxystique;OUI;Très élevée
+Sotalol;C07AA07;FA / Arythmie;OUI;Élevée
+Ivabradine;C01EB17;IC systolique;OUI;Très élevée
+Digoxine;C01AA05;IC / FA;OUI;Élevée
+Spironolactone (contexte CV);C03DA01;IC;NON (contexte);Modérée
+Éplérénone;C03DA04;IC post-IDM;OUI;Élevée
+Apixaban;B01AF02;FA ou MTEV;OUI (AOD);Élevée
+Rivaroxaban;B01AF01;FA ou MTEV;OUI (AOD);Élevée
+Warfarine;B01AA03;FA / Valve / MTEV;OUI (AVK);Élevée
+Metformine;A10BA02;DT2;OUI;Très élevée
+Gliclazide;A10BB09;DT2;OUI;Très élevée
+Sitagliptine;A10BH01;DT2;OUI;Très élevée
+Dapagliflozine;A10BK01;DT2 ou IC;OUI;Élevée
+Insuline glargine;A10AE04;DT1 ou DT2 avancé;OUI;Très élevée
+Lévothyroxine;H03AA01;Hypothyroïdie;OUI;Très élevée
+Thiamazole;H03BB02;Hyperthyroïdie;OUI;Très élevée
+Hydrocortisone (sub);H02AB09;Insuff. surrénalienne;OUI (faible dose);Élevée
+Fludrocortisone;H02AA02;Insuff. surrénalienne;OUI;Très élevée
+Tiotropium;R03BB04;BPCO;OUI;Très élevée
+Uméclidinium;R03BB07;BPCO;OUI;Très élevée
+Salbutamol;R03AC02;Asthme / BPCO;OUI;Modérée (les deux)
+Montélukast;R03DC03;Asthme;OUI;Élevée
+Omalizumab;R03DX05;Asthme sévère;OUI;Très élevée
+Mépolizumab;R03DX09;Asthme sévère éosinophilique;OUI;Très élevée
+Lévétiracétam;N03AX14;Épilepsie;OUI;Très élevée
+Carbamazépine;N03AF01;Épilepsie;OUI;Élevée
+Acide valproïque;N03AG01;Épilepsie ou bipolaire;Contexte;Modérée
+Lévodopa;N04BA02;Parkinson;OUI;Très élevée (pathognomonique)
+Pramipexole;N04BC05;Parkinson ou SJSR;Contexte;Modérée
+Pyridostigmine;N07AA02;Myasthénie;OUI;Très élevée (pathognomonique)
+Riluzole;N07XX02;SLA;OUI;Très élevée (pathognomonique)
+Donépézil;N06DA02;Alzheimer;OUI;Très élevée
+Lithium;N05AN01;Trouble bipolaire;OUI;Très élevée
+Clozapine;N05AH02;Schizophrénie résistante;OUI;Très élevée
+Méthotrexate (hebdo);L04AX03;PR / Auto-immun;OUI;Élevée
+Hydroxychloroquine;P01BA02;Lupus / PR;OUI;Élevée
+Adalimumab;L04AB04;Auto-immun (PR, MICI, pso);OUI;Élevée
+Mésalazine;A07EC02;MICI;OUI;Très élevée
+Tacrolimus;L04AD02;Transplanté / Auto-immun;OUI;Très élevée
+Mycophénolate;L04AA06;Transplanté;OUI;Très élevée
+EPO;B03XA01;IRC / Chimio;Contexte;Modérée
+Sévélamer;V03AE02;IRC dialyse;OUI;Très élevée
+Cinacalcet;H05BX01;IRC / Hyperparathyroïdie;OUI;Très élevée
+Rifaximine;A07AA11;Cirrhose;OUI;Très élevée
+Biktarvy;J05AR20;VIH;OUI;Très élevée
+Entécavir;J05AF08;VHB;OUI;Très élevée
+Tamoxifène;L02BA01;Cancer du sein;OUI;Très élevée
+Létrozole;L02BG04;Cancer du sein;OUI;Très élevée
+Triptoréline;L02AE04;Cancer prostate / Endométriose;OUI;Élevée
+Enzalutamide;L02BB04;Cancer prostate résistant;OUI;Très élevée
+Bosentan;C02KX01;HTAP;OUI;Très élevée (pathognomonique)
+Buprénorphine (SL);N07BC01;Substitution opiacée;OUI;Très élevée
+Méthadone;N07BC02;Substitution opiacée;OUI;Très élevée
+Fingolimod;L04AA27;SEP;OUI;Très élevée
+Ivacaftor;R07AX30;Mucoviscidose;OUI;Très élevée (pathognomonique)
+Anagrélide;L01XX35;Thrombocytémie essentielle;OUI;Très élevée
+Hydroxycarbamide;L01XX05;SMP ou Drépanocytose;Contexte;Modérée (2 étiologies)

@@ -1,0 +1,286 @@
+Profil Pathologique;ASA Min;Codes ATC clés;Logique de reconnaissance;Médicament(s) sentinelle(s);Seul suffit ?;Association typique;Impact anesthésique principal
+CARDIOVASCULAIRE;;;;;;;
+Coronarien stable;2;"B01AC06 (aspirine faible dose)
+B01AC04 (clopidogrel)
+C01DA (dérivés nitrés)
+C10AA (statines)
+C07AB (BB cardiosélectifs)
+C09AA/C09CA (IEC/ARA2)";"SEUL SUFFIT : Aspirine faible dose (75-160mg) OU clopidogrel → quasi-pathognomonique.
+Statine seule = dyslipidémie possible sans coronaropathie.
+Trinitrine = confirmation formelle.";Aspirine 75-160mg, Clopidogrel, Trinitrine, Molsidomine;OUI (aspirine faible dose ou clopidogrel);"Aspirine + Statine + BB + IEC = coronarien typique
+Ajout trinitrine ou molsidomine = angor actif";Gestion antiagrégants (délai chirurgie), risque ischémique péri-op, BB à maintenir, statines à maintenir
+Post-SCA / Post-stent;2;"B01AC06 + B01AC04/B01AC24
+(double antiagrégation)
+B01AC22 (prasugrel)
+B01AC24 (ticagrélor)";"ASSOCIATION NÉCESSAIRE : Double antiagrégation plaquettaire (DAPT) = aspirine + inhibiteur P2Y12.
+Prasugrel ou ticagrélor = quasi-certitude de SCA récent/stent.";Ticagrélor, Prasugrel, Clopidogrel + Aspirine;OUI pour ticagrélor/prasugrel (quasi-pathognomonique SCA récent);"Aspirine + Ticagrélor/Prasugrel/Clopidogrel
+± BB ± statine ± IEC";CRITIQUE : délai post-stent (BMS 6 sem, DES 6-12 mois), risque thrombose de stent si arrêt prématuré, concertation cardio
+Fibrillation auriculaire (FA);2;"B01AF01 (rivaroxaban)
+B01AF02 (apixaban)
+B01AE07 (dabigatran)
+B01AA (AVK)
+C01BD01 (amiodarone)
+C01BD07 (dronédarone)
+C07AA07 (sotalol)";"SEUL SUFFIT : Tout AOD/AVK en l'absence d'autre indication = FA très probable.
+Amiodarone = quasi-pathognomonique FA (ou TV).
+Sotalol = très évocateur.";Apixaban, Rivaroxaban, Amiodarone, Flécaïnide;OUI (AOD ou antiarythmique);AOD/AVK + antiarythmique (amiodarone/flécaïnide/sotalol) + BB ralentisseur;Gestion anticoagulants (relais/fenêtre), risque AVC, antiarythmiques et interactions, ECG pré-op
+Insuffisance cardiaque;3;"C09AA/C09CA (IEC/ARA2)
+C07AB (BB : bisoprolol, carvédilol, nébivolol)
+C03DA01 (spironolactone)
+C03DA04 (éplérénone)
+C03CA01 (furosémide)
+A10BK (gliflozines : dapagliflozine)
+C01AA05 (digoxine)
+C01CE02 (milrinone)";"ASSOCIATION NÉCESSAIRE : La triade IEC/ARA2 + BB + spironolactone/éplérénone est très évocatrice.
+Furosémide seul = non spécifique (IRC, cirrhose).
+Dapagliflozine = IC ou DT2.
+Digoxine + furosémide = IC quasi-certaine.
+Milrinone = IC sévère/décompensée.";Spironolactone/Éplérénone (dans contexte CV), Dapagliflozine, Ivabradine;NON (sauf milrinone, sacubitril/valsartan, ivabradine = très spécifiques IC);"IEC + BB + Spironolactone + Furosémide
+± Dapagliflozine ± Digoxine
+Ivabradine si FC non contrôlée";FEVG à connaître, risque décompensation, gestion volémique, interactions anesthésiques, maintien BB/IEC, monitorage hémodynamique
+HTA (simple);2;"C09AA (IEC)
+C09CA (ARA2)
+C08CA (ICa DHP : amlodipine)
+C03AA (thiazidiques)
+C07AB (BB)";"SEUL SUFFIT : Tout antihypertenseur en monothérapie → HTA.
+Attention : IEC/ARA2 et BB aussi prescrits dans IC et coronaropathie.
+Le contexte d'association permet de distinguer.";Amlodipine, Lercanidipine, Irbésartan, Périndopril, Ramipril;OUI (tout antihypertenseur);"Monothérapie → bithérapie → trithérapie
+HTA résistante : ≥3 classes + souvent clonidine/rilménidine/urapidil";Maintien traitement J0 (sauf IEC/ARA2 selon protocole), pics hypertensifs, interactions, HTA résistante = évaluer retentissement
+HTAP;3;"C02KX01 (bosentan)
+C02KX02 (ambrisentan/Volibris)
+B01AC09 (époprosténol)
+C02KX (autres : iloprost)
+G04BE03 (sildénafil si chronique)";"SEUL SUFFIT : Bosentan, ambrisentan, iloprost, époprosténol = pathognomonique HTAP.
+Sildénafil chronique peut indiquer HTAP.";Bosentan, Ambrisentan (Volibris), Iloprost;OUI (tout traitement spécifique HTAP);Bosentan/Ambrisentan + Sildénafil + Prostacyclines;CRITIQUE : anesthésie à très haut risque, ETT/cathétérisme droit, éviter augmentation RVP, monitorage invasif
+Valvulopathie / Prothèse valvulaire;2;"B01AA (AVK : warfarine, fluindione)
+NON AOD si valve mécanique";"INDICE : AVK au long cours (surtout warfarine) sans FA connue → suspecter valve mécanique.
+Les AOD sont contre-indiqués sur valve mécanique.
+AVK + absence de FA documentée = penser valve.";Warfarine, AVK au long cours;NON (AVK = FA ou valve, à distinguer);AVK seul (valve mécanique) ou AVK + antiarythmique (valve + FA);Relais AVK/héparine, risque thrombotique, prophylaxie endocardite, écho pré-op
+RESPIRATOIRE;;;;;;;
+Asthme;2;"R03AC02 (salbutamol)
+R03BA (corticoïdes inhalés)
+R03AK (associations LABA+CSI)
+R03DC03 (montélukast)
+R03DX05 (omalizumab)";"SEUL SUFFIT : Salbutamol de secours = asthme probable.
+CSI (budésonide, fluticasone inhalé) = asthme persistant.
+Montélukast seul = asthme léger.
+Omalizumab/Mépolizumab = asthme sévère allergique/éosinophilique.";Salbutamol, Budésonide inhalé, Montélukast;OUI (salbutamol ou CSI inhalé);"Salbutamol + CSI ± LABA ± Montélukast
+Sévère : + biothérapie (omalizumab, mépolizumab)";Risque bronchospasme, éviter histaminolibérateurs, BB non cardiosélectifs CI, ventilation protectrice, CSI à maintenir
+BPCO;2;"R03BB (anticholinergiques inhalés : tiotropium)
+R03AL (associations LABA+LAMA)
+R03AK (LABA+CSI)
+R03BB04 (tiotropium)
+R03AL09 (triple thérapie)";"SEUL SUFFIT : Tiotropium (ou tout LAMA) = quasi-pathognomonique BPCO.
+Triple thérapie inhalée = BPCO sévère.
+Association LABA+CSI peut être asthme OU BPCO.
+POUR DISTINGUER de l'asthme : présence d'anticholinergique = BPCO.";Tiotropium (Spiriva), Uméclidinium, Glycopyrronium;OUI (tout LAMA = BPCO);"LAMA ± LABA ± CSI
+Triple : LAMA + LABA + CSI
+± O2 longue durée (stade sévère)";EFR pré-op, risque décompensation, ventilation protectrice, extubation prudente, kiné respi, O2 titré si IRC
+Asthme sévère (biothérapie);3;"R03DX05 (omalizumab)
+R03DX09 (mépolizumab/Nucala)
+R03DX10 (benralizumab)
+R03DX11 (dupilumab)";SEUL SUFFIT : Toute biothérapie anti-IgE/anti-IL5/anti-IL4 = asthme sévère non contrôlé.;Omalizumab (Xolair), Mépolizumab (Nucala), Dupilumab;OUI;Biothérapie + CSI forte dose + LABA + LAMA + montélukast + corticoïdes PO;Asthme instable, corticodépendance, risque majeur bronchospasme, préparation spécifique
+MÉTABOLIQUE / ENDOCRINIEN;;;;;;;
+Diabète type 2;2;"A10BA02 (metformine)
+A10BB (sulfamides : gliclazide)
+A10BH (DPP-4i : sitagliptine)
+A10BK (SGLT2i : dapagliflozine)
+A10BJ (GLP-1 RA : liraglutide)
+A10BG (glitazones)";"SEUL SUFFIT : Metformine = DT2 quasi-certain (1ère ligne).
+Sulfamide (gliclazide) = DT2.
+SGLT2i peut aussi indiquer IC (dapagliflozine).
+GLP-1 RA = DT2 (ou obésité).";Metformine, Gliclazide, Sitagliptine, Répaglinide;OUI (metformine seule suffit);"Metformine ± Sulfamide ± DPP-4i
+± SGLT2i ± GLP-1 RA";Arrêt metformine 48h si injection iode, gestion glycémique péri-op, risque hypoglycémie (sulfamides), acidocétose euglycémique (SGLT2i)
+Diabète type 1 (ou DT2 insulinoréquérant);2;"A10AE04 (insuline glargine)
+A10AE06 (insuline dégludec)
+A10AB04 (insuline lispro)
+A10AB05 (insuline asparte)
+A10AD (insulines prémixées)";"SEUL SUFFIT : Toute insuline basale + rapide = DT1 ou DT2 avancé.
+Schéma basal-bolus = très probablement DT1.
+Insulinalent seule chez patient avec ADO = DT2 insulinoréquérant.";Insuline glargine, Insuline asparte, Insuline lispro;OUI (toute insuline);"Basale (glargine/dégludec) + rapide (asparte/lispro) aux repas
+± pompe à insuline (DT1)";Protocole insuline péri-op, glycémie capillaire rapprochée, risque hypo/hyperglycémie, pas d'arrêt insuline basale, adaptation doses
+Hypothyroïdie;2;"H03AA01 (lévothyroxine)
+H03AA03 (associations T3/T4)";SEUL SUFFIT : Lévothyroxine = hypothyroïdie (Hashimoto, post-thyroïdectomie, post-iode radioactif).;Lévothyroxine (Levothyrox, L-Thyroxin);OUI;Lévothyroxine seule (parfois + T3);Maintenir lévothyroxine J0, sensibilité aux dépresseurs cardiaques si non équilibré, risque coma myxœdémateux si non substitué
+Hyperthyroïdie;2;"H03BB02 (thiamazole)
+H03BB01 (carbimazole)
+C07AA05 (propranolol)
+H03BA (thiouraciles)";"SEUL SUFFIT : Thiamazole/carbimazole = hyperthyroïdie active (Basedow).
+Propranolol peut être prescrit pour tremblements/migraine aussi.
+Association ATS + BB = hyperthyroïdie quasi-certaine.";Thiamazole (Thyrozol), Propranolol (dans ce contexte);OUI (thiamazole/carbimazole);"ATS (thiamazole) + Propranolol
+puis sevrage progressif ou chirurgie/iode";Euthyroïdie obligatoire avant chirurgie, risque crise thyréotoxique, contrôle FC, attention à l'amiodarone
+Insuffisance surrénalienne;2;"H02AB09 (hydrocortisone)
+H02AA02 (fludrocortisone)
+H02AB10 (cortisone)";"ASSOCIATION NÉCESSAIRE : Hydrocortisone à dose substitutive (15-25mg/j) + fludrocortisone = insuffisance surrénalienne.
+Hydrocortisone seule à faible dose = évocateur.
+Attention : hydrocortisone peut être anti-inflammatoire à forte dose.";Hydrocortisone (dose substitutive), Fludrocortisone;OUI pour fludrocortisone (quasi-pathognomonique);Hydrocortisone 15-25mg/j + Fludrocortisone 50-100µg/j;CRITIQUE : supplémentation péri-opératoire (hemisuccinate d'hydrocortisone IV), risque insuffisance surrénalienne aiguë, doublement/triplement des doses si stress
+NEUROLOGIQUE;;;;;;;
+Épilepsie;2;"N03AX14 (lévétiracétam)
+N03AF01 (carbamazépine)
+N03AG01 (acide valproïque)
+N03AX09 (lamotrigine)
+N03AX18 (lacosamide)
+N03AE01 (clonazépam)
+N03AX11 (topiramate)";"SEUL SUFFIT : Tout antiépileptique au long cours = épilepsie.
+Attention : gabapentine/prégabaline souvent prescrits pour douleur neuropathique → ne pas conclure épilepsie.
+Lamotrigine aussi utilisée dans trouble bipolaire.
+Lévétiracétam = quasi-pathognomonique épilepsie.";Lévétiracétam (Keppra), Carbamazépine, Acide valproïque, Lacosamide;OUI (la plupart des antiépileptiques sauf gabapentine/prégabaline/lamotrigine);Monothérapie ou bithérapie antiépileptique;NE JAMAIS ARRÊTER les antiépileptiques, prise le matin de la chirurgie, interactions enzymatiques (CBZ, VPA), risque crise péri-op, éviter médicaments pro-convulsivants
+Maladie de Parkinson;3;"N04BA02 (lévodopa + inhibiteur DDC)
+N04BA03 (lévodopa + DDC + ICOMT)
+N04BC05 (pramipexole)
+N04BC04 (ropinirole)
+N04BC09 (rotigotine)
+N04BD01 (sélégiline)
+N04BD02 (rasagiline)
+N04BB01 (amantadine)";"SEUL SUFFIT : Lévodopa = maladie de Parkinson (ou syndromes apparentés).
+Agonistes dopaminergiques (pramipexole, ropinirole) = Parkinson ou SJSR.
+Association lévodopa + agoniste = Parkinson certain.";Lévodopa (Modopar, Sinemet), Pramipexole, Ropinirole;OUI (lévodopa = pathognomonique);"Lévodopa + Agoniste DA ± IMAO-B ± ICOMT
+± Anticholinergique (trihexyphénidyl)";CRITIQUE : NE JAMAIS ARRÊTER la lévodopa (risque syndrome malin), prise le matin J0, SNG si jeûne prolongé, interactions (dropéridol CI), dysautonomie, risque d'aspiration
+Sclérose en plaques (SEP);3;"L04AA27 (fingolimod)
+L04AA31 (tériflunomide)
+L04AA36 (ocrélizumab)
+L03AB (interférons bêta)
+L03AX13 (acétate de glatiramère)";"SEUL SUFFIT : Tout traitement de fond de SEP = diagnostic de SEP.
+Fingolimod, tériflunomide, ocrélizumab = SEP confirmée.
+Acétate de glatiramère = SEP confirmée.";Fingolimod, Tériflunomide, Ocrélizumab, Acétate de glatiramère;OUI;Traitement de fond immunomodulateur ± corticothérapie des poussées;Attention température corporelle (aggravation si hyperthermie), risque poussée post-op, gestion immunosuppression, prudence avec succinylcholine
+Myasthénie;3;"N07AA02 (pyridostigmine)
+N07AA01 (néostigmine PO)";"SEUL SUFFIT : Pyridostigmine au long cours = myasthénie.
+La néostigmine PO aussi (à distinguer de la décurarisation).";Pyridostigmine (Mestinon);OUI (pathognomonique);Pyridostigmine ± immunosuppresseur (azathioprine, corticoïdes, rituximab);CRITIQUE : sensibilité extrême aux curares, pas de succinylcholine, curares ND à dose réduite avec monitorage, risque crise myasthénique/cholinergique, maintenir anticholinestérasiques
+Alzheimer / Démence;2;"N06DA02 (donépézil)
+N06DA04 (galantamine)
+N06DX01 (mémantine)";"SEUL SUFFIT : Donépézil, galantamine ou mémantine = démence diagnostiquée.
+Donépézil = anticholinestérasique → interaction avec curares.";Donépézil (Aricept), Mémantine (Ebixa);OUI;Anticholinestérasique ± Mémantine;Interaction anticholinestérasiques/curares, risque confusion post-op, consentement éclairé, bradycardie sous donépézil
+SLA (Sclérose latérale amyotrophique);3;N07XX02 (riluzole);SEUL SUFFIT : Riluzole = pathognomonique SLA.;Riluzole (Rilutek);OUI;Riluzole seul (+ support ventilatoire, nutritionnel);CRITIQUE : atteinte respiratoire restrictive, risque ventilation difficile, fasciculations (succinylcholine CI), déglutition altérée
+NÉPHROLOGIQUE;;;;;;;
+Insuffisance rénale chronique (IRC);3;"B03XA (EPO : époétine, darbépoétine)
+V03AE02 (sévélamer)
+H05BX01 (cinacalcet)
+A12BA (potassium si restriction)
+V03AE01 (sulfonate polystyrène)";"SEUL SUFFIT : EPO + chélateur du phosphore = IRC stade 4-5 / dialyse.
+Sévélamer/cinacalcet = quasi-pathognomonique IRC avancée.
+Sulfonate de polystyrène = hyperkaliémie sur IRC.
+Furosémide seul = non spécifique.";EPO, Sévélamer, Cinacalcet, Sulfonate de polystyrène;OUI (sévélamer, cinacalcet, EPO = quasi-pathognomonique IRC avancée);"EPO + Sévélamer + Cinacalcet + Fer IV
++ Calcifédiol ± Furosémide";DFG à connaître, adaptation posologique médicaments, kaliémie, accès vasculaire à protéger, pas de brassard côté FAV, AG/ALR selon contexte
+HÉPATOLOGIQUE;;;;;;;
+Cirrhose;3;"C03DA01 (spironolactone)
+C03CA01 (furosémide)
+A06AD11 (lactulose)
+A07AA11 (rifaximine)
+C07AA06 (propranolol)
+C07AG02 (carvédilol)
+N07BB04 (naltrexone/acamprosate)";"ASSOCIATION NÉCESSAIRE : Spironolactone + furosémide + lactulose = cirrhose très probable.
+Rifaximine = prévention encéphalopathie hépatique = cirrhose.
+Propranolol/nadolol à visée de prévention hémorragie variqueuse.
+Carvédilol de plus en plus utilisé en HTP.";Rifaximine (Tixtar), Lactulose (si chronique), Nadolol/Propranolol (HTP);OUI pour rifaximine (quasi-pathognomonique);"Spironolactone + Furosémide + Lactulose + Rifaximine
++ Propranolol/Nadolol (prévention rupture VO)";CRITIQUE : hémostase perturbée (TP, facteur V, plaquettes), ascite, encéphalopathie, HTP, risque hémorragique, adaptation posologique, score Child-Pugh/MELD
+PSYCHIATRIQUE;;;;;;;
+Trouble bipolaire;2;"N05AN01 (lithium)
+N03AG01 (acide valproïque/valpromide)
+N03AX09 (lamotrigine)
+N05AH03 (olanzapine)
+N05AH04 (quétiapine)
+N05AX12 (aripiprazole)";"SEUL SUFFIT : Lithium = quasi-pathognomonique trouble bipolaire.
+Association thymorégulateur + antipsychotique atypique = bipolaire.
+Attention : valproate et lamotrigine aussi antiépileptiques → contexte.";Lithium (Téralithe);OUI pour le lithium;Lithium OU Valproate + Antipsychotique atypique ± Antidépresseur;Lithiémie à contrôler, néphrotoxicité, interactions (AINS, diurétiques), maintenir lithium péri-op, risque syndrome sérotoninergique
+Schizophrénie / Psychose chronique;2;"N05AH02 (clozapine)
+N05AX08 (rispéridone)
+N05AH03 (olanzapine)
+N05AX12 (aripiprazole)
+N05AH04 (quétiapine)
+N05AF05 (zuclopenthixol)
+N05AG02 (pimozide)";"SEUL SUFFIT : Tout antipsychotique au long cours = trouble psychotique.
+Clozapine = schizophrénie résistante (risque agranulocytose, cardiotoxicité).
+Injections retard (palipéridone) = psychose chronique.";Clozapine, Rispéridone, Aripiprazole;OUI (tout antipsychotique au long cours, hors usage ponctuel);Antipsychotique ± correcteur extrapyramidal ± benzodiazépine;Maintenir antipsychotiques, risque syndrome malin, allongement QT, interactions sédatives, syndrome métabolique, clozapine : NFS récente obligatoire
+RHUMATOLOGIQUE / AUTO-IMMUN;;;;;;;
+Polyarthrite rhumatoïde / Maladies auto-immunes;2;"L04AX03 (méthotrexate)
+P01BA02 (hydroxychloroquine)
+L04AB (anti-TNF : adalimumab, étanercept)
+L04AA (abatacept, tocilizumab)
+A07EC01 (sulfasalazine)
+L04AX01 (azathioprine)";"SEUL SUFFIT : Méthotrexate hebdomadaire = PR/psoriasis.
+Hydroxychloroquine = lupus ou PR.
+Biothérapie anti-TNF = maladie auto-immune confirmée.
+Association MTX + biothérapie = PR sévère.";Méthotrexate, Hydroxychloroquine, Adalimumab;OUI (MTX hebdomadaire ou biothérapie);MTX + Hydroxychloroquine ± Corticoïdes ± Biothérapie;Immunosuppression (risque infectieux), corticothérapie chronique (supplémentation), atteinte pulmonaire/rénale/cardiaque selon maladie, maintien/arrêt MTX controversé
+MICI (Crohn / RCH);2;"A07EC02 (mésalazine)
+L04AX03 (méthotrexate)
+L04AX01 (azathioprine)
+L04AB02 (infliximab)
+L04AB04 (adalimumab)
+L04AA33 (védolizumab)
+L04AC05 (ustekinumab)
+A07AA11 (rifaximine)";"SEUL SUFFIT : Mésalazine = quasi-pathognomonique MICI (surtout RCH).
+Biothérapie digestive (védolizumab, infliximab) = MICI sévère.
+Association azathioprine + biothérapie = MICI réfractaire.";Mésalazine (Pentasa, Rowasa), Védolizumab (Entyvio);OUI (mésalazine = MICI quasi-certaine);Mésalazine ± Azathioprine ± Corticoïdes ± Biothérapie;Corticothérapie chronique, immunosuppression, dénutrition, risque occlusif/perforatif, anémie chronique
+TRANSPLANTATION;;;;;;;
+Patient transplanté;3;"L04AD01 (ciclosporine)
+L04AD02 (tacrolimus)
+L04AA06 (mycophénolate)
+L04AX01 (azathioprine)
+H02AB (corticoïdes faible dose chronique)";"ASSOCIATION NÉCESSAIRE : Bithérapie ou trithérapie immunosuppressive = transplanté.
+Tacrolimus + mycophénolate + prednisone = trithérapie classique.
+Ciclosporine = transplantation ou auto-immunité sévère.";Tacrolimus (Prograf), Mycophénolate (Cellcept), Ciclosporine (Néoral);OUI pour tacrolimus + mycophénolate (quasi-pathognomonique);Tacrolimus + Mycophénolate + Prednisone faible dose;CRITIQUE : taux résiduels à vérifier, risque infectieux majeur, néphrotoxicité, interactions médicamenteuses nombreuses, pas d'arrêt immunosuppresseurs
+HÉMATOLOGIQUE;;;;;;;
+Syndromes myéloprolifératifs;3;"L01XX35 (anagrélide)
+L01XX05 (hydroxycarbamide)
+L01EJ01 (ruxolitinib/Jakavi)";"SEUL SUFFIT : Anagrélide = thrombocytémie essentielle.
+Hydroxycarbamide = SMP ou drépanocytose.
+Ruxolitinib = myélofibrose/PV.";Anagrélide, Hydroxycarbamide, Ruxolitinib;OUI;"Hydroxycarbamide ± Aspirine
+Ruxolitinib (myélofibrose)";NFS récente, risque thrombotique/hémorragique, splénomégalie, polyglobulie à normaliser avant chirurgie
+MTEV sous anticoagulant;2;"B01AF01 (rivaroxaban)
+B01AF02 (apixaban)
+B01AE07 (dabigatran)
+B01AA (AVK)
+B01AB (HBPM)";"Le profil MTEV se distingue de la FA par l'ABSENCE d'antiarythmique associé.
+Anticoagulant seul, sans amiodarone/flécaïnide/sotalol = MTEV probable.
+Anticoagulant + antiarythmique = FA.";Apixaban, Rivaroxaban (sans antiarythmique associé);NON (même médicaments que FA, c'est l'association qui distingue);AOD ou AVK seul, durée limitée (3-6 mois) ou au long cours;Durée anticoagulation, fenêtre péri-op, relais HBPM si nécessaire, risque récidive
+VIH / INFECTIEUX CHRONIQUE;;;;;;;
+VIH;2;"J05AR (associations fixes antirétrovirales)
+J05AG (INNTI)
+J05AJ (inhibiteurs d'intégrase)
+J05AE (inhibiteurs de protéase)";"SEUL SUFFIT : Toute trithérapie antirétrovirale = VIH.
+Bictégravir/emtricitabine/TAF (Biktarvy) = association la plus fréquente.
+Dolutégravir = inhibiteur d'intégrase très prescrit.";Biktarvy, Triumeq, Dovato;OUI (tout ARV);2 INTI + 1 INI (ou INNTI ou IP);Interactions médicamenteuses (IP++), complications métaboliques, charge virale/CD4, précautions AES
+Hépatite B chronique;2;"J05AF08 (entécavir)
+J05AF07 (ténofovir)";"SEUL SUFFIT (hors contexte VIH) : Entécavir = VHB.
+Ténofovir seul = VHB (ou PrEP VIH).";Entécavir, Ténofovir;OUI (dans contexte non-VIH);Entécavir ou Ténofovir au long cours;Bilan hépatique, risque réactivation si arrêt, évaluer fibrose
+Hépatite C (traitée);2;J05AP57 (glécaprévir/pibrentasvir);SEUL SUFFIT : AAD anti-VHC = hépatite C (en cours de traitement ou récente).;Maviret (glécaprévir/pibrentasvir);OUI;Traitement curatif 8-12 semaines;Évaluer fibrose résiduelle, guérison virologique, hépatopathie sous-jacente
+ONCOLOGIQUE;;;;;;;
+Cancer du sein;2;"L02BA01 (tamoxifène)
+L02BG (inhibiteurs aromatase : létrozole, anastrozole, exémestane)
+L02BG06 (fulvestrant)
+L01EH (anti-HER2 : trastuzumab)";"SEUL SUFFIT : Tamoxifène ou inhibiteur d'aromatase = cancer du sein hormonosensible.
+Trastuzumab = HER2+ (risque cardiotoxicité).";Tamoxifène, Létrozole, Anastrozole;OUI;Hormonothérapie 5-10 ans ± chimiothérapie ± anti-HER2;FEVG si trastuzumab, risque thromboembolique (tamoxifène), ostéoporose (IA), état nutritionnel
+Cancer de prostate;2;"L02AE (agonistes GnRH : triptoréline, leuproréline, goséréline)
+L02BB (anti-androgènes : bicalutamide)
+L02BX03 (abiratérone)
+L02BB04 (enzalutamide)
+L02BB05 (apalutamide)
+L02AE05 (dégarélix)";"SEUL SUFFIT : Agoniste GnRH ou anti-androgène = cancer de prostate.
+Abiratérone/enzalutamide = cancer résistant à la castration.";Triptoréline, Leuproréline, Bicalutamide, Enzalutamide;OUI;"Agoniste GnRH ± Anti-androgène
+Métastatique : + Abiratérone/Enzalutamide ± Chimio";Risque cardiovasculaire accru (privation androgénique), ostéoporose, syndrome métabolique, anémie
+DOULEUR CHRONIQUE;;;;;;;
+Douloureux chronique;0;"N02AA01 (morphine)
+N02AA05 (oxycodone)
+N02AB03 (fentanyl patch)
+N03AX12 (gabapentine)
+N03AX16 (prégabaline)
+N06AA09 (amitriptyline)
+N02AX02 (tramadol)";"ASSOCIATION NÉCESSAIRE : Opioïdes forts au long cours + co-analgésiques neuropathiques = douleur chronique.
+Gabapentine/prégabaline SEULS = douleur neuropathique (ou épilepsie pour le contexte).
+Patch de fentanyl = douleur chronique (cancer ou non-cancer).
+PAS D'INCIDENCE DIRECTE SUR ASA (sauf tolérance/dépendance modifiant la gestion analgésique).";Morphine LP, Oxycodone LP, Fentanyl patch, Prégabaline;NON pour l'ASA (mais important pour gestion analgésique péri-op);"Opioïde fort LP + Prégabaline/Gabapentine + Amitriptyline
+± AINS ± Paracétamol";Tolérance aux opioïdes (doses plus élevées en péri-op), risque sevrage si arrêt brutal, titration morphine majorée, prégabaline/gabapentine à maintenir, ALR+++
+Patient sous substitution opiacée;2;"N07BC01 (buprénorphine/Subutex)
+N07BC02 (méthadone)
+N07BC51 (buprénorphine/naloxone)";"SEUL SUFFIT : Buprénorphine sublinguale ou méthadone = substitution opiacée.
+Buprénorphine patch = douleur chronique (à distinguer).
+Méthadone sirop = substitution.";Buprénorphine (Subutex), Méthadone;OUI;Buprénorphine ou Méthadone (dose unique quotidienne);NE PAS ARRÊTER, buprénorphine = agoniste partiel (antagonise morphine), gestion analgésique spécifique, méthadone : allongement QT, discussion avec addictologue
+MUCOVISCIDOSE / MALADIES RARES;;;;;;;
+Mucoviscidose;3;"R07AX30 (ivacaftor)
+A09AA02 (multienzymes pancréatiques)
+R05CB01 (acétylcystéine)
+R03 (bronchodilatateurs multiples)";"ASSOCIATION NÉCESSAIRE : Enzymes pancréatiques + bronchodilatateurs + ivacaftor = mucoviscidose.
+Ivacaftor seul = mucoviscidose confirmée.
+Enzymes pancréatiques seules = insuffisance pancréatique (cause variable).";Ivacaftor (Kalydeco), Enzymes pancréatiques (Créon);OUI pour ivacaftor (pathognomonique);Ivacaftor/Tezacaftor + Créon + Bronchodilatateurs + Antibiotiques + Kiné;CRITIQUE : atteinte respiratoire + digestive + nutritionnelle, EFR, risque infectieux, colonisation bactérienne, diabète secondaire
+Drépanocytose;3;L01XX05 (hydroxycarbamide);"CONTEXTE NÉCESSAIRE : Hydroxycarbamide = drépanocytose OU syndrome myéloprolifératif.
+Distinction par l'âge et le profil du patient.
+Patient jeune + hydroxycarbamide = drépanocytose probable.";Hydroxycarbamide (Siklos, Hydrea);NON (contexte clinique nécessaire);Hydroxycarbamide ± Transfusions ± Folates;CRITIQUE : risque CVO péri-op, oxygénation/hydratation/réchauffement, éviter garrot prolongé, Hb cible, protocole transfusionnel, dépistage RAI
