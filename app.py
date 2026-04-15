@@ -2570,7 +2570,7 @@ st.markdown("</div>", unsafe_allow_html=True)
 # =========================================================
 # INTERFACE PRINCIPALE
 # =========================================================
-st.title("Analyse de risque pré-opératoire")
+st.title("IA CARE - système d'aide à la décision")
 
 col_input, col_scan = st.columns(2)
 
