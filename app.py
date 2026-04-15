@@ -2839,16 +2839,13 @@ if avk_detecte:
     st.divider()
     st.header("Anti-vitamine K (AVK)")
 
-
-
-
     st.info("""
-    ### Objectif INR péri-opératoire (AVK)
+### Objectif INR péri-opératoire (AVK)
 
-    Objectif standard :
+Objectif standard :
 - INR < 1,5
 - INR < 1,2 si neurochirurgie
--  Exception : chirurgie à faible risque hémorragique → INR en zone thérapeutique possible
+- Exception : chirurgie à faible risque hémorragique → INR en zone thérapeutique possible
 
 ---
 
@@ -2856,19 +2853,19 @@ if avk_detecte:
 
 Si ≥ 1 facteur présent → **augmenter la cible INR de +0,5**
 
-- Fibrillation atriale  
-- Dysfonction VG (FEVG < 35 %)  
-- État hypercoagulable  
+- Fibrillation atriale
+- Dysfonction VG (FEVG < 35 %)
+- État hypercoagulable
 - Événement thrombotique récent (< 12 mois : AVC, TVP, EP)
 
 ---
 
 ### Valves mécaniques
 
-- Valve mitrale / tricuspide / ancienne génération  
+- Valve mitrale / tricuspide / ancienne génération
   → **INR cible = 3 (2,5 – 3,5)**
 
-- Valve aortique moderne (bileaflet)  
+- Valve aortique moderne (bileaflet)
   → **INR cible = 2,5 (2 – 3)**
 
 ---
@@ -2876,25 +2873,30 @@ Si ≥ 1 facteur présent → **augmenter la cible INR de +0,5**
 ### Autres indications (sans valve mécanique)
 
 **INR cible 2 – 3 :**
-- Fibrillation atriale non valvulaire  
-- Prévention et traitement TVP / EP  
-- Chirurgie de hanche (prévention TVP/EP)  
+- Fibrillation atriale non valvulaire
+- Prévention et traitement TVP / EP
+- Chirurgie de hanche (prévention TVP/EP)
 - Syndrome des antiphospholipides (selon terrain)
 
 **INR cible 3 – 4,5 :**
 - Valvulopathie mitrale avec :
-  - dilatation oreillette gauche  
-  - contraste spontané  
+  - dilatation oreillette gauche
+  - contraste spontané
   - thrombus intra-auriculaire gauche
 """)
 
-
-
-
-
     valves = st.checkbox("Valve mécanique")
     acfa_atcd = st.checkbox("ACFA avec antécédent embolique")
-    mtev_hr = st.checkbox("MTEV < 3 mois")
+    mtev_hr = st.checkbox("MTEV à haut risque")
+
+    if mtev_hr:
+        st.markdown("""
+**Rappel MTEV à haut risque :**
+- TVP proximale et/ou EP < 3 mois
+- MTEV récidivante idiopathique (≥ 2 épisodes, dont ≥ 1 sans facteur déclenchant)
+
+*Discuter la mise en place d’un filtre cave au cas par cas.*
+""")
 
     st.subheader("INR")
 
@@ -2914,8 +2916,22 @@ Si ≥ 1 facteur présent → **augmenter la cible INR de +0,5**
         )
 
 
+    ctx = {}
 
+    ctx["valve_mecanique"] = valves
+    ctx["acfa_atcd"] = acfa_atcd
+    ctx["mtev_haut_risque"] = mtev_hr
+    ctx["inr_disponible"] = inr_disponible
 
+    
+
+    resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
+        txt=txt_final,
+        ref=ref,
+        atc_map=atc_map,
+        classe_map=classe_map,
+        ctx=ctx
+    )
 
 # =========================
 # CONTEXTE PATIENT / CHIRURGIE
