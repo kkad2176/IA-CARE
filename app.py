@@ -6,13 +6,16 @@ import pandas as pd
 import whisper
 import numpy as np
 import easyocr
-from PIL import Image
+from PIL import Image, ImageOps, ImageFilter
 from rapidfuzz import process, fuzz
 import unidecode
 import tempfile
 import re
+import io
+import fitz
 import copy
 import shutil
+import difflib
 
 from datetime import date, timedelta
 from collections import defaultdict
@@ -85,6 +88,267 @@ if os.path.exists(yaml_path):
     except Exception as e:
         st.warning(f"Impossible de charger regles_sfar.yaml : {e}")
 
+
+
+@st.cache_resource
+def get_whisper_model_cached(model_name="base"):
+    return whisper.load_model(model_name)
+
+
+@st.cache_resource
+def get_easyocr_reader_cached():
+    return easyocr.Reader(["fr"], gpu=False)
+
+
+def preprocess_image_for_ocr(image):
+    img = image.convert("L")
+    img = ImageOps.autocontrast(img)
+    img = img.filter(ImageFilter.MedianFilter(size=3))
+    img = img.point(lambda p: 255 if p > 170 else 0)
+    return img
+
+
+def extraire_texte_tesseract_image(image):
+    return ""
+
+def extraire_lignes_ocr_image(image):
+    lignes = []
+
+    try:
+        reader = get_easyocr_reader_cached()
+        results = reader.readtext(np.array(image.convert("RGB")), detail=1, paragraph=False)
+        lignes.extend(regrouper_ocr_en_lignes(results, tol_y=18))
+    except Exception:
+        pass
+
+    lignes_finales = []
+    vus = set()
+    for ligne in lignes:
+        l = str(ligne).strip()
+        if not l:
+            continue
+        key = normalize_text(l)
+        if key not in vus:
+            vus.add(key)
+            lignes_finales.append(l)
+
+    return lignes_finales
+
+
+
+def afficher_pdf(uploaded_pdf):
+    contenu = uploaded_pdf.getvalue()
+    doc = fitz.open(stream=contenu, filetype="pdf")
+
+    for i, page in enumerate(doc):
+        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
+        image = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
+        st.image(
+            image,
+            caption=f"Page {i+1}",
+            use_container_width=True
+        )
+
+
+
+def extraire_texte_pdf(uploaded_pdf):
+    contenu = uploaded_pdf.getvalue()
+    doc = fitz.open(stream=contenu, filetype="pdf")
+    lignes = []
+
+    for page in doc:
+        texte_natif = page.get_text("text") or ""
+        if texte_natif.strip():
+            lignes.extend(decouper_texte_en_entrees_medicaments(texte_natif))
+
+        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
+        image = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
+        lignes.extend(extraire_lignes_ocr_image(image))
+
+    lignes_finales = []
+    vus = set()
+    for ligne in lignes:
+        l = str(ligne).strip()
+        if not l:
+            continue
+        key = normalize_text(l)
+        if key not in vus:
+            vus.add(key)
+            lignes_finales.append(l)
+
+    return lignes_finales
+
+
+def corriger_texte_vocal_medicamenteux(texte, ref):
+    if not texte:
+        return ""
+
+    txt = normalize_text(texte)
+
+    # petites normalisations phonétiques simples
+    txt = txt.replace(" PH ", " F ")
+    txt = txt.replace(" Y ", " I ")
+    txt = txt.replace("-", " ")
+    txt = re.sub(r"\s+", " ", txt).strip()
+
+    # on corrige mot par mot avec tolérance orthographique
+    mots = txt.split()
+    mots_corriges = []
+
+    # petits mots à ne pas toucher
+    mots_a_ignorer = {
+        "LE", "LA", "LES", "DE", "DU", "DES", "ET", "OU", "UN", "UNE",
+        "MATIN", "MIDI", "SOIR", "JOUR", "JOURS", "SI", "BESOIN"
+    }
+
+    for mot in mots:
+        mot_clean = normalize_text(mot)
+
+        if len(mot_clean) < 4 or mot_clean in mots_a_ignorer:
+            mots_corriges.append(mot_clean)
+            continue
+
+        # variantes phonétiques très simples
+        variantes = {
+            mot_clean,
+            mot_clean.replace("Z", "S"),
+            mot_clean.replace("PH", "F"),
+            mot_clean.replace("Y", "I"),
+            mot_clean.replace("C", "K"),
+        }
+
+        meilleur_nom = None
+        meilleur_score = 0
+
+        for variante in variantes:
+            match = process.extractOne(variante, ref, scorer=fuzz.ratio)
+            if match:
+                nom_match, score_match, _ = match
+                if score_match > meilleur_score:
+                    meilleur_nom = nom_match
+                    meilleur_score = score_match
+
+        # seuil voix un peu plus souple
+        if meilleur_nom and meilleur_score >= 82:
+            mots_corriges.append(meilleur_nom)
+        else:
+            mots_corriges.append(mot_clean)
+
+    texte_corrige = " ".join(mots_corriges)
+    texte_corrige = re.sub(r"\s+", " ", texte_corrige).strip()
+    return texte_corrige
+
+
+def transcrire_audio_robuste(uploaded_audio):
+    audio_path = None
+    try:
+        model = get_whisper_model_cached("small")  
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+            tmp.write(uploaded_audio.getvalue())
+            audio_path = tmp.name
+
+        result = model.transcribe(
+            audio_path,
+            language="fr",
+            fp16=False,
+            initial_prompt=(
+                "Liste de médicaments en français. "
+                "Pradaxa, Bisoprolol, Ramipril, Kardegic, Lasilix, "
+                "Amlodipine, Atorvastatine, Metformine, Levothyrox, "
+                "Eliquis, Xarelto, Previscan, Sintrom."
+            )
+        )
+
+        texte = (result or {}).get("text", "")
+        return extraire_medicaments_depuis_transcription_vocale(texte, ref)
+
+    finally:
+        try:
+            if audio_path:
+                os.unlink(audio_path)
+        except Exception:
+            pass
+
+def extraire_medicaments_depuis_transcription_vocale(texte, ref):
+    if not texte:
+        return []
+
+    txt = normalize_text(texte)
+
+    # =========================
+    # SUPPRESSION DES DOSAGES
+    # =========================
+    txt = re.sub(r"\b\d+[.,]?\d*\s*(MG|G|MCG|UG|ML|UI|MUI)\b", " ", txt)
+    txt = re.sub(r"\b\d+[.,]?\d*\b", " ", txt)
+
+    # mots de posologie à ignorer
+    txt = re.sub(
+        r"\b(MG|G|MCG|UG|ML|UI|MUI|COMPRIME|COMPRIMES|GELULE|GELULES|AMP|AMPOULE|SACHET|SACHETS|MATIN|MIDI|SOIR|JOUR|JOURS|PAR|FOIS|BESOIN)\b",
+        " ",
+        txt
+    )
+
+    txt = re.sub(r"[^A-Z0-9\s\-]", " ", txt)
+    txt = re.sub(r"\s+", " ", txt).strip()
+
+    mots = txt.split()
+    candidats = []
+    vus = set()
+
+    # 1 mot
+    for i in range(len(mots)):
+        candidats.append(mots[i])
+
+    # 2 mots
+    for i in range(len(mots) - 1):
+        candidats.append(mots[i] + " " + mots[i + 1])
+
+    # 3 mots
+    for i in range(len(mots) - 2):
+        candidats.append(mots[i] + " " + mots[i + 1] + " " + mots[i + 2])
+
+    meds_trouves = []
+
+    mots_a_ignorer = {
+        "LE", "LA", "LES", "DE", "DU", "DES", "ET", "OU",
+        "UN", "UNE", "AVEC", "SANS", "PENDANT"
+    }
+
+    for cand in candidats:
+        cand = normalize_text(cand)
+
+        if len(cand) < 4:
+            continue
+        if cand in mots_a_ignorer:
+            continue
+
+        variantes = {
+            cand,
+            cand.replace("Z", "S"),
+            cand.replace("PH", "F"),
+            cand.replace("Y", "I"),
+        }
+
+        meilleur_nom = None
+        meilleur_score = 0
+
+        for variante in variantes:
+            match = process.extractOne(variante, ref, scorer=fuzz.WRatio)
+            if match:
+                nom_match, score_match, _ = match
+                if score_match > meilleur_score:
+                    meilleur_nom = nom_match
+                    meilleur_score = score_match
+
+        if meilleur_nom and meilleur_score >= 86:
+            nom_norm = normalize_text(meilleur_nom)
+            if nom_norm not in vus:
+                vus.add(nom_norm)
+                meds_trouves.append(meilleur_nom)
+
+    return meds_trouves
+
 st.markdown("""
     <style>
     .sticky-header {
@@ -106,6 +370,7 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 # ===================================================
 # OUTILS GENERAUX
@@ -211,7 +476,6 @@ def charger_yaml_regles():
 
 
 
-
 ALIASES = {
     "sraa": "sraa",
     "iec": "sraa",
@@ -274,7 +538,6 @@ def trouver_regle_par_categorie(data, categorie):
 
 
 
-
 def valider_bloc_regle(bloc):
     if not isinstance(bloc, dict):
         return False, "Le bloc proposé n'est pas un dictionnaire."
@@ -299,12 +562,25 @@ def valider_bloc_regle(bloc):
 
 
 
+
 def clean_medicament_name(name):
     if not name:
         return name
 
     pattern = r"\b(BOUFFEES?|INHALATIONS?|CP|COMPRIMES?|GELULES?|SPRAY|AEROSOL)\b"
     return re.sub(pattern, "", name, flags=re.IGNORECASE).strip()
+
+
+def nettoyer_nom_affichage_medicament(name):
+    if not name:
+        return ""
+
+    s = normalize_text(name)
+    s = DOSE_PATTERN.sub("", s)
+    s = re.sub(r"\b\d+[.,]?\d*\b", " ", s)
+    s = re.sub(r"\b(MG|G|MCG|UG|ML|UI|MUI|CP|COMPRIME|COMPRIMES|GELULE|GELULES|AMP|AMPOULE|SACHET|SACHETS)\b", " ", s)
+    s = re.sub(r"\s+", " ", s).strip(" -,:;")
+    return clean_medicament_name(s)
 
 def parser_commande_chat(message):
     msg = " ".join(str(message).strip().lower().split())
@@ -464,26 +740,19 @@ def est_ligne_non_medicamenteuse(ligne):
         return True
 
     stopwords = [
-    "DOCTEUR", "DR", "CARDIOLOGUE",
-    "TEL", "TELEPHONE", "FAX", "EMAIL", "MAIL",
-
-    "PLACE", "RUE", "AVENUE", "BOULEVARD",
-    "PARIS", "LYON", "MARSEILLE", "TOULOUSE", "LILLE",
-
-    "SIGNATURE", "CABINET", "MADAME", "MONSIEUR", "MME", "MR",
-    "ORDONNANCE", "DATE", "MEDECIN", "RENOUVELABLE",
-
-    "MATIN", "MIDI", "SOIR", "JOUR", "JOURS", "SEMAINE",
-
-    "CLINIQUE", "HOPITAL", "SERVICE", "TIMONE",
-
-    "PRISE", "POSOLOGIE", "ADMINISTRATION",
-    "SI BESOIN", "AU BESOIN"
-
+        "DOCTEUR", "DR", "CARDIOLOGUE", "NICE"
+        "TEL", "TELEPHONE", "FAX", "EMAIL", "MAIL",
+        "PLACE", "RUE", "AVENUE", "BOULEVARD",
+        "PARIS", "LYON", "MARSEILLE", "TOULOUSE", "LILLE",
+        "SIGNATURE", "CABINET", "MADAME", "MONSIEUR", "MME", "MR",
+        "ORDONNANCE", "DATE", "MEDECIN", "RENOUVELABLE", 
+        "MATIN", "MIDI", "SOIR", "JOUR", "JOURS", "SEMAINE", "SEMAINES",
+        "CLINIQUE", "HOPITAL", "SERVICE", "TIMONE",
+        "PRISE", "POSOLOGIE", "ADMINISTRATION",
+        "SI BESOIN", "AU BESOIN"
     ]
 
     return any(f" {sw} " in f" {l} " for sw in stopwords)
-
 
 def nettoyer_ligne_medicament(ligne):
     l = normalize_text(ligne)
@@ -502,6 +771,7 @@ def nettoyer_ligne_medicament_manuscrit(ligne):
     l = re.sub(r"[^A-Z0-9\s\-]", " ", l)
     l = re.sub(r"\s+", " ", l).strip()
     return l
+
 
 
 
@@ -818,7 +1088,20 @@ def moteur_yaml(atc, ctx):
 
     return None
 
+def moteur_global(atc, ctx):
+    atc_clean = str(atc or "").upper().strip()
+    ctx["corticoides"] = atc_clean.startswith("H02") or ctx.get("corticoides", False)
 
+    ans_yaml = moteur_yaml(atc_clean, ctx)
+    if ans_yaml:
+        return ans_yaml
+
+    return {
+        "action": "POURSUITE",
+        "jour": "J0",
+        "note": "Aucune règle spécifique retrouvée dans le référentiel pour ce médicament.",
+        "source": ""
+    }
 # =========================================================
 # regles SFAR
 # =========================================================
@@ -832,6 +1115,8 @@ def moteur_expert_sfar(atc, ctx):
     """
     atc = str(atc).upper().strip()
 
+    # ----------------------------
+    # Helpers contexte
     # ----------------------------
     def u(v):
         return str(v or "").upper().strip()
@@ -1314,15 +1599,6 @@ def moteur_expert_sfar(atc, ctx):
 
 
 
-def moteur_global(atc, ctx):
-    atc_clean = str(atc or "").upper().strip()
-    ctx["corticoides"] = atc_clean.startswith("H02")
-
-    ans_yaml = moteur_yaml(atc, ctx)
-    if ans_yaml:
-        return ans_yaml
-
-    return moteur_expert_sfar(atc, ctx)
 
 def get_classe(atc, classe_map):
     if not atc:
@@ -1433,7 +1709,7 @@ def ressemble_a_un_medicament(txt):
     mots_interdits = [
         "MEDECIN", "DOCTEUR", "DR", "GENERALISTE", "DERMATOLOGUE",
         "CABINET", "CENTRE", "RUE", "AVENUE", "BOULEVARD",
-        "TEL", "TELEPHONE", "MAIL",
+        "TEL", "TELEPHONE", "MAIL","NICE",
         "APPLICATION", "APPLIQUER", "BOUFFEE", "BOUFFEES",
         "GELULE", "GELULES", "COMPRIME", "COMPRIMES",
         "MATIN", "MIDI", "SOIR", "JOUR", "JOURS",
@@ -1442,11 +1718,6 @@ def ressemble_a_un_medicament(txt):
     ]
 
     if any(mot in tn for mot in mots_interdits):
-        return False
-
-  
-    # lignes avec chiffres = souvent posologie, dose, adresse
-    if any(ch.isdigit() for ch in t):
         return False
 
 
@@ -1536,7 +1807,7 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
         # CAS 1 — PAS DE MATCH BASE FIABLE
         # =========================
         if not meilleur_nom or meilleur_score < seuil:
-            nom_affiche = clean_medicament_name(brute if brute else nettoyee)
+            nom_affiche = nettoyer_nom_affichage_medicament(brute if brute else nettoyee)
 
             if not ressemble_a_un_medicament(nom_affiche):
                 continue
@@ -1565,7 +1836,7 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
         if mots_significatifs:
             if not any(m in ligne_upper for m in mots_significatifs):
                 if meilleur_score < 92:
-                    nom_affiche = clean_medicament_name(
+                    nom_affiche = nettoyer_nom_affichage_medicament(
                         extraire_nom_medicament_debut_ligne(brute if brute else nettoyee)
                     )
 
@@ -1595,7 +1866,7 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
         # CAS 2 — MÉDICAMENT RECONNU MAIS PAS D’ATC
         # =========================
         if not atc or str(atc).upper() == "NAN":
-            nom_affiche = clean_medicament_name(meilleur_nom)
+            nom_affiche = nettoyer_nom_affichage_medicament(meilleur_nom)
 
             cle_resultat = ("INCONNU", normalize_text(nom_affiche))
             if cle_resultat in vus_resultats:
@@ -1634,7 +1905,7 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
 
         atc_affiche = atc
         classe_affiche = get_classe(atc_affiche, classe_map)
-        nom_resultat = clean_medicament_name(meilleur_nom)
+        nom_resultat = nettoyer_nom_affichage_medicament(brute or meilleur_nom)
 
         cle_resultat = atc_affiche if atc_affiche else normalize_text(nom_resultat)
         if cle_resultat in vus_resultats:
@@ -1647,7 +1918,7 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
             "Classe": ans.get("classe", classe_affiche),
             "Action": ans.get("action", "POURSUITE"),
             "Date": ans.get("jour", "J0"),
-            "Note": ans.get("note", "-"),
+            "Note": ans.get("note") or ans.get("precision") or "-",
             "Lien": str(ans.get("source", "")).strip()
         })
 
@@ -1847,6 +2118,62 @@ def inferer_profils_structures(codes_atc_detectes, df_sentinelles_ready, df_prof
         })
 
     return pd.DataFrame(rows).sort_values("Score", ascending=False).head(3).reset_index(drop=True)
+
+#=========================================================
+# ASSISTANT INTELLIGENT & MODIFICATION YAML
+# =========================================================
+def appliquer_modification_yaml(intent, categorie_cible, nouveau_bloc_dict=None):
+    file_path = os.path.join(BASE_DIR, "regles_sfar.yaml")
+
+    try:
+        data = charger_yaml_regles()
+        regles = data.get("regles_medicaments", [])
+
+        idx, ancienne_regle = trouver_regle_par_categorie(data, categorie_cible)
+
+        if intent in ["add_rule", "update_rule"]:
+            ok, err = valider_bloc_regle(nouveau_bloc_dict)
+            if not ok:
+                return False, err
+
+        if intent == "update_rule":
+            if idx is None:
+                return False, f"Règle introuvable : {categorie_cible}"
+            regles[idx] = nouveau_bloc_dict
+
+        elif intent == "add_rule":
+            regles.append(nouveau_bloc_dict)
+
+        elif intent == "delete_rule":
+            if idx is None:
+                return False, f"Règle introuvable : {categorie_cible}"
+            regles.pop(idx)
+
+        else:
+            return False, f"Intent inconnu : {intent}"
+
+        data["regles_medicaments"] = regles
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, allow_unicode=True, sort_keys=False, indent=2)
+
+        with open(file_path, "r", encoding="utf-8") as f:
+            yaml.safe_load(f)
+
+        return True, "Modification enregistrée."
+
+    except Exception as e:
+        return False, str(e)
+
+# =========================================================
+# CHAT DANS LA SIDEBAR
+# =========================================================
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+if "proposition_ia" not in st.session_state:
+    st.session_state.proposition_ia = None
 
 # =========================================================
 # SIDEBAR
@@ -2096,61 +2423,7 @@ with st.sidebar:
 
   
     
-#=========================================================
-# ASSISTANT INTELLIGENT & MODIFICATION YAML
-# =========================================================
-def appliquer_modification_yaml(intent, categorie_cible, nouveau_bloc_dict=None):
-    file_path = os.path.join(BASE_DIR, "regles_sfar.yaml")
 
-    try:
-        data = charger_yaml_regles()
-        regles = data.get("regles_medicaments", [])
-
-        idx, ancienne_regle = trouver_regle_par_categorie(data, categorie_cible)
-
-        if intent in ["add_rule", "update_rule"]:
-            ok, err = valider_bloc_regle(nouveau_bloc_dict)
-            if not ok:
-                return False, err
-
-        if intent == "update_rule":
-            if idx is None:
-                return False, f"Règle introuvable : {categorie_cible}"
-            regles[idx] = nouveau_bloc_dict
-
-        elif intent == "add_rule":
-            regles.append(nouveau_bloc_dict)
-
-        elif intent == "delete_rule":
-            if idx is None:
-                return False, f"Règle introuvable : {categorie_cible}"
-            regles.pop(idx)
-
-        else:
-            return False, f"Intent inconnu : {intent}"
-
-        data["regles_medicaments"] = regles
-
-        with open(file_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, allow_unicode=True, sort_keys=False, indent=2)
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            yaml.safe_load(f)
-
-        return True, "Modification enregistrée."
-
-    except Exception as e:
-        return False, str(e)
-
-# =========================================================
-# CHAT DANS LA SIDEBAR
-# =========================================================
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "proposition_ia" not in st.session_state:
-    st.session_state.proposition_ia = None
 
 with st.sidebar:
     st.divider()
@@ -2233,6 +2506,7 @@ with st.sidebar:
                 }
 
 
+
 # Proposition en attente
 if st.session_state.proposition_ia:
     prop = st.session_state.proposition_ia
@@ -2296,24 +2570,31 @@ st.markdown("</div>", unsafe_allow_html=True)
 # =========================================================
 # INTERFACE PRINCIPALE
 # =========================================================
-st.title("IA CARE Analyse de risque")
+st.title("Analyse de risque pré-opératoire")
 
 col_input, col_scan = st.columns(2)
 
 with col_input:
-    audio = st.audio_input("Dictée Vocale")
+    audio = st.audio_input(" Dictée vocale, veuillez parler clairement et lentement, en énonçant les médicaments un par un.")
 
 with col_scan:
-    photo = st.file_uploader("Scan Ordonnance", type=["jpg", "png", "jpeg"])
+    photo = st.file_uploader("Scan Ordonnance ou PDF", type=["jpg", "png", "jpeg", "pdf"])
 
 if photo is not None:
     try:
-        img_preview = Image.open(photo).convert("RGB")
-        st.subheader("Ordonnance scannée")
-        st.image(img_preview, caption="Aperçu de l'ordonnance", use_container_width=True)
-        photo.seek(0)
+        if str(getattr(photo, "type", "")).lower() == "application/pdf":
+            st.subheader("Ordonnance scannée")
+            afficher_pdf(photo)
+            photo.seek(0)
+        else:
+            img_preview = Image.open(photo).convert("RGB")
+            st.subheader("Ordonnance scannée")
+            st.image(img_preview, caption="Aperçu de l'ordonnance", use_container_width=True)
+            photo.seek(0)
     except Exception as e:
-        st.warning(f"Impossible d'afficher l'image : {e}")
+        st.warning(f"Impossible d'afficher le document : {e}")
+
+
 
 if "txt" not in st.session_state:
     st.session_state.txt = ""
@@ -2331,8 +2612,7 @@ manual_meds = st.text_area(
     "Saisie manuelle des médicaments",
     value=st.session_state.manual_meds_buffer,
     height=120,
-    key="manual_meds_input",
-    placeholder="Exemple :\nAtorvastatine 20 mg\nBisoprolol 5 mg\nRamipril 2,5 mg\nKardegic 75 mg"
+    placeholder="Exemple :\nAtorvastatine\nBisoprolol\nRamipril\nKardegic"
 )
 
 col_manual_1, col_manual_2 = st.columns([1, 1])
@@ -2349,36 +2629,43 @@ with col_manual_2:
         st.session_state.manual_meds_validated = ""
         st.rerun()
 
+
 if audio and st.button("Transcrire Voix"):
     try:
-        model = whisper.load_model("base")
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-            tmp.write(audio.getvalue())
-            result = model.transcribe(
-                tmp.name,
-                language="fr",
-                initial_prompt="Ramipril, Kardegic, Lasilix"
-            )
-
-            texte = result["text"]
-            lignes = decouper_texte_en_entrees_medicaments(texte)
-
-            st.session_state.txt = "\n".join(lignes)
-            st.session_state.ocr_lines = lignes
-
+        lignes = transcrire_audio_robuste(audio)
+        st.session_state.txt = "\n".join(lignes)
+        st.session_state.ocr_lines = lignes
     except Exception as e:
         st.error(f"Erreur transcription audio : {e}")
 
-if photo and st.button("Lancer Scan Photo"):
+
+
+if st.session_state.get("txt"):
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Effacer la transcription"):
+            st.session_state.txt = ""
+            st.session_state.ocr_lines = []
+            st.rerun()
+
+   
+
+
+if photo and st.button("Lancer Scan Document"):
     try:
-        reader = easyocr.Reader(["fr"])
-        img = Image.open(photo).convert("RGB")
-        results = reader.readtext(np.array(img), detail=1, paragraph=False)
-        st.session_state.ocr_lines = regrouper_ocr_en_lignes(results, tol_y=18)
-        st.session_state.txt = "\n".join(st.session_state.ocr_lines)
+        if str(getattr(photo, "type", "")).lower() == "application/pdf":
+            lignes = extraire_texte_pdf(photo)
+        else:
+            img = Image.open(photo).convert("RGB")
+            lignes = extraire_lignes_ocr_image(img)
+
+        st.session_state.ocr_lines = lignes
+        st.session_state.txt = "\n".join(lignes)
         photo.seek(0)
     except Exception as e:
-        st.error(f"Erreur OCR photo : {e}")
+        st.error(f"Erreur OCR document : {e}")
 
 st.write("---")
 
@@ -2405,6 +2692,9 @@ sraa_detecte = contexte_famille_detecte(
         "CANDESARTAN", "TELMISARTAN"
     ]
 )
+
+
+
 
 
 
@@ -2859,8 +3149,8 @@ else:
 
 
 
-# =========================
-# ANALYSE (TOUJOURS EXECUTEE)
+# =======================
+# ANALYSE 
 # =========================
 resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
     txt=txt_final,
@@ -2869,6 +3159,44 @@ resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
     classe_map=classe_map,
     ctx=ctx
 )
+
+
+# =========================
+# DETECTION IMIPRAMINIQUES
+# =========================
+imipraminiques_detectes = any(
+    str(r.get("Code ATC", "")).upper().strip() in ["N06AA04", "N06AA09"]
+    for r in resultats
+)
+
+
+
+
+if imipraminiques_detectes:
+    st.info("Antidépresseur imipraminique détecté")
+
+    atcd_cv_ui = st.radio(
+        "Patient avec antécédent cardiovasculaire ?",
+        ["Non", "Oui"],
+        help="Exemples : infarctus, angor, stent, insuffisance cardiaque, AVC, trouble du rythme."
+    )
+
+    ctx["atcd_cv"] = (atcd_cv_ui == "Oui")
+
+    # recalcul avec la réponse du médecin
+    resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
+        txt=txt_final,
+        ref=ref,
+        atc_map=atc_map,
+        classe_map=classe_map,
+        ctx=ctx
+    )
+
+
+
+
+
+
 
 
 
@@ -2911,8 +3239,39 @@ if resultats:
 
     df_final["Lien"] = df_final["Lien"].apply(format_lien_unique)
 
+    # =========================
+    # CALENDRIER
+    # =========================
+    st.subheader("Calendrier Patient")
 
+    au_moins_un_arret = False
 
+    for r in resultats:
+        if r["Action"] == "ARRET":
+            date_txt = str(r["Date"]).upper().strip()
+
+            jours = extraire_nb_jours(date_txt)
+            if jours is not None:
+                d_stop = date_op - timedelta(days=jours)
+                st.write(
+                    f"- **{r['Médicament']}** : dernière prise le **{d_stop.strftime('%d/%m/%Y')}**"
+                )
+                au_moins_un_arret = True
+                continue
+
+            match_h = re.search(r"(\d+)\s*H", date_txt)
+            if match_h:
+                heures = int(match_h.group(1))
+                st.write(
+                    f"- **{r['Médicament']}** : dernière prise à **H-{heures}** avant l’intervention"
+                )
+                au_moins_un_arret = True
+                continue
+
+    if au_moins_un_arret:
+        st.info("Poursuivre le reste du traitement jusqu'au jour de l'intervention avec un peu d'eau.")
+    else:
+        st.info("Aucun arrêt médicamenteux daté à planifier selon les règles actuelles.")
 
     st.divider()
 
@@ -2937,8 +3296,6 @@ if resultats:
     with col5:
         st.markdown("**ALR**")
         st.markdown(f"### {type_alr}")
-
-
 
     st.subheader("Tableau des recommandations")
 
@@ -3031,6 +3388,8 @@ if resultats:
             st.error(f"Erreur : {e}")
 
 
+
+
 #------- Profils pathologiques probables --------------------------
 st.subheader("Profils pathologiques probables")
 
@@ -3074,41 +3433,9 @@ if df_profils_patient is not None and not df_profils_patient.empty:
         )
 else:
     st.info("Aucun profil pathologique fort identifié à partir des médicaments détectés.")
-# =========================
-# CALENDRIER
-# =========================
-st.subheader("Calendrier Patient")
 
-au_moins_un_arret = False
 
-for r in resultats:
-    if r["Action"] == "ARRET":
-        date_txt = str(r["Date"]).upper().strip()
 
-        # Cas J-
-        jours = extraire_nb_jours(date_txt)
-        if jours is not None:
-            d_stop = date_op - timedelta(days=jours)
-            st.write(
-                f"- **{r['Médicament']}** : dernière prise le **{d_stop.strftime('%d/%m/%Y')}**"
-            )
-            au_moins_un_arret = True
-            continue
-
-        # Cas heures
-        match_h = re.search(r"(\d+)\s*H", date_txt)
-        if match_h:
-            heures = int(match_h.group(1))
-            st.write(
-                f"- **{r['Médicament']}** : dernière prise à **H-{heures}** avant l’intervention"
-            )
-            au_moins_un_arret = True
-            continue
-
-if au_moins_un_arret:
-    st.info("Poursuivre le reste du traitement jusqu'au jour de l'intervention avec un peu d'eau.")
-else:
-    st.info("Aucun arrêt médicamenteux daté à planifier selon les règles actuelles.")
 
 # =========================
 # QUESTIONNAIRE DE SATISFACTION
