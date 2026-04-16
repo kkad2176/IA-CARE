@@ -2991,98 +2991,87 @@ if "stress_chir" not in locals():
 
 
 
-
 if corticoide_detecte:
     st.divider()
-    corticoides_connus = st.checkbox("Contexte corticoïdes", key="ui_cortico_present")
 
-    if corticoides_connus:
-        st.info(
-            "Equivalence : Prednisone 5 mg = Méthylprednisolone 4 mg = "
-            "Hydrocortisone 20 mg = Dexaméthasone 0.75 mg = Cortisone 25 mg"
+    st.subheader("Contexte corticoïdes")
+
+    st.info(
+        "Equivalence : Prednisone 5 mg = Méthylprednisolone 4 mg = "
+        "Hydrocortisone 20 mg = Dexaméthasone 0.75 mg = Cortisone 25 mg"
+    )
+
+    
+    duree_cortico = st.selectbox(
+        "Durée du traitement corticoïde",
+        ["< 4 semaines", "≥ 4 semaines"],
+        key="ui_duree_cortico"
+    )
+    duree_sup_4sem = duree_cortico == "≥ 4 semaines"
+
+    dose_pred = st.number_input(
+        "Dose équivalente prednisone (mg/j)",
+        min_value=0.0,
+        step=0.5,
+        key="ui_dose_pred"
+    )
+    dose_pred_sup_5 = dose_pred >= 5
+
+ 
+
+
+    st.warning("""
+    **Interprétation clinique :**
+
+    - Corticothérapie ≥ 4 semaines et ≥ 5 mg prednisone :  
+      → risque de suppression surrénalienne, adapter selon le stress chirurgical (voir plus bas).
+
+    - Corticothérapie sans critère de risque :  
+      → poursuite simple, sans supplémentation.
+    """)
+
+
+
+
+    st.subheader("Stress chirurgical (corticoïdes)")
+    st.caption(
+        "Déterminé automatiquement à partir de l’intervention sélectionnée. "
+    )
+
+    stress_chir = "faible" if stress_cortico_faible else "modéré/élevé"
+
+    if stress_chir == "faible":
+        st.success("Faible")
+    else:
+        st.warning("Modéré / Élevé")
+
+    chirurgie_courte = False
+    post_op_jeun_sup_24h = False
+    reprise_precoce = False
+    complications_postop = False
+    obstetrique = False
+
+    if stress_chir == "modéré/élevé":
+        chirurgie_courte = st.checkbox(
+            "Chirurgie modérée courte avec reprise rapide",
+            key="ui_chirurgie_courte"
         )
-
-
-
-
-        st.warning("""
-        **Interprétation clinique :**
-
-        - Corticothérapie ≥ 4 semaines et ≥ 5 mg prednisone :  
-          → risque de suppression surrénalienne, adapter selon le stress chirurgical.
-
-        - Corticothérapie sans critère de risque :  
-          → poursuite simple, sans supplémentation.
-        """)
-
-
-
-        duree_cortico = st.selectbox(
-            "Durée du traitement corticoïde",
-            ["< 4 semaines", "≥ 4 semaines"],
-            key="ui_duree_cortico"
+        post_op_jeun_sup_24h = st.checkbox(
+            "Jeûne postopératoire > 24h",
+            key="ui_postop_jeun"
         )
-        duree_sup_4sem = duree_cortico == "≥ 4 semaines"
-
-        dose_pred = st.number_input(
-            "Dose équivalente prednisone (mg/j)",
-            min_value=0.0,
-            step=0.5,
-            key="ui_dose_pred"
+        reprise_precoce = st.checkbox(
+            "Reprise alimentaire < 24h",
+            key="ui_reprise_precoce"
         )
-        dose_pred_sup_5 = dose_pred >= 5
-
-        dose_hc = st.number_input(
-            "Dose équivalente hydrocortisone (mg/j)",
-            min_value=0.0,
-            step=1.0,
-            key="ui_dose_hc"
+        complications_postop = st.checkbox(
+            "Complications postopératoires",
+            key="ui_complications"
         )
-        dose_hc_inf_40 = dose_hc < 40
-        dose_hc_sup_40 = dose_hc >= 40
-
-        st.subheader("Stress chirurgical (corticoïdes)")
-        st.caption(
-            "Déterminé automatiquement à partir de l’intervention sélectionnée. "
-            "Pour les corticoïdes, cette catégorie correspond au stress chirurgical "
-            "et non au risque hémorragique."
+        obstetrique = st.checkbox(
+            "Accouchement / Césarienne",
+            key="ui_obstetrique"
         )
-
-        stress_chir = "faible" if stress_cortico_faible else "modéré/élevé"
-
-        if stress_chir == "faible":
-            st.success("Faible")
-        else:
-            st.warning("Modéré / Élevé")
-
-        chirurgie_courte = False
-        post_op_jeun_sup_24h = False
-        reprise_precoce = False
-        complications_postop = False
-        obstetrique = False
-
-        if stress_chir == "modéré/élevé":
-            chirurgie_courte = st.checkbox(
-                "Chirurgie modérée courte avec reprise rapide",
-                key="ui_chirurgie_courte"
-            )
-            post_op_jeun_sup_24h = st.checkbox(
-                "Jeûne postopératoire > 24h",
-                key="ui_postop_jeun"
-            )
-            reprise_precoce = st.checkbox(
-                "Reprise alimentaire < 24h",
-                key="ui_reprise_precoce"
-            )
-            complications_postop = st.checkbox(
-                "Complications postopératoires",
-                key="ui_complications"
-            )
-            obstetrique = st.checkbox(
-                "Accouchement / Césarienne",
-                key="ui_obstetrique"
-            )
-
 
 # =========================
 # CONTEXTE GLOBAL 
