@@ -700,6 +700,23 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
 
 
+    - if:
+        corticoides: true
+        duree_sup_4sem: false
+      action: POURSUITE
+      jour: J0
+      note: "Poursuite simple, sans supplémentation."
+
+    - if:
+        corticoides: true
+        duree_sup_4sem: true
+        dose_pred_sup_5: false
+      action: POURSUITE
+      jour: J0
+      note: "Poursuite simple, sans supplémentation."
+
+
+
 
 
 - categorie: HYDROCORTISONE SYSTEMIQUE
@@ -773,6 +790,23 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
 
 
+    - if:
+        hydrocortisone_systemique: true
+        duree_sup_4sem: false
+      action: POURSUITE
+      jour: J0
+      note: "Poursuite simple, sans supplémentation."
+
+    - if:
+        hydrocortisone_systemique: true
+        duree_sup_4sem: true
+        dose_pred_sup_5: false
+      action: POURSUITE
+      jour: J0
+      note: "Poursuite simple, sans supplémentation."
+
+
+
 
 - categorie: CORTICOIDES TOPIQUES
   source_url:
@@ -785,6 +819,12 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: POURSUITE
       jour: J0
       note: "Corticoïdes topiques (crème, pommade, lotion) : poursuivre sans changement. Aucun impact significatif sur l'anesthésie."
+
+
+
+
+
+
 
 
 
