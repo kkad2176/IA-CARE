@@ -167,7 +167,6 @@ Maintien possible si intervention courte < 2 h, perturbations du contrÃ´le glycÃ
   source_ref: "regle_4_antidiabetique_insuline"
   atc_prefix:
     - "A10BB"
-    - "A10BX"
     - "A10BF"
     - "A10BH"
   conditions:
@@ -204,6 +203,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrÃ´le glycÃ
     - "https://pmc.ncbi.nlm.nih.gov/articles/PMC11666732/"
   atc_prefix:
     - "A10BJ"
+    - "A10BX"
   conditions:
 
     - if:
