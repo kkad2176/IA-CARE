@@ -628,6 +628,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
 
 
+
 - categorie: CORTICOIDES
   source_ref: regle_9_corticoide
   atc_prefix:
@@ -639,9 +640,10 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
   conditions:
 
-    # ============================================================
-    # CAS PARTICULIER — CESARIENNE / ACCOUCHEMENT / DELIVRANCE / HPP
-    # ============================================================
+# ============================================================
+# CAS PARTICULIER — CESARIENNE / ACCOUCHEMENT / DELIVRANCE / HPP
+# ============================================================
+
     - if:
         corticoides: true
         obstetrique: true
@@ -650,32 +652,33 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: ADAPTATION
       note: "Hydrocortisone 100 mg IV début travail puis 50 mg/6h ou 200 mg/24h."
 
-    # =========================================================
-    # STRESS CHIRURGICAL FAIBLE
-    # =========================================================
-    - if:
-        corticoides: true
-        duree_sup_4sem: true
-        dose_pred_sup_5: true
-        stress_cortico_faible: true
-        dose_hc_inf_40: true
-      action: ADAPTATION
-      jour: J0
-      note: "Augmenter à 40 mg hydrocortisone/jour (ou 10 mg prednisone). Répartir : 20 mg matin, 10 mg H+6, 10 mg H+12."
+
+# =========================================================
+# STRESS CHIRURGICAL FAIBLE
+# =========================================================
 
     - if:
         corticoides: true
         duree_sup_4sem: true
-        dose_pred_sup_5: true
+        dose_pred_sup_10: false
         stress_cortico_faible: true
-        dose_hc_sup_40: true
+      action: ADAPTATION
+      jour: J0
+      note: "Augmenter à 40 mg hydrocortisone/jour (ou 10 mg prednisone). Répartir hydrocortisone : 20 mg matin, 10 mg H+6, 10 mg H+12."
+
+    - if:
+        corticoides: true
+        duree_sup_4sem: true
+        dose_pred_sup_10: true
+        stress_cortico_faible: true
       action: POURSUITE
       jour: J0
       note: "Dose ≥ 40 mg hydrocortisone/jour : poursuite sans supplément."
 
-    # =========================================================
-    # STRESS CHIRURGICAL MODERE / ELEVE
-    # =========================================================
+# =========================================================
+# STRESS CHIRURGICAL MODERE / ELEVE
+# =========================================================
+
     - if:
         corticoides: true
         duree_sup_4sem: true
@@ -696,20 +699,95 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         - si complications : maintenir hydrocortisone IV 50 mg/6h jusqu’à stabilisation
 
 
-- categorie: CORTICOIDES TOPIQUES
-  atc_prefix:
-    - D07
+
+
+
+- categorie: HYDROCORTISONE SYSTEMIQUE
+  source_ref: regle_9_corticoide
   source_url:
     - "https://pmc.ncbi.nlm.nih.gov/articles/PMC11180513/"
     - "https://pubmed.ncbi.nlm.nih.gov/40522647/"
     - "https://pubmed.ncbi.nlm.nih.gov/32017012/"
-  action: POURSUITE
-  jour: J0
-  note: |
-    Corticoïdes topiques (crème, pommade, lotion) : poursuivre sans changement. Aucun impact significatif sur l'anesthésie.
 
-    À ne pas confondre avec l’hydrocortisone orale ou injectable (ATC H02) :
-    dans ce cas, appliquer les règles des corticoïdes systémiques (adaptation possible en situation de stress).
+  conditions:
+# ============================================================
+# CAS PARTICULIER — CESARIENNE / ACCOUCHEMENT / DELIVRANCE / HPP
+# ============================================================
+    - if:
+        hydrocortisone_systemique: true
+        obstetrique: true
+        duree_sup_4sem: true
+        dose_pred_sup_5: true
+      action: ADAPTATION
+      note: "Hydrocortisone 100 mg IV début travail puis 50 mg/6h ou 200 mg/24h."
+
+
+
+# =========================================================
+# STRESS CHIRURGICAL FAIBLE
+# =========================================================
+
+    - if:
+        hydrocortisone_systemique: true
+        duree_sup_4sem: true
+        dose_pred_sup_10: false
+        stress_cortico_faible: true
+      action: ADAPTATION
+      jour: J0
+      note: "Augmenter à 40 mg hydrocortisone/jour (ou 10 mg prednisone). Répartir hydrocortisone : 20 mg matin, 10 mg H+6, 10 mg H+12."
+
+    - if:
+        hydrocortisone_systemique: true
+        duree_sup_4sem: true
+        dose_pred_sup_10: true
+        stress_cortico_faible: true
+      action: POURSUITE
+      jour: J0
+      note: "Dose ≥ 40 mg hydrocortisone/jour : poursuite sans supplément."
+
+
+
+
+# =========================================================
+# STRESS CHIRURGICAL MODERE / ELEVE
+# =========================================================
+
+    - if:
+        hydrocortisone_systemique: true
+        duree_sup_4sem: true
+        dose_pred_sup_5: true
+        stress_cortico_faible: false
+      action: ADAPTATION
+      note: |
+        Poursuivre le traitement hydrocortisone 100 mg IV à l’induction puis 200 mg/24h (ou 50 mg IV/6h).
+
+        Alternative :
+        - 50 mg à l’induction puis 25 mg IV toutes les 6h
+        - à privilégier si chirurgie à stress modéré de courte durée avec reprise alimentaire précoce
+        - ou chez patient diabétique à risque d’hyperglycémie post-opératoire
+
+        Post-opératoire :
+        - si jeûne < 24h : relais per os avec hydrocortisone 40 mg/j (20-10-10) ou prednisone 10 mg/j pendant 48h
+        - si jeûne > 24h : hydrocortisone 200 mg/24h IV (ou 50 mg/6h) jusqu’à reprise alimentaire
+        - si complications : maintenir hydrocortisone IV 50 mg/6h jusqu’à stabilisation
+
+
+
+
+- categorie: CORTICOIDES TOPIQUES
+  source_url:
+    - "https://pmc.ncbi.nlm.nih.gov/articles/PMC11180513/"
+    - "https://pubmed.ncbi.nlm.nih.gov/40522647/"
+    - "https://pubmed.ncbi.nlm.nih.gov/32017012/"
+  conditions:
+    - if:
+        hydrocortisone_topique: true
+      action: POURSUITE
+      jour: J0
+      note: "Corticoïdes topiques (crème, pommade, lotion) : poursuivre sans changement. Aucun impact significatif sur l'anesthésie."
+
+
+
 
 
 - categorie: "Anti-Vitamine K (AVK)"
@@ -863,6 +941,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 - categorie: "Dermatologie (Topiques et Soins locaux)"
   atc_prefix:
     - D
-  action: POURSUITE
-  jour: J0
-  note: "Traitement local (crème, gel, pommade) : poursuivre sans changement. Aucun impact sur l'anesthésie."
+  conditions:
+    - if:
+        hydrocortisone_systemique: false
+      action: POURSUITE
+      jour: J0
+      note: "Traitement local (crème, gel, pommade) : poursuivre sans changement. Aucun impact sur l'anesthésie."
