@@ -213,17 +213,13 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       precision: "GLP-1 : arrêt immédiat en urgence. Risque d’estomac plein. Considérer le patient comme estomac plein, réaliser une échographie gastrique si possible et discuter une induction en séquence rapide."
 
 
-    - if: {ind_glp1_obesite: true}
+    - default: true
       action: "POURSUITE"
       jour: "J0"
       precision: |
         GLP-1 : Poursuivre (pour DT2 ou obésité). Risque estomac plein. Favoriser ALR, surtout si signe de gastroparésie, ancienneté du DT2, microangiopathie ou autres traitements ralentissant la vidange gastrique. Si AG nécessaire, réaliser une échographie gastrique et discuter une induction en séquence rapide.
 
-    - if: {ind_glp1_dt2: true}
-      action: "POURSUITE"
-      jour: "J0"
-      precision: |
-        GLP-1 : Poursuivre (pour DT2 ou obésité). Risque estomac plein. Favoriser ALR, surtout si signe de gastroparésie, ancienneté du DT2, microangiopathie ou autres traitements ralentissant la vidange gastrique. Si AG nécessaire, réaliser une échographie gastrique et discuter une induction en séquence rapide.
+
 
 
 
@@ -621,6 +617,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       atcd_cv: true
     action: ARRET
     jour: J-5
+    note: Si antécédent cardiovasculaire, arrêt du traitement 5 jours avant l'intervention.
   - if:
       ASA:
       - 1
