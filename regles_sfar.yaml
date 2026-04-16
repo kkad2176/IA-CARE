@@ -696,9 +696,20 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         - si complications : maintenir hydrocortisone IV 50 mg/6h jusqu’à stabilisation
 
 
+- categorie: CORTICOIDES TOPIQUES
+  atc_prefix:
+    - D07
+  source_url:
+    - "https://pmc.ncbi.nlm.nih.gov/articles/PMC11180513/"
+    - "https://pubmed.ncbi.nlm.nih.gov/40522647/"
+    - "https://pubmed.ncbi.nlm.nih.gov/32017012/"
+  action: POURSUITE
+  jour: J0
+  note: |
+    Corticoïdes topiques (crème, pommade, lotion) : poursuivre sans changement. Aucun impact significatif sur l'anesthésie.
 
-
-
+    À ne pas confondre avec l’hydrocortisone orale ou injectable (ATC H02) :
+    dans ce cas, appliquer les règles des corticoïdes systémiques (adaptation possible en situation de stress).
 
 
 - categorie: "Anti-Vitamine K (AVK)"
