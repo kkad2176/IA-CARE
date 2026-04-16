@@ -1099,7 +1099,7 @@ def moteur_global(atc, ctx):
     return {
         "action": "POURSUITE",
         "jour": "J0",
-        "note": "Aucune règle spécifique retrouvée dans le référentiel pour ce médicament.",
+        "note": "Poursuite simple, sans supplémentation.",
         "source": ""
     }
 # =========================================================
@@ -2972,9 +2972,10 @@ if diabete_detecte:
 
 
 
-corticoides_connus = False
+corticoides_connus = corticoide_detecte
 duree_sup_4sem = False
 dose_pred_sup_5 = False
+dose_pred_sup_10 = False
 dose_hc_inf_40 = False
 dose_hc_sup_40 = False
 chirurgie_courte = False
@@ -2982,6 +2983,8 @@ post_op_jeun_sup_24h = False
 reprise_precoce = False
 complications_postop = False
 obstetrique = False
+hydrocortisone_topique = False
+hydrocortisone_systemique = False
 
 if "stress_cortico_faible" not in locals():
     stress_cortico_faible = False
@@ -2989,11 +2992,27 @@ if "stress_cortico_faible" not in locals():
 if "stress_chir" not in locals():
     stress_chir = "modéré/élevé"
 
+hydrocortisone_detectee = "hydrocortisone" in str(st.session_state).lower()
 
+# Question supplémentaire uniquement pour hydrocortisone
+if hydrocortisone_detectee:
+    type_hydrocortisone = st.radio(
+        "Hydrocortisone : préciser la forme",
+        ["Topique (crème, pommade, lotion)", "Autre forme / systémique"],
+        key="ui_hydrocortisone_type"
+    )
 
-if corticoide_detecte:
-    st.divider()
+    if type_hydrocortisone == "Topique (crème, pommade, lotion)":
+        hydrocortisone_topique = True
+        hydrocortisone_systemique = False
+        corticoides_connus = False
+    else:
+        hydrocortisone_topique = False
+        hydrocortisone_systemique = True
+        corticoides_connus = True
 
+# Bloc corticoïdes pour tous les corticoïdes systémiques
+if corticoides_connus and not hydrocortisone_topique:
     st.subheader("Contexte corticoïdes")
 
     st.info(
@@ -3001,7 +3020,6 @@ if corticoide_detecte:
         "Hydrocortisone 20 mg = Dexaméthasone 0.75 mg = Cortisone 25 mg"
     )
 
-    
     duree_cortico = st.selectbox(
         "Durée du traitement corticoïde",
         ["< 4 semaines", "≥ 4 semaines"],
@@ -3016,26 +3034,25 @@ if corticoide_detecte:
         key="ui_dose_pred"
     )
     dose_pred_sup_5 = dose_pred >= 5
+    dose_pred_sup_10 = dose_pred >= 10
 
- 
-
+    dose_hc = dose_pred * 4
+    dose_hc_inf_40 = dose_hc < 40
+    dose_hc_sup_40 = dose_hc >= 40
 
     st.warning("""
     **Interprétation clinique :**
 
-    - Corticothérapie ≥ 4 semaines et ≥ 5 mg prednisone :  
+    - Corticothérapie ≥ 4 semaines et ≥ 5 mg prednisone :
       → risque de suppression surrénalienne, adapter selon le stress chirurgical (voir plus bas).
 
-    - Corticothérapie sans critère de risque :  
+    - Corticothérapie sans critère de risque :
       → poursuite simple, sans supplémentation.
     """)
 
-
-
-
     st.subheader("Stress chirurgical (corticoïdes)")
     st.caption(
-        "Déterminé automatiquement à partir de l’intervention sélectionnée. "
+        "Déterminé automatiquement à partir de l’intervention sélectionnée."
     )
 
     stress_chir = "faible" if stress_cortico_faible else "modéré/élevé"
@@ -3045,33 +3062,15 @@ if corticoide_detecte:
     else:
         st.warning("Modéré / Élevé")
 
+
     chirurgie_courte = False
     post_op_jeun_sup_24h = False
     reprise_precoce = False
     complications_postop = False
-    obstetrique = False
 
-    if stress_chir == "modéré/élevé":
-        chirurgie_courte = st.checkbox(
-            "Chirurgie modérée courte avec reprise rapide",
-            key="ui_chirurgie_courte"
-        )
-        post_op_jeun_sup_24h = st.checkbox(
-            "Jeûne postopératoire > 24h",
-            key="ui_postop_jeun"
-        )
-        reprise_precoce = st.checkbox(
-            "Reprise alimentaire < 24h",
-            key="ui_reprise_precoce"
-        )
-        complications_postop = st.checkbox(
-            "Complications postopératoires",
-            key="ui_complications"
-        )
-        obstetrique = st.checkbox(
-            "Accouchement / Césarienne",
-            key="ui_obstetrique"
-        )
+    obstetrique = (spe == "Obstétrique")
+
+
 
 # =========================
 # CONTEXTE GLOBAL 
@@ -3123,6 +3122,7 @@ ctx = {
     "corticoides": corticoides_connus,
     "duree_sup_4sem": duree_sup_4sem,
     "dose_pred_sup_5": dose_pred_sup_5,
+    "dose_pred_sup_10": dose_pred_sup_10,
     "dose_hc_inf_40": dose_hc_inf_40,
     "dose_hc_sup_40": dose_hc_sup_40,
     "stress_cortico_faible": stress_cortico_faible,
@@ -3131,12 +3131,19 @@ ctx = {
     "reprise_precoce": reprise_precoce,
     "complications_postop": complications_postop,
     "obstetrique": obstetrique,
+    "corticoides": corticoides_connus,
+    "hydrocortisone_topique": hydrocortisone_topique,
+    "hydrocortisone_systemique": hydrocortisone_systemique,
+
+
 
     "inr_therapeutique_2_3": inr_disponible == "Oui" and inr_valeur is not None and 2 <= inr_valeur <= 3,
     "inr_hors_zone_2_3": inr_disponible == "Oui" and inr_valeur is not None and not (2 <= inr_valeur <= 3),
     "inr_non_connu": inr_disponible != "Oui",
     
     }
+
+
 # =========================
 # DFG
 # =========================
