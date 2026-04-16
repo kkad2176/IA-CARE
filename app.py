@@ -1960,7 +1960,7 @@ def get_stress_cortico_from_id(id_acte, df_inter_cortico):
 @st.cache_data
 def load_data():
     try:
-        atc = pd.read_csv(os.path.join(BASE_DIR, "dci_atc_fichier.csv"), sep=";")
+        atc = pd.read_csv(os.path.join(BASE_DIR, "dci_atc_fichier_final.csv"), sep=";")
         inter = pd.read_csv(os.path.join(BASE_DIR, "Feuille1-Tableau 1.csv"), sep=";")
         inter_cortico = pd.read_csv(os.path.join(BASE_DIR, "Feuil1-Tableau 1cortico.csv"), sep=";")
         taxo = pd.read_csv(os.path.join(BASE_DIR, "TAXONOMIE-Tableau 1.csv"), sep=";")
