@@ -20,7 +20,6 @@ sources_regles:
     categorie: ANTIDIABETIQUES ET INSULINES
     sources:
     - https://sfar.org/wp-content/uploads/2025/09/Fiches-simplifieges-DiabeGte-2025-V4.pdf
-    - https://sfar.org/mise-au-point-traitement-du-diabete-agonistes-recepteurs-glp1-et-anesthesie/
   regle_5_aap:
     categorie: ANTIAGREGANTS (AAP)
     sources:
@@ -46,12 +45,19 @@ sources_regles:
     categorie: CORTICOIDES
     sources:
     - https://pubmed.ncbi.nlm.nih.gov/33445232/
+
   regle_10_avk:
     categorie: ANTI-VITAMINE K (AVK)
     sources:
-    - https://www.has-sante.fr/upload/docs/application/pdf/2008-09/surdosage_en_avk_situations_a_risque_et_accidents_hemorragiques_-_synthese_des_recommandations_v2.pdf
-    - https://sfar.org/prise-en-charge-des-surdosages-en-antivitamines-k-des-situations-a-risque-hemorragique-et-des-accidents-hemorragiques-chez-les-patients-traites-par-antivitamines-k-en-ville-et-en-milieu-hospitalier/
-    - https://www.sfed.org/wp-content/uploads/2023/05/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf
+      - "https://www.has-sante.fr/upload/docs/application/pdf/2008-09/surdosage_en_avk_situations_a_risque_et_accidents_hemorragiques_-_synthese_des_recommandations_v2.pdf"
+      - "https://sfar.org/prise-en-charge-des-surdosages-en-antivitamines-k-des-situations-a-risque-hemorragique-et-des-accidents-hemorragiques-chez-les-patients-traites-par-antivitamines-k-en-ville-et-en-milieu-hospitalier/"
+      - "https://www.sfed.org/wp-content/uploads/2023/05/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf"
+      - "https://inavalverhd.inaheart.org/wp-content/uploads/2025/09/2025-ESC-EACTS-Guidelines-for-the-Management-of-Valvular-Heart-Disease.pdf"
+      - "https://pure.eur.nl/ws/portalfiles/portal/182889750/2024_ESC_Guidelines_for_the_management_of_atrial_fibrillation_developed_in_collaboration_with_the_European_Association_for_Cardio-Thoracic_Surgery_EACTS_.pdf"
+
+
+
+
 
 
 regles_medicaments:
@@ -82,7 +88,7 @@ regles_medicaments:
     - if: {atc_codes: [C09BA03, C09DX04]}
       action: "ARRET"
       jour: "J-1"
-      precision: "dernière prise la veille de l’intervention (J-1). Proposition faible (absence de recommandations établies)."
+      precision: "dernière prise la veille de l’intervention (J-1)."
 
 
 
@@ -159,9 +165,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: "Immédiat"
       note: "Metformine : arrêt immédiat en urgence."
     - default: true
-      action: "PAS DE PRISE LE MATIN"
+      action: "ADAPTATION"
       jour: "J0 matin"
-      note: "Metformine : ne pas prendre le matin si chirurgie mineure ou majeure ou avec ≥ 2 repas jeûnés."
+      note: "Metformine : Ne pas prendre le matin si chirurgie mineure ou majeure ou avec ≥ 2 repas jeûnés."
 
 - categorie: "ADO (Sulfamides, glinides, inhibiteurs alpha-glucosidases, DPP4)"
   source_ref: "regle_4_antidiabetique_insuline"
@@ -282,13 +288,19 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
   conditions:
 
-    # --- INCOHERENCE ---
+    # --- INCOHERENCES ---
     - if: {prev_primaire: true, atc_codes: [B01AC04, B01AC24, B01AC22]}
       action: INFO
       jour: J0
       precision: "Incohérence : inhibiteur P2Y12 non indiqué en prévention primaire."
 
-    # --- NEUROCHIRURGIE ---
+
+    - if: {atc_codes: [B01AC01, B01AC06], aspirine_inf_75: true}
+      action: INFO
+      jour: J0
+      precision: "Dose d’aspirine < 75 mg/j : posologie atypique, vérifier la prescription."
+
+    # --- pour NEUROCHIRURGIE ---
     - if: {type_chir_neuro: NEUROCHIR_INTRACRANIENNE, atc_codes: [B01AC01, B01AC06]}
       action: ARRET
       jour: J-5
@@ -304,138 +316,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J-9
       precision: "Neurochirurgie intracrânienne ou intrarachidienne : arrêt du prasugrel à J-9."
 
-    #=========================================================
-    # BITHERAPIE AAP – HAUT RISQUE THROMBOTIQUE
-    # (stent < 1 mois OU stent < 6 mois à haut risque thrombotique OU IDM < 6 mois)
-    # =========================================================
 
-    # FAIBLE
-    - if: {bitherapie_aap: true, stent_1m: true, r_hem: FAIBLE}
-      action: DIFFERER
-      jour: J0
-      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, poursuivre les 2 AAP."
 
-    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: FAIBLE}
-      action: DIFFERER
-      jour: J0
-      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, poursuivre les 2 AAP."
 
-    - if: {bitherapie_aap: true, idm_6m: true, r_hem: FAIBLE}
-      action: DIFFERER
-      jour: J0
-      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, poursuivre les 2 AAP."
-
-    # INTERMEDIAIRE – ASPIRINE
-    - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC01, B01AC06]}
-      action: POURSUITE
-      jour: J0
-      precision: "Stent ≤ 1 mois : si impossibilité de différer, poursuivre l’aspirine."
-
-    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC01, B01AC06]}
-      action: POURSUITE
-      jour: J0
-      precision: "Stent < 6 mois à haut risque thrombotique : si impossibilité de différer, poursuivre l’aspirine."
-
-    - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC01, B01AC06]}
-      action: POURSUITE
-      jour: J0
-      precision: "IDM < 6 mois : si impossibilité de différer, poursuivre l’aspirine."
-
-    # INTERMEDIAIRE – CLOPIDOGREL
-    - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
-      action: ARRET
-      jour: J-5
-      precision: "Stent ≤ 1 mois : si impossibilité de différer, arrêt du clopidogrel à J-5."
-
-    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
-      action: ARRET
-      jour: J-5
-      precision: "Stent < 6 mois à haut risque thrombotique : si impossibilité de différer, arrêt du clopidogrel à J-5."
-
-    - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
-      action: ARRET
-      jour: J-5
-      precision: "IDM < 6 mois : si impossibilité de différer, arrêt du clopidogrel à J-5."
-
-    # INTERMEDIAIRE – TICAGRELOR
-    - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
-      action: ARRET
-      jour: J-5
-      precision: "Stent ≤ 1 mois : si impossibilité de différer, arrêt du ticagrelor à J-5."
-
-    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
-      action: ARRET
-      jour: J-5
-      precision: "Stent < 6 mois à haut risque thrombotique : si impossibilité de différer, arrêt du ticagrelor à J-5."
-
-    - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
-      action: ARRET
-      jour: J-5
-      precision: "IDM < 6 mois : si impossibilité de différer, arrêt du ticagrelor à J-5."
-
-    # INTERMEDIAIRE – PRASUGREL
-    - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
-      action: ARRET
-      jour: J-7
-      precision: "Stent ≤ 1 mois : si impossibilité de différer, arrêt du prasugrel à J-7."
-
-    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
-      action: ARRET
-      jour: J-7
-      precision: "Stent < 6 mois à haut risque thrombotique : si impossibilité de différer, arrêt du prasugrel à J-7."
-
-    - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
-      action: ARRET
-      jour: J-7
-      precision: "IDM < 6 mois : si impossibilité de différer, arrêt du prasugrel à J-7."
-
-    # ELEVE / IMPORTANT / MAJEUR – ASPIRINE
-    - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
-      action: ARRET
-      jour: J-3
-      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP et envisager un relais par AAP injectable."
-
-    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
-      action: ARRET
-      jour: J-3
-      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP."
-
-    - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
-      action: ARRET
-      jour: J-3
-      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP."
-
-    # ELEVE / IMPORTANT / MAJEUR – CLOPIDOGREL / TICAGRELOR
-    - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
-      action: ARRET
-      jour: J-5
-      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP et envisager un relais par AAP injectable."
-
-    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
-      action: ARRET
-      jour: J-5
-      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP."
-
-    - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
-      action: ARRET
-      jour: J-5
-      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP."
-
-    # ELEVE / IMPORTANT / MAJEUR – PRASUGREL
-    - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
-      action: ARRET
-      jour: J-7
-      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP et envisager un relais par AAP injectable."
-
-    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
-      action: ARRET
-      jour: J-7
-      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP."
-
-    - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
-      action: ARRET
-      jour: J-7
-      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP."
 
     # =========================================================
     #  ALR
@@ -463,6 +346,197 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J-7
       precision: "ALR : arrêt du prasugrel."
 
+
+
+    #=========================================================
+    # BITHERAPIE AAP – HAUT RISQUE THROMBOTIQUE
+    # (stent < 1 mois OU stent < 6 mois à haut risque thrombotique OU IDM < 6 mois)
+    # =========================================================
+
+    # FAIBLE
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: FAIBLE}
+      action: DIFFERER
+      jour: J0
+      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, poursuivre les 2 AAP."
+
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: FAIBLE}
+      action: DIFFERER
+      jour: J0
+      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, poursuivre les 2 AAP."
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: FAIBLE}
+      action: DIFFERER
+      jour: J0
+      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, poursuivre les 2 AAP."
+
+    # INTERMEDIAIRE – ASPIRINE
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC01, B01AC06]}
+      action: POURSUITE
+      jour: J0
+      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12"
+
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC01, B01AC06]}
+      action: POURSUITE
+      jour: J0
+      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12"
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC01, B01AC06]}
+      action: POURSUITE
+      jour: J0
+      precision: "IDM < 6 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12"
+
+    # INTERMEDIAIRE – CLOPIDOGREL
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
+      action: ARRET
+      jour: J-5
+      precision: "Stent ≤ 1 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
+      action: ARRET
+      jour: J-5
+      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
+      action: ARRET
+      jour: J-5
+      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+
+    # INTERMEDIAIRE – TICAGRELOR
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
+      action: ARRET
+      jour: J-5
+      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
+      action: ARRET
+      jour: J-5
+      precision: "Stent < 6 mois à haut risque thrombotique :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
+      action: ARRET
+      jour: J-5
+      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+
+    # INTERMEDIAIRE – PRASUGREL
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
+      action: ARRET
+      jour: J-7
+      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
+      action: ARRET
+      jour: J-7
+      precision: "Stent < 6 mois à haut risque thrombotique :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
+      action: ARRET
+      jour: J-7
+      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+
+    # ELEVE / IMPORTANT / MAJEUR – ASPIRINE
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
+      action: ARRET
+      jour: J-3
+      precision: "Stent ≤ 1 mois :différer la procédure. Si impossibilité, arrêter les 2 AAP et discuter un relais par AAP injectable."
+
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
+      action: ARRET
+      jour: J-3
+      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
+      action: ARRET
+      jour: J-3
+      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+
+    # ELEVE / IMPORTANT / MAJEUR – CLOPIDOGREL / TICAGRELOR
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
+      action: ARRET
+      jour: J-5
+      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP et discuter un relais par AAP injectable."
+
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
+      action: ARRET
+      jour: J-5
+      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
+      action: ARRET
+      jour: J-5
+      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+
+    # ELEVE / IMPORTANT / MAJEUR – PRASUGREL
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
+      action: ARRET
+      jour: J-7
+      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP et discuter un relais par AAP injectable"
+
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
+      action: ARRET
+      jour: J-7
+      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
+      action: ARRET
+      jour: J-7
+      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+
+
+
+# --------------------------------------------------------
+# 2) BITHERAPIE SANS CRITERE DE HAUT RISQUE THROMBOTIQUE
+# (Ou bien aucun des 3 critères ci-dessus)
+# --------------------------------------------------------
+
+    # FAIBLE
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: FAIBLE}
+      action: POURSUITE
+      jour: J0
+      precision: "Poursuivre les 2 AAP."
+
+    # INTERMEDIAIRE – ASPIRINE
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC01, B01AC06]}
+      action: POURSUITE
+      jour: J0
+      precision: "Poursuivre l’aspirine et interrompre l’anti-P2Y12."
+
+    # INTERMEDIAIRE – CLOPIDOGREL
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
+      action: ARRET
+      jour: J-5
+      precision: "Poursuivre l’aspirine et interrompre l’anti-P2Y12."
+
+    # INTERMEDIAIRE – TICAGRELOR
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
+      action: ARRET
+      jour: J-5
+      precision: "Poursuivre l’aspirine et interrompre l’anti-P2Y12."
+
+    # INTERMEDIAIRE – PRASUGREL
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
+      action: ARRET
+      jour: J-7
+      precision: "Poursuivre l’aspirine et interrompre l’anti-P2Y12."
+
+    # ELEVE / IMPORTANT / MAJEUR – ASPIRINE
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
+      action: ARRET
+      jour: J-3
+      precision: "Interrompre les 2 AAP."
+
+    # ELEVE / IMPORTANT / MAJEUR – CLOPIDOGREL / TICAGRELOR
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
+      action: ARRET
+      jour: J-5
+      precision: "Interrompre les 2 AAP."
+
+    # ELEVE / IMPORTANT / MAJEUR – PRASUGREL
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
+      action: ARRET
+      jour: J-7
+      precision: "Interrompre les 2 AAP."
+
+
     # =========================================================
     #  PREVENTION PRIMAIRE
     # =========================================================
@@ -485,6 +559,12 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {prev_secondaire: true, atc_codes: [B01AC01, B01AC06], r_hem: [FAIBLE, INTERMEDIAIRE]}
       action: POURSUITE
       jour: J0
+      precision: "Aspirine (75–300 mg) : poursuite sans relais."
+
+
+    - if: {prev_secondaire: true, atc_codes: [B01AC01, B01AC06], r_hem: [FAIBLE, INTERMEDIAIRE]}
+      action: POURSUITE
+      jour: J0
       precision: "Aspirine en prévention secondaire : poursuite."
 
     - if: {prev_secondaire: true, atc_codes: [B01AC01, B01AC06], r_hem: [ELEVE, IMPORTANT, MAJEUR]}
@@ -501,24 +581,16 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {prev_secondaire: true, atc_codes: [B01AC04], r_hem: INTERMEDIAIRE}
       action: ARRET
       jour: J-5
-      precision: "Arrêt du clopidogrel entre 5 et 7 jours avant la chirurgie, avec un relais par aspirine 75 à 100mg le lendemain de l'arrêt. Proposition forte."
+      precision: "Arrêt du clopidogrel entre 5 et 7 jours avant la chirurgie, avec un relais par aspirine 75 à 100mg le lendemain de l'arrêt."
 
     - if: {prev_secondaire: true, atc_codes: [B01AC04], r_hem: [ELEVE, IMPORTANT, MAJEUR]}
       action: ARRET
       jour: J-5
       precision: "Clopidogrel : arrêt."
 
-    # --- ASPIRINE > 100 mg ---
-    - if: {prev_secondaire: true, atc_codes: [B01AC01, B01AC06], r_hem: [FAIBLE, INTERMEDIAIRE]}
-      action: POURSUITE
-      jour: J0
-      precision: "Aspirine (75–300 mg) : poursuite sans relais."
+ 
 
-    # --- ASPIRINE FAIBLE DOSE ---
-    - if: {atc_codes: [B01AC01, B01AC06], dose_aspirine_inf_300: true}
-      action: POURSUITE
-      jour: J0
-      precision: "Aspirine ≤ 300 mg/j : ne pas réduire la posologie avant la chirurgie (proposition forte)."
+
 
 
 - categorie: AOD
@@ -532,44 +604,66 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J-5
       note: "Neurochirurgie : dernière prise J-5 quel que soit l’AOD."
 
-    # --- CAS DFG < 30 ---
-    # Xabans
-    - if: {atc_prefix: [B01AF], dfg_inf_30: true}
-      action: ARRET
-      jour: J-3
-      note: "Xaban + DFG < 30. Dernière prise J-3. Discuter d’un arrêt plus long et d’un dosage en préopératoire, selon le risque hémorragique (proposition faible)."
-
-    # Dabigatran
-    - if: {atc_codes: [B01AE07], dfg_inf_30: true}
+    # ------- RÈGLE 1 BIS : ALR NEURAXIAL ---
+    - if: {alr: NEURAXIAL}
       action: ARRET
       jour: J-5
-      note: "Dabigatran + DFG < 30. Dernière prise J-5. Discuter d’un arrêt plus long et d’un dosage en préopératoire, selon le risque hémorragique (proposition faible)."
+      note: "ALR neuraxial : dernière prise J-5 quel que soit l’AOD."
 
-    # --- CAS DFG INCONNU ---
+    # ------ CAS DFG NN CONNU ---
     - if: {dfg_connu: false}
       action: INFO
-      note: "DFG inconnu. Rappel : Riva/Apixa J-3 si DFG > 30. Pradaxa J-4 si DFG > 50 ou J-5 si 30-49. Neurochirurgie J-5."
+      note: "DFG inconnu. Rappel : Riva/Apixa J-3 si DFG > 30. Pradaxa J-4 si DFG > 50 ou J-5 si 30-49. Neurochirurgie / ALR neuraxial J-5."
 
-    # --- RÈGLE 2 : RISQUE ÉLEVÉ / INTERMÉDIAIRE ---
+    # ------ RÈGLE 2 : RISQUE ÉLEVÉ / INTERMÉDIAIRE ---
+    # Xabans + DFG < 30
+    - if: {atc_prefix: [B01AF], dfg_inf_30: true, r_hem: [INTERMEDIAIRE, ELEVE, IMPORTANT, MAJEUR]}
+      action: ARRET
+      jour: J-3
+      note: "Précaution avec -Xaban + DFG < 30. Discuter d’un arrêt plus long et d’un dosage en préopératoire."
+
+    # Dabigatran + DFG 30-49
+    - if: {atc_codes: [B01AE07], dfg_30_49: true, r_hem: [INTERMEDIAIRE, ELEVE, IMPORTANT, MAJEUR]}
+      action: ARRET
+      jour: J-5
+      note: "Dabigatran + DFG 30-49 : dernière prise J-5."
+
+    # Dabigatran + DFG < 30
+    - if: {atc_codes: [B01AE07], dfg_inf_30: true, r_hem: [INTERMEDIAIRE, ELEVE, IMPORTANT, MAJEUR]}
+      action: ARRET
+      jour: J-5
+      note: "Précaution avec Dabigatran + DFG < 30. Discuter d’un arrêt plus long et d’un dosage en préopératoire."
+
+
+      # --- RÈGLE 2 : RISQUE ÉLEVÉ / INTERMÉDIAIRE ---
     # Xabans
-    - if: {atc_prefix: [B01AF], dfg_ge_30: true}
+    - if: {atc_prefix: [B01AF], dfg_ge_30: true, r_hem: [INTERMEDIAIRE, ELEVE, IMPORTANT, MAJEUR]}
       action: ARRET
       jour: J-3
       note: "Xaban + DFG ≥ 30. Dernière prise J-3."
 
     # Dabigatran
-    - if: {atc_codes: [B01AE07], dfg_ge_50: true}
+    - if: {atc_codes: [B01AE07], dfg_ge_50: true, r_hem: [INTERMEDIAIRE, ELEVE, IMPORTANT, MAJEUR]}
       action: ARRET
       jour: J-4
       note: "Dabigatran + DFG ≥ 50. Dernière prise J-4."
 
-    - if: {atc_codes: [B01AE07], dfg_30_49: true}
-      action: ARRET
-      jour: J-5
-      note: "Dabigatran + DFG entre 30 et 49. Dernière prise J-5."
 
     # --- RÈGLE 3 : RISQUE FAIBLE ---
-    - if: {r_hem: [FAIBLE, NUL]}
+    # Dabigatran + DFG < 50
+    - if: {r_hem: [FAIBLE, NUL], atc_codes: [B01AE07], dfg_inf_50: true}
+      action: ARRET
+      jour: J-5
+      note: "Précaution avec Dabigatran et DFG < 50. Discuter d’un arrêt plus long (dernière prise J-5) et d’un dosage en préopératoire."
+
+    # Xabans + DFG < 30
+    - if: {r_hem: [FAIBLE, NUL], atc_prefix: [B01AF], dfg_inf_30: true}
+      action: ARRET
+      jour: J-3
+      note: "Précaution avec -Xaban + DFG < 30. Discuter d’un arrêt plus long (dernière prise J-3) et d’un dosage en préopératoire."
+
+    # DFG normal
+    - if: {r_hem: [FAIBLE, NUL], dfg_connu: true, dfg_ge_30: true}
       action: ARRET
       jour: J-1
       note: "Risque faible. Ne pas prendre la veille au soir et le matin de l'intervention."
@@ -578,7 +672,8 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - default: true
       action: DOSAGE
       note: "Cas complexe : vérifier le DFG et envisager un dosage."
-  
+
+
 
 - categorie: AINS
   source_ref: regle_7_ains
@@ -823,22 +918,21 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
 
 
-
-
-
-
-
-
-
 - categorie: "Anti-Vitamine K (AVK)"
   source_ref: "regle_10_avk"
-  source_url: "https://sfar.org/prise-en-charge-des-surdosages-en-antivitamines-k-des-situations-a-risque-hemorragique-et-des-accidents-hemorragiques-chez-les-patients-traites-par-antivitamines-k-en-ville-et-en-milieu-hospitalier/"
+  source_url:
+  - "https://www.has-sante.fr/upload/docs/application/pdf/2008-09/surdosage_en_avk_situations_a_risque_et_accidents_hemorragiques_-_synthese_des_recommandations_v2.pdf"
+  - "https://sfar.org/prise-en-charge-des-surdosages-en-antivitamines-k-des-situations-a-risque-hemorragique-et-des-accidents-hemorragiques-chez-les-patients-traites-par-antivitamines-k-en-ville-et-en-milieu-hospitalier/"
+  - "https://www.sfed.org/wp-content/uploads/2023/05/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf"
+  - "https://inavalverhd.inaheart.org/wp-content/uploads/2025/09/2025-ESC-EACTS-Guidelines-for-the-Management-of-Valvular-Heart-Disease.pdf"
+  - "https://pure.eur.nl/ws/portalfiles/portal/182889750/2024_ESC_Guidelines_for_the_management_of_atrial_fibrillation_developed_in_collaboration_with_the_European_Association_for_Cardio-Thoracic_Surgery_EACTS_.pdf"
+
   atc_prefix:
     - "B01AA"
 
   conditions:
 
-    ##### 1. HAUT RISQUE THROMBOEMBOLIQUE (RELAIS)
+    # ===== 1. HAUT RISQUE THROMBOEMBOLIQUE (RELAIS) =====
 
     # Sintrom (acénocoumarol)
     - if:
@@ -849,10 +943,13 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: |
         Relais curatif requis (HBPM 2/j ou HNF).
         Arrêt AVK à J-5.
-        Début relais héparine à J-4 (Sintrom).
-        J-1 : hospitalisation + INR + dernière dose d’HBPM le matin ou HNF jusqu’au soir.
-        Si INR ≥ 1.5 : 5 mg vitamine K per os.
-        Refaire INR le matin de l’intervention.
+        Introduction d’une héparine à dose curative le soir :
+        24h après la dernière prise d’acénocoumarol (Sintrom®) = J-4.
+        J-1 : Hospitalisation systématique.
+        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
+        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
+        Faire INR le matin de l’intervention.
+        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
 
     # Préviscan / Fluindione
     - if:
@@ -863,10 +960,13 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: |
         Relais curatif requis (HBPM 2/j ou HNF).
         Arrêt AVK à J-5.
-        Début relais héparine à J-3 (Préviscan / Fluindione).
-        J-1 : hospitalisation + INR + dernière dose d’HBPM le matin ou HNF jusqu’au soir.
-        Si INR ≥ 1.5 : 5 mg vitamine K per os.
-        Refaire INR le matin de l’intervention.
+        Introduction d’une héparine à dose curative le soir :
+        48h après la dernière prise de fluindione (Previscan®) = J-3.
+        J-1 : Hospitalisation systématique.
+        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
+        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
+        Faire INR le matin de l’intervention.
+        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
 
     # Coumadine (warfarine)
     - if:
@@ -877,33 +977,81 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: |
         Relais curatif requis (HBPM 2/j ou HNF).
         Arrêt AVK à J-5.
-        Début relais héparine à J-3 (Coumadine).
-        J-1 : hospitalisation + INR + dernière dose d’HBPM le matin ou HNF jusqu’au soir.
-        Si INR ≥ 1.5 : 5 mg vitamine K per os.
-        Refaire INR le matin de l’intervention.
+        Introduction d’une héparine à dose curative le soir :
+        48h après la dernière prise de warfarine (Coumadine®) = J-3.
+        J-1 : Hospitalisation systématique.
+        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
+        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
+        Faire INR le matin de l’intervention.
+        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
 
-    # Autres situations haut risque
+    # ACFA à haut risque
     - if:
         acfa_atcd: true
+        atc_codes: ["B01AA07"]
       action: "ARRET"
       jour: "J-5"
       note: |
         Relais curatif requis (HBPM 2/j ou HNF).
         Arrêt AVK à J-5.
-        Début relais : J-3 ou J-4 selon le type d’AVK.
-        J-1 : hospitalisation + INR.
+        Introduction d’une héparine à dose curative le soir :
+        24h après la dernière prise d’acénocoumarol (Sintrom®) = J-4.
+        J-1 : Hospitalisation systématique.
+        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
+        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
+        Faire INR le matin de l’intervention.
+        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
+
+    - if:
+        acfa_atcd: true
+        atc_codes: ["B01AA12", "B01AA03"]
+      action: "ARRET"
+      jour: "J-5"
+      note: |
+        Relais curatif requis (HBPM 2/j ou HNF).
+        Arrêt AVK à J-5.
+        Introduction d’une héparine à dose curative le soir :
+        48h après la dernière prise de fluindione (Previscan®) ou warfarine (Coumadine®) = J-3.
+        J-1 : Hospitalisation systématique.
+        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
+        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
+        Faire INR le matin de l’intervention.
+        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
+
+    # MTEV à haut risque
+    - if:
+        mtev_haut_risque: true
+        atc_codes: ["B01AA07"]
+      action: "ARRET"
+      jour: "J-5"
+      note: |
+        Relais curatif requis (HBPM 2/j ou HNF).
+        Arrêt AVK à J-5.
+        Introduction d’une héparine à dose curative le soir :
+        24h après la dernière prise d’acénocoumarol (Sintrom®) = J-4.
+        J-1 : Hospitalisation systématique.
+        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
+        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
+        Faire INR le matin de l’intervention.
+        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
 
     - if:
         mtev_haut_risque: true
+        atc_codes: ["B01AA12", "B01AA03"]
       action: "ARRET"
       jour: "J-5"
       note: |
         Relais curatif requis (HBPM 2/j ou HNF).
         Arrêt AVK à J-5.
-        Début relais : J-3 ou J-4 selon le type d’AVK.
-        J-1 : hospitalisation + INR.
+        Introduction d’une héparine à dose curative le soir :
+        48h après la dernière prise de fluindione (Previscan®) ou warfarine (Coumadine®) = J-3.
+        J-1 : Hospitalisation systématique.
+        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
+        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
+        Faire INR le matin de l’intervention.
+        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
 
-    ##### 2. NEUROCHIRURGIE
+    # ===== 2. NEUROCHIRURGIE =====
     - if:
         type_chir_neuro: "NEUROCHIR_INTRACRANIENNE"
       action: "ARRET"
@@ -914,7 +1062,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Contrôle INR initial entre J-10 et J-7.
         Objectif le matin de l’intervention : INR < 1.2.
 
-    ##### 3. CHIRURGIE À FAIBLE RISQUE + INR CONNU EN ZONE
+    # ===== 3. CHIRURGIE À FAIBLE RISQUE + INR CONNU EN ZONE =====
     - if:
         r_hem: "FAIBLE"
         inr_therapeutique_2_3: true
@@ -924,7 +1072,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Chirurgie à risque hémorragique faible : poursuite possible si INR entre 2 et 3.
         Contrôle INR initial entre J-10 et J-7.
 
-    ##### 4. CHIRURGIE À FAIBLE RISQUE + INR CONNU HORS ZONE
+    # ===== 4. CHIRURGIE À FAIBLE RISQUE + INR CONNU HORS ZONE =====
     - if:
         r_hem: "FAIBLE"
         inr_hors_zone_2_3: true
@@ -934,7 +1082,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Chirurgie à risque hémorragique faible mais INR hors zone thérapeutique attendue (2 à 3).
         Vérifier l’indication, la cible INR et discuter la conduite à tenir.
 
-    ##### 5. CHIRURGIE À FAIBLE RISQUE + INR NON CONNU
+    # ===== 5. CHIRURGIE À FAIBLE RISQUE + INR NON CONNU =====
     - if:
         r_hem: "FAIBLE"
         inr_non_connu: true
@@ -944,7 +1092,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Chirurgie à risque hémorragique faible : poursuite possible si INR entre 2 et 3.
         Contrôle INR initial entre J-10 et J-7.
 
-    ##### 6. PAR DÉFAUT
+    # ===== 6. PAR DÉFAUT =====
     - default: true
       action: "ARRET"
       jour: "J-5"
@@ -952,7 +1100,8 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Arrêt AVK à J-5 pour tous les AVK.
         Pas de relais systématique.
         Contrôle INR initial entre J-10 et J-7.
-        Objectif le matin de l’intervention : INR < 1.5.
+        Contrôle INR la veille ou matin de l'intervention.
+
 
 
 
