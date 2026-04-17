@@ -2806,12 +2806,15 @@ if aap_detecte:
 
         with st.expander("Définition haut risque thrombotique"):
             st.markdown("""
-- thrombose de stent sous traitement
-- diabète + coronaropathie diffuse
-- DFG < 60
-- ≥ 3 stents ou lésions
-- bifurcation complexe
-- longueur totale de stents > 60 mm
+- Antécédent de thrombose de stent sous bithérapie AAP
+- Coronaropathie diffuse (surtout chez les diabétiques)
+- Insuffisance rénale chronique (DFG < 60 mL/min)
+- Occlusion coronaire chronique
+- Stenting de la dernière artère coronaire perméable
+- Au moins 3 stents implantés
+- Au moins 3 lésions traitées
+- Bifurcation avec 2 stents implantés
+- Longueur totale des stents > 60 mm
             """)
 
     dose_aspirine = st.number_input(
@@ -2943,12 +2946,6 @@ ind_glp1 = None
 if diabete_detecte:
     st.divider()
     st.header("Contexte diabète")
-
-    ind_glp1 = st.radio(
-        "Si prise de GLP-1, dans quel cas ?",
-        ["Diabète", "Obésité", "Inconnue"],
-        index=0
-    )
 
 
 
@@ -3099,9 +3096,6 @@ ctx = {
     "dfg_connu": dfg_connu,
     "dfg": dfg,
 
-
-    "ind_glp1_obesite": st.session_state.get("ind_glp1_diabete") == "Obésité",
-    "ind_glp1_dt2": st.session_state.get("ind_glp1_diabete") == "Diabète",
     "dispositif_insuline": "pompe" if st.session_state.get("pompe_insuline", False) else None,
 
     "valve_mecanique": valves,
