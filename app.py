@@ -2695,7 +2695,7 @@ if avk_detecte:
 Objectif standard :
 - INR < 1,5
 - INR < 1,2 si neurochirurgie
-- Exception : chirurgie à faible risque hémorragique -> INR en zone thérapeutique possible
+- Zone thérapeutique usuelle possible (INR compris entre 2 et 3)
 
 ---
 
