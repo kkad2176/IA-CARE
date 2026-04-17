@@ -1090,18 +1090,31 @@ def moteur_yaml(atc, ctx):
 
 def moteur_global(atc, ctx):
     atc_clean = str(atc or "").upper().strip()
+
     ctx["corticoides"] = atc_clean.startswith("H02") or ctx.get("corticoides", False)
 
     ans_yaml = moteur_yaml(atc_clean, ctx)
     if ans_yaml:
         return ans_yaml
 
+    # 
+    if ctx.get("corticoides"):
+        return {
+            "action": "POURSUITE",
+            "jour": "J0",
+            "note": "Poursuite simple, sans supplémentation.",
+            "source": ""
+        }
+
+    # 
     return {
-        "action": "POURSUITE",
-        "jour": "J0",
-        "note": "Poursuite simple, sans supplémentation.",
+        "action": "NON SPECIFIE",
+        "jour": "",
+        "note": "Aucune recommandation spécifique retrouvée dans le référentiel.",
         "source": ""
     }
+
+
 # =========================================================
 # regles SFAR
 # =========================================================
@@ -1115,8 +1128,8 @@ def moteur_expert_sfar(atc, ctx):
     """
     atc = str(atc).upper().strip()
 
-    # ----------------------------
-    # Helpers contexte
+   
+    
     # ----------------------------
     def u(v):
         return str(v or "").upper().strip()
@@ -1285,210 +1298,7 @@ def moteur_expert_sfar(atc, ctx):
     # ----------------------------
     # 5. AAP
     # ----------------------------
-    if atc in ["B01AC01", "B01AC06", "B01AC04", "B01AC24", "B01AC22"]:
-
-        # Incohérence prévention primaire + P2Y12
-        if prev_primaire and atc in ["B01AC04", "B01AC24", "B01AC22"]:
-            return {
-                "action": "INFO",
-                "jour": "J0",
-                "precision": "Incohérence : inhibiteur P2Y12 non indiqué en prévention primaire."
-            }
-
-        # Neurochirurgie
-        if is_neurochir:
-            if atc in ["B01AC01", "B01AC06"]:
-                return {
-                    "action": "ARRET",
-                    "jour": "J-5",
-                    "precision": "Neurochirurgie intracrânienne ou intrarachidienne : arrêt de l’aspirine à J-5."
-                }
-            if atc in ["B01AC04", "B01AC24"]:
-                return {
-                    "action": "ARRET",
-                    "jour": "J-7",
-                    "precision": "Neurochirurgie intracrânienne ou intrarachidienne : arrêt de l'anti P2Y12 à J-7."
-                }
-            if atc == "B01AC22":
-                return {
-                    "action": "ARRET",
-                    "jour": "J-9",
-                    "precision": "Neurochirurgie intracrânienne ou intrarachidienne : arrêt du prasugrel à J-9."
-                }
-
-        bitherapie_aap = ctx.get("bitherapie_aap", False)
-        stent_1m = ctx.get("stent_1m", False)
-        stent_6m_haut_risque = ctx.get("stent_6m_haut_risque", False)
-        idm_6m = ctx.get("idm_6m", False)
-
-        # Bithérapie haut risque thrombotique = priorité absolue
-        if bitherapie_aap and (stent_1m or stent_6m_haut_risque or idm_6m):
-            label = (
-                "Stent ≤ 1 mois" if stent_1m else
-                "Stent < 6 mois à haut risque thrombotique" if stent_6m_haut_risque else
-                "IDM < 6 mois"
-            )
-
-            # FAIBLE
-            if r_hem == "FAIBLE":
-                return {
-                    "action": "DIFFERER",
-                    "jour": "J0",
-                    "precision": f"{label} : différer la procédure. Si impossibilité, poursuivre les 2 AAP."
-                }
-
-            # INTERMEDIAIRE
-            if r_hem == "INTERMEDIAIRE":
-                if atc in ["B01AC01", "B01AC06"]:
-                    return {
-                        "action": "POURSUITE",
-                        "jour": "J0",
-                        "precision": f"{label} : si impossibilité de différer, poursuivre l’aspirine."
-                    }
-                if atc == "B01AC04":
-                    return {
-                        "action": "ARRET",
-                        "jour": "J-5",
-                        "precision": f"{label} : si impossibilité de différer, arrêt du clopidogrel à J-5."
-                    }
-                if atc == "B01AC24":
-                    return {
-                        "action": "ARRET",
-                        "jour": "J-5",
-                        "precision": f"{label} : si impossibilité de différer, arrêt du ticagrelor à J-5."
-                    }
-                if atc == "B01AC22":
-                    return {
-                        "action": "ARRET",
-                        "jour": "J-7",
-                        "precision": f"{label} : si impossibilité de différer, arrêt du prasugrel à J-7."
-                    }
-
-            # ELEVE / IMPORTANT / MAJEUR
-            if r_hem in ["ELEVE", "IMPORTANT", "MAJEUR"]:
-                if atc in ["B01AC01", "B01AC06"]:
-                    txt = f"{label} : différer la procédure. Si impossibilité, arrêter les 2 AAP."
-                    if stent_1m:
-                        txt += " Envisager un relais par AAP injectable."
-                    return {
-                        "action": "ARRET",
-                        "jour": "J-3",
-                        "precision": txt
-                    }
-                if atc in ["B01AC04", "B01AC24"]:
-                    txt = f"{label} : différer la procédure. Si impossibilité, arrêter les 2 AAP."
-                    if stent_1m:
-                        txt += " Envisager un relais par AAP injectable."
-                    return {
-                        "action": "ARRET",
-                        "jour": "J-5",
-                        "precision": txt
-                    }
-                if atc == "B01AC22":
-                    txt = f"{label} : différer la procédure. Si impossibilité, arrêter les 2 AAP."
-                    if stent_1m:
-                        txt += " Envisager un relais par AAP injectable."
-                    return {
-                        "action": "ARRET",
-                        "jour": "J-7",
-                        "precision": txt
-                    }
-
-        # ALR
-        if alr_majore:
-            if atc in ["B01AC01", "B01AC06"]:
-                if aspirine_sup_200:
-                    return {
-                        "action": "ARRET",
-                        "jour": "J-3",
-                        "precision": "Aspirine > 200 mg : arrêt à J-3. Préférer si possible la rachianesthésie en    ponction unique à la péridurale."
-                    }
-                return {
-                    "action": "POURSUITE",
-                    "jour": "J0",
-                    "precision": "Aspirine ≤200 mg : autorisée pour ALR. Préférer rachianesthésie en ponction unique à la péridurale."
-                }
-            if atc in ["B01AC04", "B01AC24"]:
-                return {"action": "ARRET", "jour": "J-5", "precision": "ALR : arrêt du P2Y12."}
-            if atc == "B01AC22":
-                return {"action": "ARRET", "jour": "J-7", "precision": "ALR : arrêt du prasugrel."}
-
-        # Prévention primaire
-        if prev_primaire:
-            if atc in ["B01AC01", "B01AC06"] and r_hem == "FAIBLE":
-                return {
-                    "action": "DISCUTER",
-                    "jour": "J0",
-                    "precision": "Aspirine en prévention primaire : arrêt ou poursuite selon balance bénéfice-risque."
-                }
-            if atc in ["B01AC01", "B01AC06"]:
-                return {
-                    "action": "ARRET",
-                    "jour": "J-3",
-                    "precision": "Aspirine en prévention primaire : arrêt à J-3."
-                }
-
-        # Prévention secondaire
-        if prev_secondaire:
-            if atc in ["B01AC01", "B01AC06"]:
-                if r_hem in ["FAIBLE", "INTERMEDIAIRE"]:
-                    return {
-                        "action": "POURSUITE",
-                        "jour": "J0",
-                        "precision": "Aspirine en prévention secondaire : poursuite."
-                    }
-                if r_hem in ["ELEVE", "IMPORTANT", "MAJEUR"]:
-                    return {
-                        "action": "ARRET",
-                        "jour": "J-3",
-                        "precision": "Aspirine en prévention secondaire : arrêt."
-                    }
-
-            if atc == "B01AC04":
-                if r_hem == "FAIBLE":
-                    return {
-                        "action": "POURSUITE",
-                        "jour": "J0",
-                        "precision": "Clopidogrel : poursuite."
-                    }
-                if r_hem == "INTERMEDIAIRE":
-                    return {
-                        "action": "ARRET",
-                        "jour": "J-5",
-                        "precision": "Arrêt du clopidogrel entre 5 et 7 jours avant la chirurgie, avec un relais par aspirine 75 à 100mg le lendemain de l'arrêt. Proposition forte."
-                    }
-                if r_hem in ["ELEVE", "IMPORTANT", "MAJEUR"]:
-                    return {
-                        "action": "ARRET",
-                        "jour": "J-5",
-                        "precision": "Clopidogrel : arrêt."
-                    }
-
-        # Aspirine faible dose
-        if atc in ["B01AC01", "B01AC06"] and dose_aspirine_inf_300:
-            return {
-                "action": "POURSUITE",
-                "jour": "J0",
-                "precision": "Aspirine ≤ 300 mg/j : ne pas réduire la posologie avant la chirurgie (proposition forte)."
-            }
-
-        # Aspirine 75–300 mg
-        if atc in ["B01AC01", "B01AC06"] and prev_secondaire and r_hem in ["FAIBLE", "INTERMEDIAIRE"]:
-            return {
-                "action": "POURSUITE",
-                "jour": "J0",
-                "precision": "Aspirine (75–300 mg) : poursuite sans relais."
-            }
-
-        # Défaut AAP
-        return {
-            "action": "ARRET",
-            "jour": "J-5",
-            "precision": "Arrêt standard AAP."
-        }
-
-
-
+    
     # ----------------------------
     # 6. AOD
     # ----------------------------
@@ -2842,51 +2652,9 @@ if avk_detecte:
     st.divider()
     st.header("Anti-vitamine K (AVK)")
 
-    st.info("""
-### Objectif INR péri-opératoire (AVK)
 
-Objectif standard :
-- INR < 1,5
-- INR < 1,2 si neurochirurgie
-- Exception : chirurgie à faible risque hémorragique → INR en zone thérapeutique possible
-
----
-
-### Facteurs pro-thrombotiques (à rechercher)
-
-Si ≥ 1 facteur présent → **augmenter la cible INR de +0,5**
-
-- Fibrillation atriale
-- Dysfonction VG (FEVG < 35 %)
-- État hypercoagulable
-- Événement thrombotique récent (< 12 mois : AVC, TVP, EP)
-
----
-
-### Valves mécaniques
-
-- Valve mitrale / tricuspide / ancienne génération
-  → **INR cible = 3 (2,5 – 3,5)**
-
-- Valve aortique moderne (bileaflet)
-  → **INR cible = 2,5 (2 – 3)**
-
----
-
-### Autres indications (sans valve mécanique)
-
-**INR cible 2 – 3 :**
-- Fibrillation atriale non valvulaire
-- Prévention et traitement TVP / EP
-- Chirurgie de hanche (prévention TVP/EP)
-- Syndrome des antiphospholipides (selon terrain)
-
-**INR cible 3 – 4,5 :**
-- Valvulopathie mitrale avec :
-  - dilatation oreillette gauche
-  - contraste spontané
-  - thrombus intra-auriculaire gauche
-""")
+  
+    st.markdown("**AVK prescrit pour quelle indication ?**  \nSituations qui imposent un relais par une héparine :")
 
     valves = st.checkbox("Valve mécanique")
     acfa_atcd = st.checkbox("ACFA avec antécédent embolique")
@@ -2896,9 +2664,9 @@ Si ≥ 1 facteur présent → **augmenter la cible INR de +0,5**
         st.markdown("""
 **Rappel MTEV à haut risque :**
 - TVP proximale et/ou EP < 3 mois
-- MTEV récidivante idiopathique (≥ 2 épisodes, dont ≥ 1 sans facteur déclenchant)
+- MTEV récidivante idiopathique (>= 2 épisodes, dont >= 1 sans facteur déclenchant)
 
-*Discuter la mise en place d’un filtre cave au cas par cas.*
+*Discuter la mise en place d'un filtre cave au cas par cas.*
 """)
 
     st.subheader("INR")
@@ -2918,6 +2686,52 @@ Si ≥ 1 facteur présent → **augmenter la cible INR de +0,5**
             step=0.1
         )
 
+
+
+if avk_detecte:
+    st.info("""
+### Objectif INR péri-opératoire (AVK)
+
+Objectif standard :
+- INR < 1,5
+- INR < 1,2 si neurochirurgie
+- Exception : chirurgie à faible risque hémorragique -> INR en zone thérapeutique possible
+
+---
+
+### Valves mecaniques
+
+- Valve mitrale / tricuspide / ancienne generation
+  -> **INR cible = 3 (2,5 - 3,5)**
+
+- Valve aortique moderne (bileaflet)
+  -> **INR cible = 2,5 (2 - 3)**
+
+### Autres indications (sans valve mecanique)
+
+**INR cible 2 - 3 :**
+- Fibrillation atriale non valvulaire
+- Prevention et traitement TVP / EP
+- Syndrome des antiphospholipides (selon terrain)
+
+**INR cible 3 - 4,5 :**
+- Valvulopathie mitrale avec :
+  - dilatation oreillette gauche
+  - contraste spontane en echocardiographie transoesophagienne (ETO)
+  - thrombus intra-auriculaire gauche
+
+---
+
+Rappels des objectifs d'INR, selon recommandations ESC 2025  
+
+### Facteurs pro-thrombotiques (a rechercher)
+Si >= 1 facteur present -> augmenter la cible INR de +0,5 
+
+- Fibrillation atriale  
+- Dysfonction VG (FEVG < 35 %)  
+- Etat hypercoagulable  
+- Evenement thrombotique recent (< 12 mois : AVC, TVP, EP)
+""")
 
     ctx = {}
 
@@ -3069,6 +2883,8 @@ if corticoides_connus and not hydrocortisone_topique:
 
 
 
+
+
 # =========================
 # CONTEXTE GLOBAL 
 # =========================
@@ -3106,6 +2922,7 @@ ctx = {
     "bitherapie_aap": type_traitement_aap == "Bithérapie",
     "prev_secondaire": type_traitement_aap == "Prévention secondaire",
     "prev_primaire": type_traitement_aap == "Prévention primaire",
+    "aspirine_inf_75": dose_aspirine < 75,
     "stent_1m": contexte_stent == "Stent ≤ 1 mois",
     "stent_6m_haut_risque": contexte_stent == "Stent ≤ 6 mois à haut risque thrombotique",
     "idm_6m": contexte_stent == "IDM < 6 mois",
@@ -3125,7 +2942,6 @@ ctx = {
     "reprise_precoce": reprise_precoce,
     "complications_postop": complications_postop,
     "obstetrique": obstetrique,
-    "corticoides": corticoides_connus,
     "hydrocortisone_topique": hydrocortisone_topique,
     "hydrocortisone_systemique": hydrocortisone_systemique,
 
@@ -3141,18 +2957,22 @@ ctx = {
 # =========================
 # DFG
 # =========================
+
 dfg_ctx = ctx.get("dfg")
 dfg_connu_ctx = ctx.get("dfg_connu")
 
 if dfg_connu_ctx == "Oui" and dfg_ctx is not None:
+    ctx["dfg_inf_30"] = dfg_ctx < 30
+    ctx["dfg_inf_50"] = dfg_ctx < 50
     ctx["dfg_ge_50"] = dfg_ctx >= 50
     ctx["dfg_ge_30"] = dfg_ctx >= 30
     ctx["dfg_30_49"] = 30 <= dfg_ctx <= 49
 else:
+    ctx["dfg_inf_30"] = False
+    ctx["dfg_inf_50"] = False
     ctx["dfg_ge_50"] = False
     ctx["dfg_ge_30"] = False
     ctx["dfg_30_49"] = False
-
 
 
 # =======================
@@ -3222,7 +3042,7 @@ with st.expander("Voir les lignes retenues pour la détection"):
 
 # =========================
 # RESULTATS
-# =========================
+# ========================
 codes_atc_detectes = []
 
 if resultats:
