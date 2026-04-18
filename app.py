@@ -2882,8 +2882,11 @@ if corticoides_connus and not hydrocortisone_topique:
     obstetrique = (spe == "Obstétrique")
 
 
-
-
+# =========================
+# HEPARINES 
+# =========================
+voie_heparine = None
+dose_heparine = None
 
 # =========================
 # CONTEXTE GLOBAL 
@@ -2945,7 +2948,8 @@ ctx = {
     "hydrocortisone_topique": hydrocortisone_topique,
     "hydrocortisone_systemique": hydrocortisone_systemique,
 
-
+    "voie_heparine": voie_heparine,
+    "dose_heparine": dose_heparine,
 
     "inr_therapeutique_2_3": inr_disponible == "Oui" and inr_valeur is not None and 2 <= inr_valeur <= 3,
     "inr_hors_zone_2_3": inr_disponible == "Oui" and inr_valeur is not None and not (2 <= inr_valeur <= 3),
@@ -2986,7 +2990,82 @@ resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
     ctx=ctx
 )
 
+# =========================
+# HEPARINES ui
+# =========================
+codes_atc_detectes = [r.get("Code ATC") for r in resultats if r.get("Code ATC")]
+codes_atc_detectes_upper = [str(c).upper().strip() for c in codes_atc_detectes]
 
+# reset
+voie_heparine = None
+dose_heparine = None
+
+# HNF
+if "B01AB01" in codes_atc_detectes_upper:
+    st.divider()
+    st.subheader("Contexte héparine")
+
+    st.caption("Même code ATC pour HNF sous-cutanée et HNF IVSE, mais règles d'arrêt différentes.")
+
+    voie_heparine_ui = st.radio(
+        "Voie d'administration de l'HNF",
+        ["IVSE", "Sous-cutanée"],
+        horizontal=True,
+        key="ui_voie_heparine"
+    )
+
+    voie_heparine = "IVSE" if voie_heparine_ui == "IVSE" else "SC"
+
+# HBPM / Fondaparinux
+if any(c in codes_atc_detectes_upper for c in ["B01AB05", "B01AB10", "B01AX05"]):
+    st.divider()
+    st.subheader("Contexte héparine")
+
+    dose_heparine_ui = st.radio(
+        "Type d'anticoagulation",
+        ["Dose préventive", "Dose curative"],
+        horizontal=True,
+        key="ui_dose_heparine"
+    )
+
+    dose_heparine = "préventive" if dose_heparine_ui == "Dose préventive" else "curative"
+
+    if "B01AB10" in codes_atc_detectes_upper:
+        st.info("""
+Rappel posologiques
+
+Préventif :
+- 4500 UI/j en SC
+- SI IMC > 40 alors 75UI/kg poids réel x 1/j
+
+Curatif :
+- 175 ui/kg x 1/j
+""")
+
+    if "B01AX05" in codes_atc_detectes_upper:
+        st.info("""
+Rappels posologiques
+
+Préventif :
+- 2.5mg/j SC
+- si IMC > 40 alors 5mg/j SC
+
+Curatif :
+- Poids < 50kgs = 5mg/j SC
+- Poids 50-100kgs = 7.5mg/j SC
+- Poids > 100kgs = 10mg/j SC
+""")
+
+ctx["voie_heparine"] = voie_heparine
+ctx["dose_heparine"] = dose_heparine
+
+resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
+    txt=txt_final,
+    ref=ref,
+    atc_map=atc_map,
+    classe_map=classe_map,
+    ctx=ctx
+)
 # =========================
 # DETECTION IMIPRAMINIQUES
 # =========================
