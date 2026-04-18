@@ -3005,7 +3005,7 @@ if "B01AB01" in codes_atc_detectes_upper:
     st.divider()
     st.subheader("Contexte héparine")
 
-    st.caption("Même code ATC pour HNF sous-cutanée et HNF IVSE, mais règles d'arrêt différentes.")
+    st.caption("Même code ATC pour HNF (héparine non fractionée) sous-cutanée et HNF IVSE (injection veineuse à seringue électrique), mais règles d'arrêt différentes.")
 
     voie_heparine_ui = st.radio(
         "Voie d'administration de l'HNF",
