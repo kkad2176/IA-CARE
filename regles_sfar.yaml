@@ -57,6 +57,12 @@ sources_regles:
 
 
 
+  regle_11_heparines:
+    categorie: HEPARINES
+    sources:
+      - "https://sfar.org/wp-content/uploads/2017/10/Bonhomme-Gestion-preoperatoire-du-risque-hemorragique.pdf"
+
+
 
 
 
@@ -675,6 +681,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
 
 
+
 - categorie: AINS
   source_ref: regle_7_ains
   atc_prefix:
@@ -1101,6 +1108,110 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Pas de relais systématique.
         Contrôle INR initial entre J-10 et J-7.
         Contrôle INR la veille ou matin de l'intervention.
+
+
+#-------------------
+
+- categorie: "HNF IVSE"
+  source_ref: "regle_11_heparines"
+  atc_codes:
+    - "B01AB01"
+  conditions:
+    - if:
+        voie_heparine: "IVSE"
+      action: "ARRET"
+      jour: "4 à 6h avant"
+      note: "SI HNF intra-veineuse à la seringue électrique ALORS arrêt 4 à 6h avant la chirurgie"
+
+- categorie: "HNF SC"
+  source_ref: "regle_11_heparines"
+  atc_codes:
+    - "B01AB01"
+  conditions:
+    - if:
+        voie_heparine: "SC"
+      action: "ARRET"
+      jour: "12h avant"
+      note: "SI HNF SC ALORS dernière injection 12h avant la chirurgie"
+
+- categorie: "Enoxaparine – lovenox"
+  source_ref: "regle_11_heparines"
+  atc_codes:
+    - "B01AB05"
+  conditions:
+    - if:
+        dose_heparine: "préventive"
+      action: "ARRET"
+      jour: "12h avant"
+      note: "Si dose préventive ALORS dernière injection 12h avant chirurgie"
+    - if:
+        dose_heparine: "curative"
+      action: "ARRET"
+      jour: "24h avant"
+      note: "Si dose curative ALORS dernière injection 24h avant chirurgie"
+
+- categorie: "Tinzaparine - Inohep"
+  source_ref: "regle_11_heparines"
+  atc_codes:
+    - "B01AB10"
+  conditions:
+    - if:
+        dose_heparine: "préventive"
+      action: "ARRET"
+      jour: "12h avant"
+      note: |
+        Si dose préventive ALORS dernière injection 12h avant chirurgie
+
+       
+    - if:
+        dose_heparine: "curative"
+      action: "ARRET"
+      jour: "24h avant"
+      note: |
+        Si dose curative ALORS dernière injection 24h avant chirurgie
+
+- categorie: "Fundaparinux – arixtra"
+  source_ref: "regle_11_heparines"
+  atc_codes:
+    - "B01AX05"
+  conditions:
+    - if:
+        dose_heparine: "préventive"
+      action: "ARRET"
+      jour: "36h avant"
+      note: |
+        Si dose préventive alors dernière injection 36h avant la chirurgie
+
+        
+    - if:
+        dose_heparine: "curative"
+      action: "ARRET"
+      jour: "72h avant"
+      note: |
+        Si dose curative alors dernière injection 72h avant la chirurgie
+
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
