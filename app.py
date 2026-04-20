@@ -1822,11 +1822,29 @@ def load_data():
         classe_map = {
             str(k).upper().strip(): str(v).strip()
             for k, v in zip(libelles["CODE_ATC"], libelles["NOM_DEUXIEME_CLASSE"])
+            if pd.notna(k) and pd.notna(v)
         }
+
+        # fichier libelles dans atc_map
+        if "MEDICAMENT" in libelles.columns and "CODE_ATC" in libelles.columns:
+            for nom, code in zip(libelles["MEDICAMENT"], libelles["CODE_ATC"]):
+                if pd.notna(nom) and pd.notna(code):
+                    atc_map[norm(nom)] = str(code).upper().strip()
+
+        # alias utiles formes galéniques
+        if "EURAX" in atc_map and "EURAX CREME" not in atc_map:
+            atc_map["EURAX CREME"] = atc_map["EURAX"]
+
+        if "CUTACNYL" in atc_map and "CUTACNYL 5 GEL" not in atc_map:
+            atc_map["CUTACNYL 5 GEL"] = atc_map["CUTACNYL"]
+
+        if "CUTACNYL" in atc_map and "CUTACNYL 5% GEL" not in atc_map:
+            atc_map["CUTACNYL 5% GEL"] = atc_map["CUTACNYL"]
 
         ref = list(atc_map.keys())
 
         return atc_map, ref, classe_map, inter, inter_cortico, taxo, sentinelles, profils
+
 
     except Exception as e:
         st.error(f"Erreur fichiers CSV : {e}")
@@ -3005,15 +3023,17 @@ if "B01AB01" in codes_atc_detectes_upper:
     st.divider()
     st.subheader("Contexte héparine")
 
-    
     voie_heparine_ui = st.radio(
-        "Voie d'administration de l'HNF",
-        ["IVSE", "Sous-cutanée"],
+        "Voie d'administration de l'héparine non fractioné (HNF)",
+        ["IVSE", "SC"],
         horizontal=True,
         key="ui_voie_heparine"
     )
 
-    voie_heparine = "IVSE" if voie_heparine_ui == "IVSE" else "SC"
+    voie_heparine = "IVSE" if "IVSE" in voie_heparine_ui else "SC"
+
+   
+
 
 # HBPM / Fondaparinux
 if any(c in codes_atc_detectes_upper for c in ["B01AB05", "B01AB10", "B01AX05"]):
