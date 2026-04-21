@@ -208,7 +208,7 @@ def corriger_texte_vocal_medicamenteux(texte, ref):
             mots_corriges.append(mot_clean)
             continue
 
-        # variantes phonétiques très simples
+        
         variantes = {
             mot_clean,
             mot_clean.replace("Z", "S"),
