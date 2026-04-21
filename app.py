@@ -2019,11 +2019,6 @@ with st.sidebar:
                 stress_chir = "modéré/élevé"
 
 
-
-
-
-
-
             stress_cortico_faible, stress_cortico_raw, stress_cortico_norm = get_stress_cortico_from_id(
                 id_acte,
                 df_inter_cortico
@@ -2044,9 +2039,6 @@ with st.sidebar:
             stress_chir = "modéré/élevé"
 
 
-
-
-
     else:
         spe = None
         grp = None
@@ -2064,12 +2056,7 @@ with st.sidebar:
         st.warning("Taxonomie chirurgie indisponible ou colonnes non reconnues.")
 
    
-
-
-   
     type_alr = st.selectbox("ALR prévue", ["AUCUNE", "SUPERFICIEL", "NEURAXIAL", "PROFOND"])
-
-
 
 #----------------------------
 #---- RAPPEL ALR PROFONDES
@@ -2131,16 +2118,6 @@ with st.sidebar:
 - Branche fémorale du nerf génito-fémoral  
 - Sural, saphène, tibial, fibulaire (profond ou superficiel)  
             """)
-
-
-
-    
-
-
-
-
-
-
 
 
     st.divider()
@@ -2250,8 +2227,6 @@ if st.session_state.get("txt"):
             st.session_state.txt = ""
             st.session_state.ocr_lines = []
             st.rerun()
-
-   
 
 
 if photo and st.button("Lancer Scan Document"):
