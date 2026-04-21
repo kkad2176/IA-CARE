@@ -51,47 +51,39 @@ def enrichir_note_avec_dates(note, date_intervention):
 
     return re.sub(r"\bJ-\d+\b|\bJ0\b", repl, note)
 
+def generer_pdf_patient(ville, date_doc, civilite, nom_prenom, lignes, phrase):
+    import tempfile, os
 
-def generer_pdf_patient(ville, date_doc, civilite, nom_prenom, lignes, phrase_finale):
-    import tempfile
-    import os
-
-    fd, pdf_path = tempfile.mkstemp(suffix=".pdf")
+    fd, path = tempfile.mkstemp(suffix=".pdf")
     os.close(fd)
 
-    c = canvas.Canvas(pdf_path, pagesize=A4)
-    width, height = A4
+    c = canvas.Canvas(path, pagesize=A4)
+    w, h = A4
 
-    x = 2 * cm
-    y = height - 2.5 * cm
+    x = 2*cm
+    y = h - 2.5*cm
 
     c.setFont("Helvetica", 12)
     c.drawString(x, y, f"{ville}, le {date_doc}")
-    y -= 1.2 * cm
+    y -= 1.2*cm
 
     c.drawString(x, y, f"{civilite} {nom_prenom}")
-    y -= 1.5 * cm
+    y -= 1.5*cm
 
     c.setFont("Helvetica-Bold", 16)
     c.drawString(x, y, "Calendrier Patient")
-    y -= 1.3 * cm
+    y -= 1.3*cm
 
     c.setFont("Helvetica", 12)
-    for ligne in lignes:
-        c.drawString(x, y, f"- {ligne}")
-        y -= 1 * cm
+    for l in lignes:
+        c.drawString(x, y, f"- {l}")
+        y -= 1*cm
 
-    y -= 0.4 * cm
-    c.setFillColorRGB(0.92, 0.95, 1.0)
-    c.roundRect(x, y - 0.4 * cm, width - 4 * cm, 1.4 * cm, 8, fill=1, stroke=0)
-
-    c.setFillColorRGB(0, 0.2, 0.55)
-    c.drawString(x + 0.4 * cm, y + 0.15 * cm, phrase_finale)
+    y -= 0.4*cm
+    c.drawString(x, y, phrase)
 
     c.save()
-    return pdf_path
-
-
+    return path
 
 # =========================================================
 # CONFIGURATION
@@ -230,17 +222,15 @@ def corriger_texte_vocal_medicamenteux(texte, ref):
 
     txt = normalize_text(texte)
 
-    
+   
     txt = txt.replace(" PH ", " F ")
     txt = txt.replace(" Y ", " I ")
     txt = txt.replace("-", " ")
     txt = re.sub(r"\s+", " ", txt).strip()
 
-    
     mots = txt.split()
     mots_corriges = []
 
-    # mot a ignorer 
     mots_a_ignorer = {
         "LE", "LA", "LES", "DE", "DU", "DES", "ET", "OU", "UN", "UNE",
         "MATIN", "MIDI", "SOIR", "JOUR", "JOURS", "SI", "BESOIN"
@@ -253,7 +243,6 @@ def corriger_texte_vocal_medicamenteux(texte, ref):
             mots_corriges.append(mot_clean)
             continue
 
-        
         variantes = {
             mot_clean,
             mot_clean.replace("Z", "S"),
@@ -273,7 +262,6 @@ def corriger_texte_vocal_medicamenteux(texte, ref):
                     meilleur_nom = nom_match
                     meilleur_score = score_match
 
-       
         if meilleur_nom and meilleur_score >= 82:
             mots_corriges.append(meilleur_nom)
         else:
@@ -327,7 +315,6 @@ def extraire_medicaments_depuis_transcription_vocale(texte, ref):
     txt = re.sub(r"\b\d+[.,]?\d*\s*(MG|G|MCG|UG|ML|UI|MUI)\b", " ", txt)
     txt = re.sub(r"\b\d+[.,]?\d*\b", " ", txt)
 
-    # mots de posologie à ignorer
     txt = re.sub(
         r"\b(MG|G|MCG|UG|ML|UI|MUI|COMPRIME|COMPRIMES|GELULE|GELULES|AMP|AMPOULE|SACHET|SACHETS|MATIN|MIDI|SOIR|JOUR|JOURS|PAR|FOIS|BESOIN)\b",
         " ",
@@ -341,15 +328,12 @@ def extraire_medicaments_depuis_transcription_vocale(texte, ref):
     candidats = []
     vus = set()
 
-    # 1 mot
     for i in range(len(mots)):
         candidats.append(mots[i])
 
-    # 2 mots
     for i in range(len(mots) - 1):
         candidats.append(mots[i] + " " + mots[i + 1])
 
-    # 3 mots
     for i in range(len(mots) - 2):
         candidats.append(mots[i] + " " + mots[i + 1] + " " + mots[i + 2])
 
@@ -950,23 +934,23 @@ def meilleur_match_medicament(candidate, ref):
     if len(cand) < 3:
         return None, 0
 
-  
+    # 1. match exact prioritaire
     if cand in ref:
         return cand, 100
 
-
+    # 2. pour les noms courts / un seul mot : très strict
     if len(cand.split()) == 1:
         match = process.extractOne(cand, ref, scorer=fuzz.ratio)
         if match:
             nom_match, score_match, _ = match
 
-           
+            # n'accepte que si quasi identique
             if score_match >= 96:
                 return nom_match, score_match
 
         return None, 0
 
-  
+    # 3. pour les noms multi-mots : un peu plus souple
     best_name = None
     best_score = 0
 
@@ -1142,7 +1126,7 @@ def moteur_global(atc, ctx):
     if ans_yaml:
         return ans_yaml
 
-    
+    # 
     if ctx.get("corticoides"):
         return {
             "action": "POURSUITE",
@@ -1151,7 +1135,7 @@ def moteur_global(atc, ctx):
             "source": ""
         }
 
-    
+    # 
     return {
         "action": "NON SPECIFIE",
         "jour": "",
@@ -1461,17 +1445,14 @@ def get_classe(atc, classe_map):
 
     atc = str(atc).upper().strip()
 
-    # 1. match exact
     if atc in classe_map:
         return classe_map[atc]
 
-    # 2. fallback par préfixe (A10BJ06 → A10BJ)
     for i in range(len(atc), 2, -1):
         prefix = atc[:i]
         if prefix in classe_map:
             return classe_map[prefix]
 
-    # 3. fallback logique
     if atc.startswith("A10"):
         return "Antidiabétique"
 
@@ -1555,12 +1536,10 @@ def ressemble_a_un_medicament(txt):
     if len(tn) < 4:
         return False
 
-
     mots = t.split()
     if len(mots) > 2:
         return False
 
- 
     mots_interdits = [
         "MEDECIN", "DOCTEUR", "DR", "GENERALISTE", "DERMATOLOGUE",
         "CABINET", "CENTRE", "RUE", "AVENUE", "BOULEVARD",
@@ -1576,19 +1555,15 @@ def ressemble_a_un_medicament(txt):
         return False
 
 
-
     if len(mots) == 2:
         if len(mots[0]) <= 2 or len(mots[1]) <= 2:
             return False
-
 
     nb_lettres = sum(ch.isalpha() for ch in t)
     if nb_lettres < 4:
         return False
 
     return True
-
-
 
 
 def extraire_nom_medicament_debut_ligne(txt):
@@ -1623,6 +1598,9 @@ def extraire_nom_medicament_debut_ligne(txt):
         nom = t.strip(" -,:;")
 
     return nom
+
+
+
 
 
 
@@ -1830,28 +1808,24 @@ def load_data():
 
         atc_map = {}
 
-        # pour éviter bugs accents espaces
+        # pour éviter les bugs accents / espaces
         def norm(x):
             return normalize_text(x)
 
-        # MEDICAMENT_SOURCE
         for k, v in zip(atc["MEDICAMENT_SOURCE"], atc["CODE_ATC"]):
             if pd.notna(k) and pd.notna(v):
                 atc_map[norm(k)] = str(v).upper().strip()
 
-        #  NOM_COMMERCIAL
         if "NOM_COMMERCIAL" in atc.columns:
             for k, v in zip(atc["NOM_COMMERCIAL"], atc["CODE_ATC"]):
                 if pd.notna(k) and pd.notna(v):
                     atc_map[norm(k)] = str(v).upper().strip()
 
-        #  Dci
         if "DCI" in atc.columns:
             for k, v in zip(atc["DCI"], atc["CODE_ATC"]):
                 if pd.notna(k) and pd.notna(v):
                     atc_map[norm(k)] = str(v).upper().strip()
   
-        # nettoyage doublons / erreurs critiques
         corrections = {
             "FLUINDIONE": "B01AA12",
             "PREVISCAN": "B01AA12",
@@ -1873,7 +1847,7 @@ def load_data():
                 if pd.notna(nom) and pd.notna(code):
                     atc_map[norm(nom)] = str(code).upper().strip()
 
-     
+        # alias utiles formes galéniques
         if "EURAX" in atc_map and "EURAX CREME" not in atc_map:
             atc_map["EURAX CREME"] = atc_map["EURAX"]
 
@@ -2045,7 +2019,7 @@ with st.sidebar:
             key="intervention_chirurgie"
         )
 
-        # Détection pour automatique neurochirurgie / rachis
+        # Détection automatique neurochirurgie / rachis
         is_neuro = False
         if spe is not None and str(spe).strip().upper() in ["NEUROCHIRURGIE", "RACHIS"]:
             is_neuro = True
@@ -2083,6 +2057,9 @@ with st.sidebar:
                 stress_chir = "faible"
             else:
                 stress_chir = "modéré/élevé"
+
+
+
 
 
 
@@ -2198,6 +2175,14 @@ with st.sidebar:
 
 
     
+
+
+
+
+
+
+
+
     st.divider()
     st.header("Contexte patient / chirurgie")
 
@@ -2350,6 +2335,12 @@ sraa_detecte = contexte_famille_detecte(
 )
 
 
+
+
+
+
+
+
 # =========================
 # DETECTION CONTEXTES
 # =========================
@@ -2437,15 +2428,11 @@ if aap_detecte:
     st.divider()
     st.header("Antiagrégants plaquettaires (AAP)")
 
-    if bitherapie_auto:
-        st.info("Deux AAP détectés : bithérapie présumée.")
-        type_traitement_aap = "Bithérapie"
-    else:
-        type_traitement_aap = st.radio(
-            "Type de traitement",
-            ["Prévention primaire", "Prévention secondaire", "Bithérapie"],
-            index=0
-        )
+    type_traitement_aap = st.radio(
+        "Type de traitement",
+        ["Prévention primaire", "Prévention secondaire", "Bithérapie"],
+        index=0
+    )
 
     if type_traitement_aap == "Bithérapie":
         contexte_stent = st.selectbox(
@@ -2587,35 +2574,12 @@ Si >= 1 facteur present -> augmenter la cible INR de +0,5
     
 
     resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
-    txt=txt_final,
-    ref=ref,
-    atc_map=atc_map,
-    classe_map=classe_map,
-    ctx=ctx
+        txt=txt_final,
+        ref=ref,
+        atc_map=atc_map,
+        classe_map=classe_map,
+        ctx=ctx
     )
-
-    # =========================
-    # AAP detecttion bithérapie
-    # =========================
-    codes_aap = {
-        "B01AC01",
-        "B01AC04",
-        "B01AC06",
-        "B01AC07",
-        "B01AC22",
-        "B01AC24",
-    }
-
-    aap_detectes_codes = []
-
-    for r in resultats:
-        code = str(r.get("Code ATC", "")).upper().strip()
-        if code in codes_aap:
-            aap_detectes_codes.append(code)
-
-    nb_aap_detectes = len(set(aap_detectes_codes))
-    bitherapie_auto = nb_aap_detectes >= 2
-
 
 # =========================
 # CONTEXTE PATIENT / CHIRURGIE
@@ -2672,7 +2636,7 @@ if "stress_chir" not in locals():
 
 hydrocortisone_detectee = "hydrocortisone" in str(st.session_state).lower()
 
-
+# Question supplémentaire uniquement pour hydrocortisone
 if hydrocortisone_detectee:
     type_hydrocortisone = st.radio(
         "Hydrocortisone : préciser la forme",
@@ -2689,7 +2653,7 @@ if hydrocortisone_detectee:
         hydrocortisone_systemique = True
         corticoides_connus = True
 
-
+# Bloc corticoïdes pour tous les corticoïdes systémiques
 if corticoides_connus and not hydrocortisone_topique:
     st.subheader("Contexte corticoïdes")
 
@@ -2747,6 +2711,7 @@ if corticoides_connus and not hydrocortisone_topique:
     complications_postop = False
 
     obstetrique = (spe == "Obstétrique")
+
 
 # =========================
 # HEPARINES 
@@ -2856,18 +2821,9 @@ resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
     ctx=ctx
 )
 
-
 # =========================
 # HEPARINES ui
 # =========================
-
-
-
-resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(...)
-
-
-
-
 codes_atc_detectes = [r.get("Code ATC") for r in resultats if r.get("Code ATC")]
 codes_atc_detectes_upper = [str(c).upper().strip() for c in codes_atc_detectes]
 
@@ -2942,9 +2898,6 @@ resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
     classe_map=classe_map,
     ctx=ctx
 )
-
-
-
 # =========================
 # DETECTION IMIPRAMINIQUES
 # =========================
@@ -2952,8 +2905,6 @@ imipraminiques_detectes = any(
     str(r.get("Code ATC", "")).upper().strip() in ["N06AA04", "N06AA09"]
     for r in resultats
 )
-
-
 
 
 if imipraminiques_detectes:
@@ -2967,7 +2918,6 @@ if imipraminiques_detectes:
 
     ctx["atcd_cv"] = (atcd_cv_ui == "Oui")
 
-    # recalcul avec la réponse du médecin
     resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
         txt=txt_final,
         ref=ref,
@@ -3031,7 +2981,7 @@ if resultats:
             if jours is not None:
                 d_stop = date_op - timedelta(days=jours)
                 ligne = f"{r['Médicament']} : dernière prise le {d_stop.strftime('%d/%m/%Y')}"
-                st.write(f"- **{r['Médicament']}** : dernière prise le **{d_stop.strftime('%d/%m/%Y')}**")
+                st.write(f"- **{ligne}**")
                 lignes_pdf.append(ligne)
                 au_moins_un_arret = True
                 continue
@@ -3040,43 +2990,37 @@ if resultats:
             if match_h:
                 heures = int(match_h.group(1))
                 ligne = f"{r['Médicament']} : dernière prise à H-{heures} avant l’intervention"
-                st.write(f"- **{r['Médicament']}** : dernière prise à **H-{heures}** avant l’intervention")
+                st.write(f"- **{ligne}**")
                 lignes_pdf.append(ligne)
                 au_moins_un_arret = True
                 continue
 
-    phrase_finale = ""
+    phrase_pdf = ""
+
     if au_moins_un_arret:
-        phrase_finale = "Poursuivre le reste du traitement jusqu'au jour de l'intervention avec un peu d'eau."
-        st.info(phrase_finale)
+        phrase_pdf = "Poursuivre le reste du traitement jusqu'au jour de l'intervention avec un peu d'eau."
+        st.info(phrase_pdf)
     else:
         st.info("Aucun arrêt médicamenteux daté à planifier selon les règles actuelles.")
 
-
     if lignes_pdf:
-        ville_pdf = st.text_input("Ville", value="Marseille")
-        civilite_pdf = st.selectbox("Civilité", ["Madame", "Monsieur"])
-        nom_prenom_pdf = st.text_input("Nom prénom", value="")
-        date_pdf = st.date_input("Date du document", value=date.today())
+        ville = st.text_input("Ville", value="Marseille")
+        civilite = st.selectbox("Civilité", ["Madame", "Monsieur"])
+        nom = st.text_input("Nom prénom")
+        date_doc = st.date_input("Date", value=date.today())
 
-        if st.button("Générer PDF patient"):
-            pdf_path = generer_pdf_patient(
-                ville=ville_pdf,
-                date_doc=date_pdf.strftime("%d/%m/%Y"),
-                civilite=civilite_pdf,
-                nom_prenom=nom_prenom_pdf,
-                lignes=lignes_pdf,
-                phrase_finale=phrase_finale
+        if st.button("Générer PDF"):
+            path = generer_pdf_patient(
+                ville,
+                date_doc.strftime("%d/%m/%Y"),
+                civilite,
+                nom,
+                lignes_pdf,
+                phrase_pdf
             )
 
-            with open(pdf_path, "rb") as f:
-                st.download_button(
-                    "Télécharger le PDF",
-                    data=f,
-                    file_name="calendrier_patient.pdf",
-                    mime="application/pdf"
-                )
-
+            with open(path, "rb") as f:
+                st.download_button("Télécharger PDF", f, "calendrier.pdf")
 
 
 
@@ -3301,20 +3245,17 @@ Merci d’évaluer votre expérience :
     commentaire = st.text_area("Commentaire libre", key="commentaire")
 
 
-
     if st.button("Enregistrer le questionnaire"):
 
         # chemin du fichier dans le même dossier que app.py
         fichier_satisfaction = os.path.join(BASE_DIR, "satisfaction_utilisateurs.csv")
 
-        # créer une ligne de données
         data = {
             "date": date.today().isoformat(),
             "profil": profil,
             "commentaire": commentaire
         }
 
-        
         for i, rep in enumerate(reponses, start=1):
             data[f"Q{i}"] = rep
 
