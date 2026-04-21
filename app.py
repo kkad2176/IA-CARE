@@ -487,9 +487,7 @@ def charger_yaml_regles():
             "sources_regles": {},
             "regles_medicaments": []
         }
-
-
-
+        
 
 ALIASES = {
     "sraa": "sraa",
@@ -510,8 +508,6 @@ ALIASES = {
     "ains": "ains",
     "insuline": "insuline",
 }
-
-
 
 def trouver_regle_par_categorie(data, categorie):
     if not data or "regles_medicaments" not in data:
@@ -550,9 +546,6 @@ def trouver_regle_par_categorie(data, categorie):
 
     return idx, regle
 
-
-
-
 def valider_bloc_regle(bloc):
     if not isinstance(bloc, dict):
         return False, "Le bloc proposé n'est pas un dictionnaire."
@@ -574,17 +567,12 @@ def valider_bloc_regle(bloc):
 
     return True, None
 
-
-
-
-
 def clean_medicament_name(name):
     if not name:
         return name
 
     pattern = r"\b(BOUFFEES?|INHALATIONS?|CP|COMPRIMES?|GELULES?|SPRAY|AEROSOL)\b"
     return re.sub(pattern, "", name, flags=re.IGNORECASE).strip()
-
 
 def nettoyer_nom_affichage_medicament(name):
     if not name:
@@ -786,8 +774,6 @@ def nettoyer_ligne_medicament_manuscrit(ligne):
     l = re.sub(r"[^A-Z0-9\s\-]", " ", l)
     l = re.sub(r"\s+", " ", l).strip()
     return l
-
-
 
 
 def nettoyer_texte(txt):
