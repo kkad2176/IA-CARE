@@ -3227,7 +3227,7 @@ Merci d’évaluer votre expérience :
             "commentaire": commentaire
         }
 
-        # ajouter les 10 questions
+       
         for i, rep in enumerate(reponses, start=1):
             data[f"Q{i}"] = rep
 
