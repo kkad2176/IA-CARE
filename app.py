@@ -2269,13 +2269,6 @@ sraa_detecte = contexte_famille_detecte(
     ]
 )
 
-
-
-
-
-
-
-
 # =========================
 # DETECTION CONTEXTES
 # =========================
@@ -2452,8 +2445,6 @@ if avk_detecte:
             step=0.1
         )
 
-
-
 if avk_detecte:
     st.info("""
 ### Objectif INR péri-opératoire (AVK)
@@ -2526,8 +2517,6 @@ ind_glp1 = None
 if diabete_detecte:
     st.divider()
     st.header("Contexte diabète")
-
-
 
     type_chir = st.selectbox(
         "Type de chirurgie",
@@ -2723,7 +2712,6 @@ ctx = {
     
     }
 
-
 # =========================
 # DFG
 # =========================
@@ -2781,8 +2769,6 @@ if "B01AB01" in codes_atc_detectes_upper:
     voie_heparine = "IVSE" if "IVSE" in voie_heparine_ui else "SC"
 
    
-
-
 # HBPM / Fondaparinux
 if any(c in codes_atc_detectes_upper for c in ["B01AB05", "B01AB10", "B01AX05"]):
     st.divider()
@@ -2956,8 +2942,6 @@ if resultats:
 
             with open(path, "rb") as f:
                 st.download_button("Télécharger PDF", f, "calendrier.pdf")
-
-
 
 
     st.divider()
