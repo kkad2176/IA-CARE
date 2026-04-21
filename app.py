@@ -19,15 +19,12 @@ import difflib
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
-
-
 from datetime import date, timedelta
 from collections import defaultdict
 
 def format_jour_avec_date(jour, date_intervention):
     if not jour or not date_intervention:
         return jour
-
     if str(jour).startswith("J-"):
         nb = int(str(jour).replace("J-", ""))
         date_calc = date_intervention - timedelta(days=nb)
@@ -125,17 +122,13 @@ if os.path.exists(yaml_path):
     except Exception as e:
         st.warning(f"Impossible de charger regles_sfar.yaml : {e}")
 
-
-
 @st.cache_resource
 def get_whisper_model_cached(model_name="base"):
     return whisper.load_model(model_name)
 
-
 @st.cache_resource
 def get_easyocr_reader_cached():
     return easyocr.Reader(["fr"], gpu=False)
-
 
 def preprocess_image_for_ocr(image):
     img = image.convert("L")
@@ -143,7 +136,6 @@ def preprocess_image_for_ocr(image):
     img = img.filter(ImageFilter.MedianFilter(size=3))
     img = img.point(lambda p: 255 if p > 170 else 0)
     return img
-
 
 def extraire_texte_tesseract_image(image):
     return ""
@@ -171,8 +163,6 @@ def extraire_lignes_ocr_image(image):
 
     return lignes_finales
 
-
-
 def afficher_pdf(uploaded_pdf):
     contenu = uploaded_pdf.getvalue()
     doc = fitz.open(stream=contenu, filetype="pdf")
@@ -185,8 +175,6 @@ def afficher_pdf(uploaded_pdf):
             caption=f"Page {i+1}",
             use_container_width=True
         )
-
-
 
 def extraire_texte_pdf(uploaded_pdf):
     contenu = uploaded_pdf.getvalue()
@@ -215,14 +203,13 @@ def extraire_texte_pdf(uploaded_pdf):
 
     return lignes_finales
 
-
 def corriger_texte_vocal_medicamenteux(texte, ref):
     if not texte:
         return ""
 
     txt = normalize_text(texte)
 
-   
+    
     txt = txt.replace(" PH ", " F ")
     txt = txt.replace(" Y ", " I ")
     txt = txt.replace("-", " ")
@@ -270,7 +257,6 @@ def corriger_texte_vocal_medicamenteux(texte, ref):
     texte_corrige = " ".join(mots_corriges)
     texte_corrige = re.sub(r"\s+", " ", texte_corrige).strip()
     return texte_corrige
-
 
 def transcrire_audio_robuste(uploaded_audio):
     audio_path = None
