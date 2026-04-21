@@ -488,7 +488,6 @@ def charger_yaml_regles():
             "regles_medicaments": []
         }
         
-
 ALIASES = {
     "sraa": "sraa",
     "iec": "sraa",
@@ -962,7 +961,6 @@ def conditions_match(ctx, regle, atc=None):
     
     atc_clean = str(atc or "").upper().strip()
     
-
     def norm(t):
         s = str(t or "").strip()
         s = unidecode.unidecode(s)
@@ -1028,8 +1026,6 @@ def conditions_match(ctx, regle, atc=None):
 
     return meilleure_cond
 
-
-        
 def moteur_yaml(atc, ctx):
     atc = str(atc).upper().strip()
     liste_regles = REGLES.get("regles_medicaments") or []
@@ -1128,8 +1124,6 @@ def moteur_expert_sfar(atc, ctx):
     3) défaut
     """
     atc = str(atc).upper().strip()
-
-   
     
     # ----------------------------
     def u(v):
@@ -1195,7 +1189,6 @@ def moteur_expert_sfar(atc, ctx):
             
         }
         
-     
 
     # ----------------------------
     # 2. Diurétiques
@@ -1292,8 +1285,6 @@ def moteur_expert_sfar(atc, ctx):
         if is_urg:
             return {"action": "ARRET et relais insuline IVSE", "jour": "Immédiat", "note": "Pompe à insuline : arrêt immédiat et relais IVSE."}
         return {"action": "ARRET DE LA POMPE AU BLOC", "jour": "J0", "note": "Pompe à insuline : perfusion de G10% 40 mL/h à partir du premier repas jeûné ; arrêt de la pompe au bloc ; relais IVSE."}
-
-
 
 
     # ----------------------------
@@ -1407,9 +1398,6 @@ def moteur_expert_sfar(atc, ctx):
     # Défaut global
     # ----------------------------
     return {"action": "POURSUITE", "jour": "J0", "note": "Médicament reconnu dans le référentiel, sans règle spécifique identifiée : poursuite, sans impact anesthésique évident, à vérifier selon le contexte clinique."}
-
-
-
 
 def get_classe(atc, classe_map):
     if not atc:
