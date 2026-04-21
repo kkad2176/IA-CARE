@@ -1947,61 +1947,6 @@ def inferer_profils_structures(codes_atc_detectes, df_sentinelles_ready, df_prof
 
     return pd.DataFrame(rows).sort_values("Score", ascending=False).head(3).reset_index(drop=True)
 
-#=========================================================
-# ASSISTANT INTELLIGENT & MODIFICATION YAML
-# =========================================================
-def appliquer_modification_yaml(intent, categorie_cible, nouveau_bloc_dict=None):
-    file_path = os.path.join(BASE_DIR, "regles_sfar.yaml")
-
-    try:
-        data = charger_yaml_regles()
-        regles = data.get("regles_medicaments", [])
-
-        idx, ancienne_regle = trouver_regle_par_categorie(data, categorie_cible)
-
-        if intent in ["add_rule", "update_rule"]:
-            ok, err = valider_bloc_regle(nouveau_bloc_dict)
-            if not ok:
-                return False, err
-
-        if intent == "update_rule":
-            if idx is None:
-                return False, f"Règle introuvable : {categorie_cible}"
-            regles[idx] = nouveau_bloc_dict
-
-        elif intent == "add_rule":
-            regles.append(nouveau_bloc_dict)
-
-        elif intent == "delete_rule":
-            if idx is None:
-                return False, f"Règle introuvable : {categorie_cible}"
-            regles.pop(idx)
-
-        else:
-            return False, f"Intent inconnu : {intent}"
-
-        data["regles_medicaments"] = regles
-
-        with open(file_path, "w", encoding="utf-8") as f:
-            yaml.dump(data, f, allow_unicode=True, sort_keys=False, indent=2)
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            yaml.safe_load(f)
-
-        return True, "Modification enregistrée."
-
-    except Exception as e:
-        return False, str(e)
-
-# =========================================================
-# CHAT DANS LA SIDEBAR
-# =========================================================
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "proposition_ia" not in st.session_state:
-    st.session_state.proposition_ia = None
 
 # =========================================================
 # SIDEBAR
@@ -2246,155 +2191,6 @@ with st.sidebar:
 
 
 
-
-
-
-  
-    
-
-
-with st.sidebar:
-    st.divider()
-    st.subheader("💬 Assistant Expert SFAR")
-
-    # affichage messages style bulles simples
-    chat_container = st.container()
-
-    with chat_container:
-        for message in st.session_state.messages:
-            if message["role"] == "user":
-                st.markdown(
-                    f"""
-                    <div style="
-                        background:#DCF8C6;
-                        padding:10px 14px;
-                        border-radius:14px;
-                        margin:8px 0;
-                        text-align:left;
-                    ">
-                        <b>Toi :</b><br>{message["content"]}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            else:
-                st.markdown(
-                    f"""
-                    <div style="
-                        background:#F1F0F0;
-                        padding:10px 14px;
-                        border-radius:14px;
-                        margin:8px 0;
-                        text-align:left;
-                    ">
-                        <b>IA :</b><br>{message["content"]}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-    prompt = st.text_input(
-        "Écris ta demande",
-        key="sidebar_chat_input",
-        placeholder="Ex: modifie la règle Metformine"
-    )
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        envoyer = st.button("Envoyer", use_container_width=True)
-
-    with col2:
-        vider = st.button("Vider", use_container_width=True)
-
-   
-    if vider:
-        st.session_state.messages = []
-        st.session_state.proposition_ia = None
-        st.rerun()
-    
-    if envoyer and prompt.strip():
-        st.session_state.messages.append({"role": "user", "content": prompt})
-
-        cmd = parser_commande_chat(prompt)
-        ok, msg, intent, categorie, bloc = preparer_modification_depuis_commande(cmd)
-  
-        if not ok:
-            st.session_state.messages.append({"role": "assistant", "content": msg})
-        else:
-            if intent == "show_rule":
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": f"Règle trouvée : {categorie}"
-                })
-                st.session_state.proposition_ia = {
-                    "intent": "show_rule",
-                    "target_category": categorie,
-                    "proposed_rule": bloc
-                }
-
-
-
-# Proposition en attente
-if st.session_state.proposition_ia:
-    prop = st.session_state.proposition_ia
-    st.divider()
-    st.markdown("### Proposition")
-
-    if prop["intent"] == "show_rule":
-        st.code(
-            yaml.dump(prop["proposed_rule"], allow_unicode=True, sort_keys=False),
-            language="yaml"
-        )
-
-    elif prop["intent"] == "update_rule":
-        data = charger_yaml_regles()
-        _, ancienne = trouver_regle_par_categorie(data, prop["target_category"])
-
-        st.markdown("**Ancienne règle**")
-        st.code(
-            yaml.dump(ancienne, allow_unicode=True, sort_keys=False),
-            language="yaml"
-        )
-
-        st.markdown("**Nouvelle règle**")
-        st.code(
-            yaml.dump(prop["proposed_rule"], allow_unicode=True, sort_keys=False),
-            language="yaml"
-        )
-
-        if st.button("Confirmer la modification"):
-            ok, msg = appliquer_modification_yaml(
-                prop["intent"],
-                prop["target_category"],
-                prop["proposed_rule"]
-            )
-            st.session_state.messages.append({"role": "assistant", "content": msg})
-            st.session_state.proposition_ia = None
-            st.rerun()
-
-    elif prop["intent"] == "delete_rule":
-        st.markdown(f"**Suppression de :** {prop['target_category']}")
-
-        if st.button("Confirmer la suppression"):
-            ok, msg = appliquer_modification_yaml(
-                prop["intent"],
-                prop["target_category"],
-                None
-            )
-            st.session_state.messages.append({"role": "assistant", "content": msg})
-            st.session_state.proposition_ia = None
-            st.rerun()
-
-
-       
-         
-     
-
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-
 # =========================================================
 # INTERFACE PRINCIPALE
 # =========================================================
@@ -2404,6 +2200,16 @@ col_input, col_scan = st.columns(2)
 
 with col_input:
     audio = st.audio_input(" Dictée vocale, veuillez parler clairement et lentement, en énonçant les médicaments un par un.")
+
+
+    if audio and st.button("Transcrire Voix"):
+        try:
+            lignes = transcrire_audio_robuste(audio)
+            st.session_state.txt = "\n".join(lignes)
+            st.session_state.ocr_lines = lignes
+        except Exception as e:
+            st.error(f"Erreur transcription audio : {e}")
+
 
 with col_scan:
     photo = st.file_uploader("Scan Ordonnance ou PDF", type=["jpg", "png", "jpeg", "pdf"])
@@ -2456,15 +2262,6 @@ with col_manual_2:
         st.session_state.manual_meds_buffer = ""
         st.session_state.manual_meds_validated = ""
         st.rerun()
-
-
-if audio and st.button("Transcrire Voix"):
-    try:
-        lignes = transcrire_audio_robuste(audio)
-        st.session_state.txt = "\n".join(lignes)
-        st.session_state.ocr_lines = lignes
-    except Exception as e:
-        st.error(f"Erreur transcription audio : {e}")
 
 
 
