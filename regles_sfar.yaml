@@ -1091,7 +1091,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
     # ===== 5. CHIRURGIE À FAIBLE RISQUE + INR NON CONNU =====
     - if:
-        r_hem: "FAIBLE"
+        r_hem: ["FAIBLE", "NUL"]
         inr_non_connu: true
       action: "POURSUITE"
       jour: "J0"
