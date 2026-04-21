@@ -3262,7 +3262,7 @@ Merci d’évaluer votre expérience :
         df_new = pd.DataFrame([data])
 
         try:
-            # si fichier existe → on ajoute
+            
             if os.path.exists(fichier_satisfaction):
                 df_old = pd.read_csv(fichier_satisfaction)
                 df_final = pd.concat([df_old, df_new], ignore_index=True)
