@@ -19,12 +19,16 @@ import difflib
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+
+
 from datetime import date, timedelta
 from collections import defaultdict
 
 def format_jour_avec_date(jour, date_intervention):
     if not jour or not date_intervention:
         return jour
+
     if str(jour).startswith("J-"):
         nb = int(str(jour).replace("J-", ""))
         date_calc = date_intervention - timedelta(days=nb)
@@ -76,8 +80,15 @@ def generer_pdf_patient(ville, date_doc, civilite, nom_prenom, lignes, phrase):
         c.drawString(x, y, f"- {l}")
         y -= 1*cm
 
-    y -= 0.4*cm
-    c.drawString(x, y, phrase)
+    y -= 0.8*cm
+
+    c.setFillColorRGB(0.91, 0.95, 1.0)
+    c.roundRect(x, y - 0.35*cm, 16*cm, 1.1*cm, 8, fill=1, stroke=0)
+
+    c.setFillColorRGB(0.12, 0.35, 0.66)
+    c.drawString(x + 0.3*cm, y, phrase)
+
+    c.setFillColorRGB(0, 0, 0)
 
     c.save()
     return path
@@ -122,13 +133,17 @@ if os.path.exists(yaml_path):
     except Exception as e:
         st.warning(f"Impossible de charger regles_sfar.yaml : {e}")
 
+
+
 @st.cache_resource
 def get_whisper_model_cached(model_name="base"):
     return whisper.load_model(model_name)
 
+
 @st.cache_resource
 def get_easyocr_reader_cached():
     return easyocr.Reader(["fr"], gpu=False)
+
 
 def preprocess_image_for_ocr(image):
     img = image.convert("L")
@@ -136,6 +151,7 @@ def preprocess_image_for_ocr(image):
     img = img.filter(ImageFilter.MedianFilter(size=3))
     img = img.point(lambda p: 255 if p > 170 else 0)
     return img
+
 
 def extraire_texte_tesseract_image(image):
     return ""
@@ -163,6 +179,8 @@ def extraire_lignes_ocr_image(image):
 
     return lignes_finales
 
+
+
 def afficher_pdf(uploaded_pdf):
     contenu = uploaded_pdf.getvalue()
     doc = fitz.open(stream=contenu, filetype="pdf")
@@ -175,6 +193,8 @@ def afficher_pdf(uploaded_pdf):
             caption=f"Page {i+1}",
             use_container_width=True
         )
+
+
 
 def extraire_texte_pdf(uploaded_pdf):
     contenu = uploaded_pdf.getvalue()
@@ -203,13 +223,14 @@ def extraire_texte_pdf(uploaded_pdf):
 
     return lignes_finales
 
+
 def corriger_texte_vocal_medicamenteux(texte, ref):
     if not texte:
         return ""
 
     txt = normalize_text(texte)
 
-    
+   
     txt = txt.replace(" PH ", " F ")
     txt = txt.replace(" Y ", " I ")
     txt = txt.replace("-", " ")
@@ -257,6 +278,7 @@ def corriger_texte_vocal_medicamenteux(texte, ref):
     texte_corrige = " ".join(mots_corriges)
     texte_corrige = re.sub(r"\s+", " ", texte_corrige).strip()
     return texte_corrige
+
 
 def transcrire_audio_robuste(uploaded_audio):
     audio_path = None
@@ -487,7 +509,10 @@ def charger_yaml_regles():
             "sources_regles": {},
             "regles_medicaments": []
         }
-        
+
+
+
+
 ALIASES = {
     "sraa": "sraa",
     "iec": "sraa",
@@ -507,6 +532,8 @@ ALIASES = {
     "ains": "ains",
     "insuline": "insuline",
 }
+
+
 
 def trouver_regle_par_categorie(data, categorie):
     if not data or "regles_medicaments" not in data:
@@ -545,6 +572,9 @@ def trouver_regle_par_categorie(data, categorie):
 
     return idx, regle
 
+
+
+
 def valider_bloc_regle(bloc):
     if not isinstance(bloc, dict):
         return False, "Le bloc proposé n'est pas un dictionnaire."
@@ -566,12 +596,17 @@ def valider_bloc_regle(bloc):
 
     return True, None
 
+
+
+
+
 def clean_medicament_name(name):
     if not name:
         return name
 
     pattern = r"\b(BOUFFEES?|INHALATIONS?|CP|COMPRIMES?|GELULES?|SPRAY|AEROSOL)\b"
     return re.sub(pattern, "", name, flags=re.IGNORECASE).strip()
+
 
 def nettoyer_nom_affichage_medicament(name):
     if not name:
@@ -775,6 +810,8 @@ def nettoyer_ligne_medicament_manuscrit(ligne):
     return l
 
 
+
+
 def nettoyer_texte(txt):
     txt = str(txt).lower()
 
@@ -961,6 +998,7 @@ def conditions_match(ctx, regle, atc=None):
     
     atc_clean = str(atc or "").upper().strip()
     
+
     def norm(t):
         s = str(t or "").strip()
         s = unidecode.unidecode(s)
@@ -1026,6 +1064,8 @@ def conditions_match(ctx, regle, atc=None):
 
     return meilleure_cond
 
+
+        
 def moteur_yaml(atc, ctx):
     atc = str(atc).upper().strip()
     liste_regles = REGLES.get("regles_medicaments") or []
@@ -1124,6 +1164,8 @@ def moteur_expert_sfar(atc, ctx):
     3) défaut
     """
     atc = str(atc).upper().strip()
+
+   
     
     # ----------------------------
     def u(v):
@@ -1189,6 +1231,7 @@ def moteur_expert_sfar(atc, ctx):
             
         }
         
+     
 
     # ----------------------------
     # 2. Diurétiques
@@ -1285,6 +1328,8 @@ def moteur_expert_sfar(atc, ctx):
         if is_urg:
             return {"action": "ARRET et relais insuline IVSE", "jour": "Immédiat", "note": "Pompe à insuline : arrêt immédiat et relais IVSE."}
         return {"action": "ARRET DE LA POMPE AU BLOC", "jour": "J0", "note": "Pompe à insuline : perfusion de G10% 40 mL/h à partir du premier repas jeûné ; arrêt de la pompe au bloc ; relais IVSE."}
+
+
 
 
     # ----------------------------
@@ -1398,6 +1443,9 @@ def moteur_expert_sfar(atc, ctx):
     # Défaut global
     # ----------------------------
     return {"action": "POURSUITE", "jour": "J0", "note": "Médicament reconnu dans le référentiel, sans règle spécifique identifiée : poursuite, sans impact anesthésique évident, à vérifier selon le contexte clinique."}
+
+
+
 
 def get_classe(atc, classe_map):
     if not atc:
@@ -2019,6 +2067,11 @@ with st.sidebar:
                 stress_chir = "modéré/élevé"
 
 
+
+
+
+
+
             stress_cortico_faible, stress_cortico_raw, stress_cortico_norm = get_stress_cortico_from_id(
                 id_acte,
                 df_inter_cortico
@@ -2039,6 +2092,9 @@ with st.sidebar:
             stress_chir = "modéré/élevé"
 
 
+
+
+
     else:
         spe = None
         grp = None
@@ -2056,7 +2112,12 @@ with st.sidebar:
         st.warning("Taxonomie chirurgie indisponible ou colonnes non reconnues.")
 
    
+
+
+   
     type_alr = st.selectbox("ALR prévue", ["AUCUNE", "SUPERFICIEL", "NEURAXIAL", "PROFOND"])
+
+
 
 #----------------------------
 #---- RAPPEL ALR PROFONDES
@@ -2118,6 +2179,16 @@ with st.sidebar:
 - Branche fémorale du nerf génito-fémoral  
 - Sural, saphène, tibial, fibulaire (profond ou superficiel)  
             """)
+
+
+
+    
+
+
+
+
+
+
 
 
     st.divider()
@@ -2228,6 +2299,8 @@ if st.session_state.get("txt"):
             st.session_state.ocr_lines = []
             st.rerun()
 
+   
+
 
 if photo and st.button("Lancer Scan Document"):
     try:
@@ -2268,6 +2341,13 @@ sraa_detecte = contexte_famille_detecte(
         "CANDESARTAN", "TELMISARTAN"
     ]
 )
+
+
+
+
+
+
+
 
 # =========================
 # DETECTION CONTEXTES
@@ -2445,6 +2525,8 @@ if avk_detecte:
             step=0.1
         )
 
+
+
 if avk_detecte:
     st.info("""
 ### Objectif INR péri-opératoire (AVK)
@@ -2517,6 +2599,8 @@ ind_glp1 = None
 if diabete_detecte:
     st.divider()
     st.header("Contexte diabète")
+
+
 
     type_chir = st.selectbox(
         "Type de chirurgie",
@@ -2712,6 +2796,7 @@ ctx = {
     
     }
 
+
 # =========================
 # DFG
 # =========================
@@ -2769,6 +2854,8 @@ if "B01AB01" in codes_atc_detectes_upper:
     voie_heparine = "IVSE" if "IVSE" in voie_heparine_ui else "SC"
 
    
+
+
 # HBPM / Fondaparinux
 if any(c in codes_atc_detectes_upper for c in ["B01AB05", "B01AB10", "B01AX05"]):
     st.divider()
@@ -2915,7 +3002,6 @@ if resultats:
                 lignes_pdf.append(ligne)
                 au_moins_un_arret = True
                 continue
-
     phrase_pdf = ""
 
     if au_moins_un_arret:
@@ -2923,6 +3009,7 @@ if resultats:
         st.info(phrase_pdf)
     else:
         st.info("Aucun arrêt médicamenteux daté à planifier selon les règles actuelles.")
+
 
     if lignes_pdf:
         ville = st.text_input("Ville", value="Marseille")
@@ -3059,8 +3146,6 @@ if resultats:
             st.error(f"Erreur : {e}")
 
 
-
-
 #------- Profils pathologiques probables --------------------------
 st.subheader("Profils pathologiques probables")
 
@@ -3104,8 +3189,6 @@ if df_profils_patient is not None and not df_profils_patient.empty:
         )
 else:
     st.info("Aucun profil pathologique fort identifié à partir des médicaments détectés.")
-
-
 
 
 # =========================
