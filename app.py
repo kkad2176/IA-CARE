@@ -1471,15 +1471,7 @@ def get_classe(atc, classe_map):
 #Bithérapie 2 aap détectés
 # =========================
 def compter_aap_dans_texte(txt, ref, atc_map):
-    codes_aap = {
-        "B01AC01",
-        "B01AC04",
-        "B01AC06",
-        "B01AC07",
-        "B01AC22",
-        "B01AC24",
-    }
-
+  
     codes_trouves = set()
 
     candidats = []
@@ -1493,7 +1485,7 @@ def compter_aap_dans_texte(txt, ref, atc_map):
         meilleur_nom, meilleur_score = meilleur_match_medicament(cand, ref)
         if meilleur_nom and meilleur_score >= 75:
             code = str(atc_map.get(meilleur_nom, "")).upper().strip()
-            if code in codes_aap:
+            if code.startswith("B01AC"):
                 codes_trouves.add(code)
 
     return len(codes_trouves)
