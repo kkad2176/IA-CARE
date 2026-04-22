@@ -939,7 +939,49 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
   conditions:
 
-    # ===== 1. HAUT RISQUE THROMBOEMBOLIQUE (RELAIS) =====
+    # =====  NEUROCHIRURGIE =====
+    - if:
+        type_chir_neuro: "NEUROCHIR_INTRACRANIENNE"
+      action: "ARRET"
+      jour: "J-5"
+      note: |
+        Arrêt AVK à J-5 pour tous les AVK.
+        Pas de relais systématique.
+        Contrôle INR initial entre J-10 et J-7.
+        Objectif le matin de l’intervention : INR < 1.2.
+
+    # =====  CHIRURGIE À FAIBLE RISQUE + INR CONNU EN ZONE =====
+    - if:
+        r_hem: ["FAIBLE", "NUL"]
+        inr_therapeutique_2_3: true
+      action: "POURSUITE"
+      jour: "J0"
+      note: |
+        Chirurgie à risque hémorragique faible : poursuite possible si INR entre 2 et 3.
+        Contrôle INR initial entre J-10 et J-7.
+
+    # ===== CHIRURGIE À FAIBLE RISQUE + INR CONNU HORS ZONE =====
+    - if:
+        r_hem: ["FAIBLE", "NUL"]
+        inr_hors_zone_2_3: true
+      action: "AVIS_SPECIALISE"
+      jour: "J0"
+      note: |
+        Chirurgie à risque hémorragique faible mais INR hors zone thérapeutique attendue (2 à 3).
+        Vérifier l’indication, la cible INR et discuter la conduite à tenir.
+
+    # ===== CHIRURGIE À FAIBLE RISQUE + INR NON CONNU =====
+    - if:
+        r_hem: ["FAIBLE", "NUL"]
+        inr_non_connu: true
+      action: "POURSUITE"
+      jour: "J0"
+      note: |
+        Chirurgie à risque hémorragique faible : poursuite possible si INR entre 2 et 3.
+        Contrôle INR initial entre J-10 et J-7.
+
+
+    # ===== HAUT RISQUE THROMBOEMBOLIQUE (RELAIS) =====
 
     # Sintrom (acénocoumarol)
     - if:
@@ -1058,48 +1100,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Faire INR le matin de l’intervention.
         J0 : Jour de l’intervention alors pas d’anticoagulant actif.
 
-    # ===== 2. NEUROCHIRURGIE =====
-    - if:
-        type_chir_neuro: "NEUROCHIR_INTRACRANIENNE"
-      action: "ARRET"
-      jour: "J-5"
-      note: |
-        Arrêt AVK à J-5 pour tous les AVK.
-        Pas de relais systématique.
-        Contrôle INR initial entre J-10 et J-7.
-        Objectif le matin de l’intervention : INR < 1.2.
-
-    # ===== 3. CHIRURGIE À FAIBLE RISQUE + INR CONNU EN ZONE =====
-    - if:
-        r_hem: "FAIBLE"
-        inr_therapeutique_2_3: true
-      action: "POURSUITE"
-      jour: "J0"
-      note: |
-        Chirurgie à risque hémorragique faible : poursuite possible si INR entre 2 et 3.
-        Contrôle INR initial entre J-10 et J-7.
-
-    # ===== 4. CHIRURGIE À FAIBLE RISQUE + INR CONNU HORS ZONE =====
-    - if:
-        r_hem: "FAIBLE"
-        inr_hors_zone_2_3: true
-      action: "AVIS_SPECIALISE"
-      jour: "J0"
-      note: |
-        Chirurgie à risque hémorragique faible mais INR hors zone thérapeutique attendue (2 à 3).
-        Vérifier l’indication, la cible INR et discuter la conduite à tenir.
-
-    # ===== 5. CHIRURGIE À FAIBLE RISQUE + INR NON CONNU =====
-    - if:
-        r_hem: ["FAIBLE", "NUL"]
-        inr_non_connu: true
-      action: "POURSUITE"
-      jour: "J0"
-      note: |
-        Chirurgie à risque hémorragique faible : poursuite possible si INR entre 2 et 3.
-        Contrôle INR initial entre J-10 et J-7.
-
-    # ===== 6. PAR DÉFAUT =====
+    # ===== PAR DÉFAUT =====
     - default: true
       action: "ARRET"
       jour: "J-5"
@@ -1121,7 +1122,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         voie_heparine: "IVSE"
       action: "ARRET"
       jour: "4 à 6h avant"
-      note: "SI HNF intra-veineuse à la seringue électrique ALORS arrêt 4 à 6h avant la chirurgie"
+      note: "SI HNF intra-veineuse à la seringue électrique alors arrêt 4 à 6h avant la chirurgie"
 
 - categorie: "HNF SC"
   source_ref: "regle_11_heparines"
@@ -1132,7 +1133,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         voie_heparine: "SC"
       action: "ARRET"
       jour: "12h avant"
-      note: "SI HNF SC ALORS dernière injection 12h avant la chirurgie"
+      note: "SI HNF SC alors dernière injection 12h avant la chirurgie"
 
 - categorie: "Enoxaparine – lovenox"
   source_ref: "regle_11_heparines"
@@ -1143,12 +1144,12 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         dose_heparine: "préventive"
       action: "ARRET"
       jour: "12h avant"
-      note: "Si dose préventive ALORS dernière injection 12h avant chirurgie"
+      note: "Si dose préventive alors dernière injection 12h avant chirurgie"
     - if:
         dose_heparine: "curative"
       action: "ARRET"
       jour: "24h avant"
-      note: "Si dose curative ALORS dernière injection 24h avant chirurgie"
+      note: "Si dose curative alors dernière injection 24h avant chirurgie"
 
 - categorie: "Tinzaparine - Inohep"
   source_ref: "regle_11_heparines"
@@ -1160,7 +1161,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: "ARRET"
       jour: "12h avant"
       note: |
-        Si dose préventive ALORS dernière injection 12h avant chirurgie
+        Si dose préventive alors dernière injection 12h avant chirurgie
 
        
     - if:
@@ -1168,7 +1169,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: "ARRET"
       jour: "24h avant"
       note: |
-        Si dose curative ALORS dernière injection 24h avant chirurgie
+        Si dose curative alors dernière injection 24h avant chirurgie
 
 - categorie: "Fundaparinux – arixtra"
   source_ref: "regle_11_heparines"
