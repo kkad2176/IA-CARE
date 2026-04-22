@@ -1467,6 +1467,37 @@ def get_classe(atc, classe_map):
     return "Inconnue"
 
 
+# =========================
+#Bithérapie 2 aap détectés
+# =========================
+def compter_aap_dans_texte(txt, ref, atc_map):
+    codes_aap = {
+        "B01AC01",
+        "B01AC04",
+        "B01AC06",
+        "B01AC07",
+        "B01AC22",
+        "B01AC24",
+    }
+
+    codes_trouves = set()
+
+    candidats = []
+    for brute, nettoyee in extraire_lignes_candidates_imprime(txt):
+        candidats.append(nettoyee)
+
+    for brute, nettoyee in extraire_lignes_candidates_manuscrit(txt):
+        candidats.append(nettoyee)
+
+    for cand in candidats:
+        meilleur_nom, meilleur_score = meilleur_match_medicament(cand, ref)
+        if meilleur_nom and meilleur_score >= 75:
+            code = str(atc_map.get(meilleur_nom, "")).upper().strip()
+            if code in codes_aap:
+                codes_trouves.add(code)
+
+    return len(codes_trouves)
+
 
 # =========================
 # DETECTION CONTEXTE CORTICOIDES
@@ -2431,16 +2462,23 @@ type_traitement_aap = None
 contexte_stent = "Aucun critère"
 dose_aspirine = 75
 indication_aap = None
+nb_aap_detectes = compter_aap_dans_texte(txt_final, ref, atc_map)
+bitherapie_auto = nb_aap_detectes >= 2
 
 if aap_detecte:
     st.divider()
     st.header("Antiagrégants plaquettaires (AAP)")
 
-    type_traitement_aap = st.radio(
-        "Type de traitement",
-        ["Prévention primaire", "Prévention secondaire", "Bithérapie"],
-        index=0
-    )
+    if bitherapie_auto:
+        st.info("Deux AAP détectés : bithérapie présumée.")
+        type_traitement_aap = "Bithérapie"
+    else:
+        type_traitement_aap = st.radio(
+            "Type de traitement",
+            ["Prévention primaire", "Prévention secondaire", "Bithérapie"],
+            index=0
+        )
+
 
     if type_traitement_aap == "Bithérapie":
         contexte_stent = st.selectbox(
@@ -3031,6 +3069,8 @@ if resultats:
                 st.download_button("Télécharger PDF", f, "calendrier.pdf")
 
 
+
+
     st.divider()
 
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -3146,6 +3186,8 @@ if resultats:
             st.error(f"Erreur : {e}")
 
 
+
+
 #------- Profils pathologiques probables --------------------------
 st.subheader("Profils pathologiques probables")
 
@@ -3189,6 +3231,8 @@ if df_profils_patient is not None and not df_profils_patient.empty:
         )
 else:
     st.info("Aucun profil pathologique fort identifié à partir des médicaments détectés.")
+
+
 
 
 # =========================
