@@ -20,7 +20,6 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
-from streamlit_float import float_init, float_css_helper
 from datetime import date, timedelta
 from collections import defaultdict
 
