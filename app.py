@@ -99,9 +99,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 st.set_page_config(page_title="IA CARE - Expert SFAR", layout="wide")
 
-
-float_init()
-
 REGLES = {}
 yaml_path = os.path.join(BASE_DIR, "regles_sfar.yaml")
 if os.path.exists(yaml_path):
