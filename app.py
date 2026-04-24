@@ -3204,23 +3204,12 @@ if df_profils_patient is not None and not df_profils_patient.empty:
         <div class="box-profil">
             <b>{row['Profil']}</b><br>
             <b>Certitude :</b> {row['Niveau']}<br>
-            <b>ASA minimum suggéré :</b> {row['ASA min']}<br>
             <b>Médicaments sentinelles :</b> {row['Sentinelles']}<br>
             <b>ATC retrouvés :</b> {row['ATC']}
         </div>
         """, unsafe_allow_html=True)
 
-    with st.expander("Voir le détail clinique des profils retenus"):
-        st.dataframe(
-            df_profils_patient[[
-                "Profil",
-                "Niveau",
-                "ASA min",
-                "Sentinelles",
-                "ATC"
-            ]],
-            use_container_width=True
-        )
+    
 else:
     st.info("Aucun profil pathologique fort identifié à partir des médicaments détectés.")
 
