@@ -761,10 +761,53 @@ def preparer_modification_depuis_commande(cmd):
 # =========================================================
 # OCR / DETECTION MEDICAMENTS
 # =========================================================
-DOSE_PATTERN = re.compile(r"\b\d+[.,]?\d*\s*(MG|G|MCG|UG|ML|UI|MUI)\b", re.IGNORECASE)
+DOSE_PATTERN = re.compile(
+    r"\b\d+[.,]?\d*\s*(MG|G|MCG|UG|ML|UI|MUI)\b|\b\d+[.,]?\d*\s*%",
+    re.IGNORECASE
+)
 
 def contient_dose(ligne):
     return bool(DOSE_PATTERN.search(str(ligne)))
+
+
+FORMES_SANS_DOSAGE = [
+    "INHALATEUR",
+    "INHALATION",
+    "SPRAY",
+    "AEROSOL",
+    "AÉROSOL",
+    "COLLYRE",
+    "POMMADE",
+    "CREME",
+    "CRÈME",
+    "GEL",
+    "PATCH",
+    "STYLO",
+    "SOLUTION",
+    "BOUFFEE",
+    "BOUFFÉE",
+    "BOUFFEES",
+    "BOUFFÉES",
+]
+
+def est_forme_sans_dosage(ligne):
+    l = normalize_text(ligne)
+    return any(mot in l for mot in FORMES_SANS_DOSAGE)
+
+
+def filtrer_lignes_scan_avec_dosage(lignes):
+    lignes_filtrees = []
+
+    for ligne in lignes:
+        l = str(ligne).strip()
+        if not l:
+            continue
+
+        if contient_dose(l) or est_forme_sans_dosage(l):
+            lignes_filtrees.append(l)
+
+    return lignes_filtrees
+
 
 def est_ligne_posologie(ligne):
     l = normalize_text(ligne)
@@ -783,7 +826,7 @@ def est_ligne_non_medicamenteuse(ligne):
         return True
 
     stopwords = [
-        "DOCTEUR", "DR", "CARDIOLOGUE", "NICE"
+        "DOCTEUR", "DR", "CARDIOLOGUE", "NICE",
         "TEL", "TELEPHONE", "FAX", "EMAIL", "MAIL",
         "PLACE", "RUE", "AVENUE", "BOULEVARD",
         "PARIS", "LYON", "MARSEILLE", "TOULOUSE", "LILLE",
@@ -2337,9 +2380,12 @@ if photo and st.button("Lancer Scan Document"):
             img = Image.open(photo).convert("RGB")
             lignes = extraire_lignes_ocr_image(img)
 
-        st.session_state.ocr_lines = lignes
-        st.session_state.txt = "\n".join(lignes)
+        lignes_filtrees = filtrer_lignes_scan_avec_dosage(lignes)
+
+        st.session_state.ocr_lines = lignes_filtrees
+        st.session_state.txt = "\n".join(lignes_filtrees)
         photo.seek(0)
+
     except Exception as e:
         st.error(f"Erreur OCR document : {e}")
 
