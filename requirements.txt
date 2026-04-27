@@ -1,4 +1,4 @@
-streamlit==1.56.0
+streamlit
 PyYAML
 pandas
 numpy
