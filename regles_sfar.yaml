@@ -89,13 +89,23 @@ regles_medicaments:
   source_ref: "regle_1_sraa"
   atc_codes:
     - C09BA03
-    - C09DX04
   conditions:
-    - if: {atc_codes: [C09BA03, C09DX04]}
+    - if: {atc_codes: [C09BA03]}
       action: "ARRET"
       jour: "J-1"
       precision: "dernière prise la veille de l’intervention (J-1)."
 
+
+
+
+- categorie: "Entresto (sacubitril/valsartan)"
+  atc_codes:
+    - C09DX04
+  conditions:
+    - if: {atc_codes: [C09DX04]}
+      action: "ARRET"
+      jour: "J-1"
+      precision: "Dernière prise la veille de l’intervention (J-1). Si risque d’hypotension important selon terrain et chirurgie, alors dernière prise J-2 possible (mais absence de recommandations fortes établies)"
 
 
 
@@ -171,7 +181,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: "Immédiat"
       note: "Metformine : arrêt immédiat en urgence."
     - default: true
-      action: "ADAPTATION"
+      action: "Pas de prise le matin"
       jour: "J0 matin"
       note: "Metformine : Ne pas prendre le matin si chirurgie mineure ou majeure ou avec ≥ 2 repas jeûnés."
 
@@ -196,6 +206,25 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: "STOP MATIN"
       jour: "J0 matin"
       note: "ADO : ne pas prendre le matin si chirurgie mineure ou majeure ou avec ≥ 2 repas jeûnés."
+
+- categorie: "SGLT2 - FORXIGA"
+  atc_codes:
+    - "A10BK01"
+  conditions:
+    - if:
+        indication_sglt2:
+          - "Diabète"
+          - "Insuffisance cardiaque"
+          - "Néphroprotection"
+      action: "ARRET"
+      jour: "J-3"
+      note: "SGLT2 : dernière prise à J-3 (risque d’acidocétose euglycémique). Si prise à moins de J-3 : cétonémie capillaire obligatoire."
+
+    - default: true
+      action: "ARRET"
+      jour: "J-3"
+      note: "SGLT2 : dernière prise à J-3 (risque d’acidocétose euglycémique). Si prise à moins de J-3 : cétonémie capillaire obligatoire."
+
 
 - categorie: "SGLT2 (Gliflozines)"
   source_ref: "regle_4_antidiabetique_insuline"
@@ -275,6 +304,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: "STOP MATIN"
       jour: "J0 matin"
       note: "Insuline basale : pas d'injection le matin, sauf chez le DT1 où l'injection doit être maintenue. Si jeûne et insuline lente injectée, perfusion de G10% 40 mL/h à partir du premier repas jeûné."
+
 
 
 
@@ -598,89 +628,126 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
 
 
-
+#----------------------------------------------------
 - categorie: AOD
   source_ref: regle_6_aod
   atc_prefix: ["B01AE", "B01AF"]
   conditions:
 
-    # --- RÈGLE 1 : RISQUE TRÈS ÉLEVÉ (NEUROCHIR) ---
-    - if: {type_chir_neuro: NEUROCHIR_INTRACRANIENNE}
+    # ===== PROCÉDURE À RISQUE HÉMORRAGIQUE TRÈS ÉLEVÉ =====
+    # Neurochirurgie / ALR neuraxiale
+
+    - if:
+        type_chir_neuro: "NEUROCHIR_INTRACRANIENNE"
+        dfg_inf_30: true
       action: ARRET
       jour: J-5
-      note: "Neurochirurgie : dernière prise J-5 quel que soit l’AOD."
+      note: |
+        Pour tous les AOD : si DFG < 30 alors dernière prise J-5 et dosage pré opératoire.
+        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
 
-    # ------- RÈGLE 1 BIS : ALR NEURAXIAL ---
-    - if: {alr: NEURAXIAL}
+    - if:
+        type_chir_neuro: "NEUROCHIR_INTRACRANIENNE"
       action: ARRET
       jour: J-5
-      note: "ALR neuraxial : dernière prise J-5 quel que soit l’AOD."
+      note: |
+        Pour tous les AOD : dernière prise J-5.
+        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
 
-    # ------ CAS DFG NN CONNU ---
-    - if: {dfg_connu: false}
-      action: INFO
-      note: "DFG inconnu. Rappel : Riva/Apixa J-3 si DFG > 30. Pradaxa J-4 si DFG > 50 ou J-5 si 30-49. Neurochirurgie / ALR neuraxial J-5."
+    - if:
+        alr: "NEURAXIAL"
+        dfg_inf_30: true
+      action: ARRET
+      jour: J-5
+      note: |
+        Pour tous les AOD : si DFG < 30 alors dernière prise J-5 et dosage pré opératoire.
+        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
 
-    # ------ RÈGLE 2 : RISQUE ÉLEVÉ / INTERMÉDIAIRE ---
-    # Xabans + DFG < 30
-    - if: {atc_prefix: [B01AF], dfg_inf_30: true, r_hem: [INTERMEDIAIRE, ELEVE, IMPORTANT, MAJEUR]}
+    - if:
+        alr: "NEURAXIAL"
+      action: ARRET
+      jour: J-5
+      note: |
+        Pour tous les AOD : dernière prise J-5.
+        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+
+
+    # ===== PROCÉDURE À FAIBLE RISQUE HÉMORRAGIQUE =====
+
+    - if:
+        r_hem: ["FAIBLE", "NUL"]
+      action: ARRET
+      jour: J-1 
+      note: |
+        Procédure à faible risque hémorragique alors pas de prise la veille au soir ni le matin de l’intervention (quelque soit le DFG).
+        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+
+
+    # ===== PROCÉDURE À RISQUE HÉMORRAGIQUE ÉLEVÉ ===
+    # Apixaban, rivaroxaban, edoxaban
+
+    - if:
+        atc_prefix: ["B01AF"]
+        dfg_ge_30: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: ARRET
       jour: J-3
-      note: "Précaution avec -Xaban + DFG < 30. Discuter d’un arrêt plus long et d’un dosage en préopératoire."
+      note: |
+        Apixaban, rivaroxaban, edoxaban : si DFG >= 30 alors dernière prise J-3.
+        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
 
-    # Dabigatran + DFG 30-49
-    - if: {atc_codes: [B01AE07], dfg_30_49: true, r_hem: [INTERMEDIAIRE, ELEVE, IMPORTANT, MAJEUR]}
+    - if:
+        atc_prefix: ["B01AF"]
+        dfg_inf_30: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: ARRET
       jour: J-5
-      note: "Dabigatran + DFG 30-49 : dernière prise J-5."
+      note: |
+        Apixaban, rivaroxaban, edoxaban : si DFG < 30 alors dernière prise J-5 sans relais ni dosage.
+        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
 
-    # Dabigatran + DFG < 30
-    - if: {atc_codes: [B01AE07], dfg_inf_30: true, r_hem: [INTERMEDIAIRE, ELEVE, IMPORTANT, MAJEUR]}
-      action: ARRET
-      jour: J-5
-      note: "Précaution avec Dabigatran + DFG < 30. Discuter d’un arrêt plus long et d’un dosage en préopératoire."
-
-
-      # --- RÈGLE 2 : RISQUE ÉLEVÉ / INTERMÉDIAIRE ---
-    # Xabans
-    - if: {atc_prefix: [B01AF], dfg_ge_30: true, r_hem: [INTERMEDIAIRE, ELEVE, IMPORTANT, MAJEUR]}
-      action: ARRET
-      jour: J-3
-      note: "Xaban + DFG ≥ 30. Dernière prise J-3."
 
     # Dabigatran
-    - if: {atc_codes: [B01AE07], dfg_ge_50: true, r_hem: [INTERMEDIAIRE, ELEVE, IMPORTANT, MAJEUR]}
-      action: ARRET
-      jour: J-4
-      note: "Dabigatran + DFG ≥ 50. Dernière prise J-4."
 
-
-    # --- RÈGLE 3 : RISQUE FAIBLE ---
-    # Dabigatran + DFG < 50
-    - if: {r_hem: [FAIBLE, NUL], atc_codes: [B01AE07], dfg_inf_50: true}
-      action: ARRET
-      jour: J-5
-      note: "Précaution avec Dabigatran et DFG < 50. Discuter d’un arrêt plus long (dernière prise J-5) et d’un dosage en préopératoire."
-
-    # Xabans + DFG < 30
-    - if: {r_hem: [FAIBLE, NUL], atc_prefix: [B01AF], dfg_inf_30: true}
+    - if:
+        atc_codes: ["B01AE07"]
+        dfg_ge_50: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: ARRET
       jour: J-3
-      note: "Précaution avec -Xaban + DFG < 30. Discuter d’un arrêt plus long (dernière prise J-3) et d’un dosage en préopératoire."
+      note: |
+        Dabigatran : si DFG > 50 alors dernière prise J-3.
+        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
 
-    # DFG normal
-    - if: {r_hem: [FAIBLE, NUL], dfg_connu: true, dfg_ge_30: true}
+    - if:
+        atc_codes: ["B01AE07"]
+        dfg_30_49: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: ARRET
-      jour: J-1
-      note: "Risque faible. Ne pas prendre la veille au soir et le matin de l'intervention."
+      jour: J-5
+      note: |
+        Dabigatran : si DFG 30 - 50 alors dernière prise J-5 sans relai ni dosage.
+        Dabigatran pas recommandé si DFG < 30.
+        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
 
-    # --- SÉCURITÉ PAR DÉFAUT ---
+
+    # ===== DFG NON CONNU ========+
+
+    - if:
+        dfg_connu: false
+      action: INFO
+      note: |
+        DFG inconnu. Vérifier le DFG avant application de la règle AOD.
+
+
+    # ===== SÉCURITÉ PAR DÉFAUT =====
+
     - default: true
       action: DOSAGE
-      note: "Cas complexe : vérifier le DFG et envisager un dosage."
+      note: |
+        Cas complexe : vérifier le DFG et envisager un dosage.
 
-
-
+#-----------------------------
 
 - categorie: AINS
   source_ref: regle_7_ains
@@ -924,7 +991,6 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
 
 
-
 - categorie: "Anti-Vitamine K (AVK)"
   source_ref: "regle_10_avk"
   source_url:
@@ -949,6 +1015,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Pas de relais systématique.
         Contrôle INR initial entre J-10 et J-7.
         Objectif le matin de l’intervention : INR < 1.2.
+
 
     # =====  CHIRURGIE À FAIBLE RISQUE + INR CONNU EN ZONE =====
     - if:
@@ -981,125 +1048,90 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Contrôle INR initial entre J-10 et J-7.
 
 
-    # ===== HAUT RISQUE THROMBOEMBOLIQUE (RELAIS) =====
-
-    # Sintrom (acénocoumarol)
+    # ===== RELAI AVK Selon LE DFG =====
     - if:
-        valve_mecanique: true
-        atc_codes: ["B01AA07"]
-      action: "ARRET"
+        relais_avk: true
+        dfg_relais_avk: "DFG > 30"
+      action: "ARRET + RELAI"
       jour: "J-5"
       note: |
-        Relais curatif requis (HBPM 2/j ou HNF).
-        Arrêt AVK à J-5.
-        Introduction d’une héparine à dose curative le soir :
-        24h après la dernière prise d’acénocoumarol (Sintrom) = J-4.
-        J-1 : Hospitalisation systématique.
-        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
-        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
-        Faire INR le matin de l’intervention.
-        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
+        Si DFG > 30 alors
+        HBPM SC à dose curative en 2 injections par jour avec 1ère injection le soir de J-3 et dernière injection au plus tard le matin de J-1. Si relais par HBPM SC en 1 injection par jour, alors dernière injection à J-2.
 
-    # Préviscan / Fluindione
+        Quoiqu’il arrive (relais ou pas) : faire dosage INR la veille de l’intervention, si INR > au seuil, alors vitamine K 2 à 5mg en per os le soir, puis contrôle INR le lendemain matin
+
     - if:
-        valve_mecanique: true
+        relais_avk: true
+        dfg_relais_avk: "15 ≤ DFG < 30"
+      action: "ARRET + RELAI"
+      jour: "J-5"
+      note: |
+        Si DFG entre 15 et 29 alors plusieurs schéma possible
+        Enoxaparine 100 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
+        Ou Tinzaparine 175 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
+        Ou HNF calcique SC (adaptée au poids sans surveillance biologique) avec 1ère injection à 333 UI/kg le soir de J-3, puis 250 UI/Kg toutes les 12h avec une dernière injection le matin de J-1
+        Ou HNF IVSE le soir de J-3 et arrêtée 6h avant l’intervention
+
+        Quoiqu’il arrive (relais ou pas) : faire dosage INR la veille de l’intervention, si INR > au seuil, alors vitamine K 2 à 5mg en per os le soir, puis contrôle INR le lendemain matin
+
+    - if:
+        relais_avk: true
+        dfg_relais_avk: "DFG < 15"
+      action: "ARRET + RELAI"
+      jour: "J-5"
+      note: |
+        Si DFG < 15 alors plusieurs schéma possible
+        Tinzaparine 175 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
+        Ou HNF calcique SC (adaptée au poids sans surveillance biologique) avec 1ère injection à 333 UI/kg le soir de J-3, puis 250 UI/Kg toutes les 12h avec une dernière injection le matin de J-1
+        Ou HNF IVSE le soir de J-3 et arrêtée 6h avant l’intervention
+
+        Quoiqu’il arrive (relais ou pas) : faire dosage INR la veille de l’intervention, si INR > au seuil, alors vitamine K 2 à 5mg en per os le soir, puis contrôle INR le lendemain matin
+
+    - if:
+        relais_avk: true
+        dfg_relais_avk: "DFG inconnu"
+      action: "INFO"
+      jour: ""
+      note: |
+        DFG inconnu : vérifier la fonction rénale avant de choisir le schéma de relai AVK.
+
+        Quoiqu’il arrive (relais ou pas) : faire dosage INR la veille de l’intervention, si INR > au seuil, alors vitamine K 2 à 5mg en per os le soir, puis contrôle INR le lendemain matin
+
+
+
+
+    # ================RISQUE HÉMORRAGIQUE ÉLEVÉ
+    - if:
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        atc_codes: ["B01AA03"]
+      action: "ARRET"
+      jour: "J-6"
+      note: |
+        Risque hémorragique élevé. Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique.
+        Si Warfarine alors dernière prise J-6.
+
+    - if:
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
         atc_codes: ["B01AA12"]
       action: "ARRET"
       jour: "J-5"
       note: |
-        Relais curatif requis (HBPM 2/j ou HNF).
-        Arrêt AVK à J-5.
-        Introduction d’une héparine à dose curative le soir :
-        48h après la dernière prise de fluindione (Previscan) = J-3.
-        J-1 : Hospitalisation systématique.
-        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
-        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
-        Faire INR le matin de l’intervention.
-        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
+        Risque hémorragique élevé.
+        Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique
+        Si Fluindione alors dernière prise J-5.
 
-    # Coumadine (warfarine)
     - if:
-        valve_mecanique: true
-        atc_codes: ["B01AA03"]
-      action: "ARRET"
-      jour: "J-5"
-      note: |
-        Relais curatif requis (HBPM 2/j ou HNF).
-        Arrêt AVK à J-5.
-        Introduction d’une héparine à dose curative le soir :
-        48h après la dernière prise de warfarine (Coumadine) = J-3.
-        J-1 : Hospitalisation systématique.
-        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
-        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
-        Faire INR le matin de l’intervention.
-        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
-
-    # ACFA à haut risque
-    - if:
-        acfa_atcd: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
         atc_codes: ["B01AA07"]
       action: "ARRET"
-      jour: "J-5"
+      jour: "J-4"
       note: |
-        Relais curatif requis (HBPM 2/j ou HNF).
-        Arrêt AVK à J-5.
-        Introduction d’une héparine à dose curative le soir :
-        24h après la dernière prise d’acénocoumarol (Sintrom) = J-4.
-        J-1 : Hospitalisation systématique.
-        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
-        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
-        Faire INR le matin de l’intervention.
-        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
+        Risque hémorragique élevé.
+        Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique
+        Si Acénocoumarol alors dernière prise J-4.
 
-    - if:
-        acfa_atcd: true
-        atc_codes: ["B01AA12", "B01AA03"]
-      action: "ARRET"
-      jour: "J-5"
-      note: |
-        Relais curatif requis (HBPM 2/j ou HNF).
-        Arrêt AVK à J-5.
-        Introduction d’une héparine à dose curative le soir :
-        48h après la dernière prise de fluindione (Previscan) ou warfarine (Coumadine) = J-3.
-        J-1 : Hospitalisation systématique.
-        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
-        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
-        Faire INR le matin de l’intervention.
-        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
 
-    # MTEV à haut risque
-    - if:
-        mtev_haut_risque: true
-        atc_codes: ["B01AA07"]
-      action: "ARRET"
-      jour: "J-5"
-      note: |
-        Relais curatif requis (HBPM 2/j ou HNF).
-        Arrêt AVK à J-5.
-        Introduction d’une héparine à dose curative le soir :
-        24h après la dernière prise d’acénocoumarol (Sintrom) = J-4.
-        J-1 : Hospitalisation systématique.
-        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
-        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
-        Faire INR le matin de l’intervention.
-        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
-
-    - if:
-        mtev_haut_risque: true
-        atc_codes: ["B01AA12", "B01AA03"]
-      action: "ARRET"
-      jour: "J-5"
-      note: |
-        Relais curatif requis (HBPM 2/j ou HNF).
-        Arrêt AVK à J-5.
-        Introduction d’une héparine à dose curative le soir :
-        48h après la dernière prise de fluindione (Previscan) ou warfarine (Coumadine) = J-3.
-        J-1 : Hospitalisation systématique.
-        Dernière dose d’HBPM le matin OU HNF jusqu’au soir.
-        Dosage INR : Si INR ≥ 1,5 : administrer 5 mg de vitamine K per os.
-        Faire INR le matin de l’intervention.
-        J0 : Jour de l’intervention alors pas d’anticoagulant actif.
-
+  
     # ===== PAR DÉFAUT =====
     - default: true
       action: "ARRET"
@@ -1109,6 +1141,10 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Pas de relais systématique.
         Contrôle INR initial entre J-10 et J-7.
         Contrôle INR la veille ou matin de l'intervention.
+
+
+
+
 
 
 #-------------------
@@ -1131,9 +1167,19 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
   conditions:
     - if:
         voie_heparine: "SC"
+        dose_heparine: "préventive"
       action: "ARRET"
-      jour: "12h avant"
-      note: "SI HNF SC alors dernière injection 12h avant la chirurgie"
+      jour: "H-12"
+      note: "HNF SC à dose préventive : dernière injection H-12."
+
+    - if:
+        voie_heparine: "SC"
+        dose_heparine: "curative"
+      action: "ARRET"
+      jour: "H-24"
+      note: "HNF SC à dose curative : dernière injection H-24."
+
+
 
 - categorie: "Enoxaparine – lovenox"
   source_ref: "regle_11_heparines"
@@ -1183,16 +1229,12 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: |
         Si dose préventive alors dernière injection 36h avant la chirurgie
 
-        
     - if:
         dose_heparine: "curative"
       action: "ARRET"
-      jour: "72h avant"
+      jour: "J-4"
       note: |
-        Si dose curative alors dernière injection 72h avant la chirurgie
-
-       
-
+        Fundaparinux à dose curative : dernière injection J-4.
 
 
 
