@@ -762,7 +762,7 @@ def preparer_modification_depuis_commande(cmd):
 # OCR / DETECTION MEDICAMENTS
 # =========================================================
 DOSE_PATTERN = re.compile(
-    r"\b\d+[.,]?\d*\s*(MG|G|MCG|UG|ML|UI|MUI)\b|\b\d+[.,]?\d*\s*%",
+    r"\b\d+[.,]?\d*\s*(MG|G|MCG|UG|µG|ML|UI|MUI)\b|\b\d+[.,]?\d*\s*%",
     re.IGNORECASE
 )
 
@@ -831,14 +831,12 @@ def est_ligne_non_medicamenteuse(ligne):
         "PLACE", "RUE", "AVENUE", "BOULEVARD",
         "PARIS", "LYON", "MARSEILLE", "TOULOUSE", "LILLE",
         "SIGNATURE", "CABINET", "MADAME", "MONSIEUR", "MME", "MR",
-        "ORDONNANCE", "DATE", "MEDECIN", "RENOUVELABLE", 
-        "MATIN", "MIDI", "SOIR", "JOUR", "JOURS", "SEMAINE", "SEMAINES",
-        "CLINIQUE", "HOPITAL", "SERVICE", "TIMONE",
-        "PRISE", "POSOLOGIE", "ADMINISTRATION",
-        "SI BESOIN", "AU BESOIN"
+        "ORDONNANCE", "DATE", "MEDECIN", "RENOUVELABLE",
+        "CLINIQUE", "HOPITAL", "SERVICE", "TIMONE"
     ]
 
     return any(f" {sw} " in f" {l} " for sw in stopwords)
+
 
 def nettoyer_ligne_medicament(ligne):
     l = normalize_text(ligne)
@@ -947,8 +945,10 @@ def extraire_lignes_candidates_imprime(txt):
     for ligne in lignes:
         if est_ligne_non_medicamenteuse(ligne):
             continue
-        if est_ligne_posologie(ligne):
-            continue
+
+        # if est_ligne_posologie(ligne):
+        # continue
+
 
         l_norm = normalize_text(ligne)
         a_dose = contient_dose(ligne)
@@ -970,8 +970,8 @@ def extraire_lignes_candidates_manuscrit(txt):
     for ligne in lignes:
         if est_ligne_non_medicamenteuse(ligne):
             continue
-        if est_ligne_posologie(ligne):
-            continue
+        # if est_ligne_posologie(ligne):
+        #     continue
 
         ligne_nettoyee = nettoyer_ligne_medicament_manuscrit(ligne)
         nb_alpha = len(re.findall(r"[A-Z]", ligne_nettoyee))
@@ -1002,7 +1002,7 @@ def meilleur_match_medicament(candidate, ref):
             nom_match, score_match, _ = match
 
             # n'accepte que si quasi identique
-            if score_match >= 96:
+            if score_match >= 85:
                 return nom_match, score_match
 
         return None, 0
@@ -1385,44 +1385,7 @@ def moteur_expert_sfar(atc, ctx):
     # 5. AAP
     # ----------------------------
     
-    # ----------------------------
-    # 6. AOD
-    # ----------------------------
-    if atc.startswith(("B01AE", "B01AF")):
-        if r_hem in ["FAIBLE", "NUL"]:
-            return {
-                "action": "ARRET",
-                "jour": "J-1",
-                "note": "Risque faible. Ne pas prendre la veille au soir et le matin de l'intervention."
-            }
 
-        if is_neurochir:
-            if dfg_connu and dfg is not None and dfg >= 50:
-                return {"action": "ARRET", "jour": "J-5", "note": "Neurochirurgie + Fonction rénale normale. Arrêt J-5."}
-            return {
-                "action": "DOSAGE",
-                "note": "Si fonction rénale rénale altérée (= DFG < 30 pour les -xabans ou DFG < 50 pour dabigatran) alors dosage AOD veille intervention"
-            }
-
-        if atc.startswith("B01AF"):
-            if dfg_connu and dfg is not None and dfg >= 30:
-                return {"action": "ARRET", "jour": "J-3", "note": "Xaban + DFG >= 30. Dernière prise J-3."}
-
-        if atc == "B01AE07":
-            if dfg_connu and dfg is not None and dfg >= 50:
-                return {"action": "ARRET", "jour": "J-4", "note": "Dabigatran + DFG >= 50. Dernière prise J-4."}
-            if dfg_connu and dfg is not None and 30 <= dfg <= 49:
-                return {"action": "ARRET", "jour": "J-5", "note": "Dabigatran + DFG entre 30 et 49. Dernière prise J-5."}
-
-        if not dfg_connu:
-            return {
-                "action": "INFO",
-                "note": "DFG INCONNU. Rappel : Riva/Apixa J-3 si DFG>30. Pradaxa J-4 si DFG>50 ou J-5 si 30-49. Neurochir J-5."
-            }
-
-        return {"action": "DOSAGE", "note": "Cas complexe : Vérifier le DFG et réaliser un dosage."}
-
-    # ----------------------------
     # 7. AINS
     # ----------------------------
     if atc.startswith("M01A"):
@@ -1681,6 +1644,18 @@ def extraire_nom_medicament_debut_ligne(txt):
 
 
 
+def extraire_nom_propre(ligne):
+    l = normalize_text(ligne)
+    l = l.replace("µ", "U")
+    l = re.sub(r"^[\-\•\.\*\s]+", "", l)
+    l = re.split(r":| MATIN| SOIR| MIDI| JOUR| COMPRIME| COMPRIMES| SACHET| SACHETS", l)[0]
+    l = DOSE_PATTERN.sub("", l)
+    l = re.sub(r"\b\d+[.,]?\d*\b", "", l)
+    l = re.sub(r"[^A-Z\s\-]", " ", l)
+    l = re.sub(r"\s+", " ", l).strip()
+
+    return l
+
 
 
 
@@ -1710,8 +1685,12 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
             deja.add(key)
 
     for brute, nettoyee, mode in tous_candidats:
-        meilleur_nom, meilleur_score = meilleur_match_medicament(nettoyee, ref)
-        seuil = 85 if mode == "imprime" else 75
+    # extrait seulement le nom du médicament au début de la ligne
+    # Exemple : "Metformine 850 mg : 1 comprimé matin et soir" -> "Metformine"
+        nom_court = extraire_nom_propre(brute)
+
+        meilleur_nom, meilleur_score = meilleur_match_medicament(nom_court, ref)
+        seuil = 90 if mode == "imprime" else 80
 
         # =========================
         # CAS 1 — PAS DE MATCH BASE FIABLE
@@ -1815,8 +1794,7 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
 
         atc_affiche = atc
         classe_affiche = get_classe(atc_affiche, classe_map)
-        nom_resultat = nettoyer_nom_affichage_medicament(brute or meilleur_nom)
-
+        nom_resultat = meilleur_nom.title()
         cle_resultat = atc_affiche if atc_affiche else normalize_text(nom_resultat)
         if cle_resultat in vus_resultats:
             continue
@@ -1907,8 +1885,8 @@ def load_data():
                     atc_map[norm(k)] = str(v).upper().strip()
   
         corrections = {
-            "FLUINDIONE": "B01AA12",
             "PREVISCAN": "B01AA12",
+            "FLUINDIONE": "B01AA12",
             "SINTROM": "B01AA07",
         }
 
@@ -2201,7 +2179,6 @@ with st.sidebar:
 - Plexus cervical profond  
 - Paravertébral cervical  
 - Infraclaviculaire  
-- Épidural  
 - Paravertébral thoracique  
 - Plexus lombaire  
 - Compartiment psoas  
@@ -2211,9 +2188,7 @@ with st.sidebar:
 - Fascia transversalis  
 - Plexus sacré  
 - PENG (Pericapsular Nerve Group)  
-- Sciatique (approches proximales)  
-- Spinal  
-- Épidural  
+- Sciatique (approches proximales)    
             """)
 # ----------------------------
 # RAPPEL ALR SUPERFICIELLES
@@ -2251,39 +2226,20 @@ with st.sidebar:
 - Branche fémorale du nerf génito-fémoral  
 - Sural, saphène, tibial, fibulaire (profond ou superficiel)  
             """)
+# ----------------------------
+# RAPPEL ALR NEURAXIAL
+# ----------------------------
+
+    if type_alr == "NEURAXIAL":
+        with st.expander("Rappel – ALR neuraxial"):
+          st.markdown("""
+- Ponction lombaire  
+- Rachi-anesthésie  
+- Péridurale  
+- Péri-rachi anesthésie combinée  
+        """)
 
 
-
-    
-
-
-
-
-
-
-
-
-    st.divider()
-    st.header("Contexte patient / chirurgie")
-
-    st.subheader("Fonction rénale")
-    st.caption("DFG utile notamment pour l’adaptation des anticoagulants oraux d'action direct (AOD) en contexte périopératoire.")
-
-    dfg_connu = st.radio(
-        "DFG connu ?",
-        ["Oui", "Non"],
-        index=0
-    )
-
-    dfg = None
-    if dfg_connu == "Oui":
-        dfg = st.number_input(
-            "DFG (mL/min)",
-            min_value=0,
-            max_value=200,
-            value=80,
-            step=1
-        )
 
 # =========================================================
 # INTERFACE PRINCIPALE
@@ -2561,9 +2517,12 @@ if aap_detecte:
     )
 
 
+
 valves = False
 acfa_atcd = False
 mtev_hr = False
+relais_avk = False
+dfg_relais_avk = ""
 inr_disponible = "Non"
 inr_valeur = None
 
@@ -2571,23 +2530,38 @@ if avk_detecte:
     st.divider()
     st.header("Anti-vitamine K (AVK)")
 
+    # ================= RELAI =================
+    if risque_acte not in ["FAIBLE", "NUL"]:
+        st.markdown("**Situations qui imposent un relai pré-procédural :**")
 
-  
-    st.markdown("**AVK prescrit pour quelle indication ?**  \nSituations qui imposent un relais par une héparine :")
+        valves = st.checkbox("Valve mécanique")
+        acfa_atcd = st.checkbox("FA avec ATCD d’AVC, AIT ou embolie systémique")
+        mtev_hr = st.checkbox("MTEV à haut risque : EP ou TVP proximale < 3 mois")
 
-    valves = st.checkbox("Valve mécanique")
-    acfa_atcd = st.checkbox("ACFA avec antécédent embolique")
-    mtev_hr = st.checkbox("MTEV à haut risque")
+        relais_avk = valves or acfa_atcd or mtev_hr
 
-    if mtev_hr:
-        st.markdown("""
-**Rappel MTEV à haut risque :**
-- TVP proximale et/ou EP < 3 mois
-- MTEV récidivante idiopathique (>= 2 épisodes, dont >= 1 sans facteur déclenchant)
+        if mtev_hr:
+            st.markdown("""
+*Si intervention < 1 mois après EP ou TVP proximale alors discuter la mise en place d’un filtre cave.*
 
-*Discuter la mise en place d'un filtre cave au cas par cas.*
+*Si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée.*
 """)
 
+        if relais_avk:
+            st.subheader("Relai AVK - fonction rénale")
+
+            dfg_relais_avk = st.radio(
+                "DFG du patient",
+                [
+                    "DFG > 30",
+                    "15 ≤ DFG < 30",
+                    "DFG < 15",
+                    "DFG inconnu"
+                ],
+                key="dfg_relais_avk"
+            )
+
+    # ================= INR =================
     st.subheader("INR")
 
     inr_disponible = st.radio(
@@ -2606,10 +2580,13 @@ if avk_detecte:
         )
 
 
-
 if avk_detecte:
-    st.info("""
+    show_inr = st.toggle("INR complément", key="toggle_inr_complement")
+
+    if show_inr:
+        st.info("""
 ### Objectif INR péri-opératoire (AVK)
+
 
 Objectif standard :
 - INR < 1,5
@@ -2618,56 +2595,41 @@ Objectif standard :
 
 ---
 
-### Valves mecaniques
+### Rappels des objectifs d'INR, selon recommandations ESC 2025
 
-- Valve mitrale / tricuspide / ancienne generation
-  -> **INR cible = 3 (2,5 - 3,5)**
+### Valves mécaniques
 
-- Valve aortique moderne (bileaflet)
-  -> **INR cible = 2,5 (2 - 3)**
+- Valve mitrale / tricuspide / ancienne génération  
+  → **INR cible = 3 (2,5 - 3,5)**
 
-### Autres indications (sans valve mecanique)
+- Valve aortique moderne (bileaflet)  
+  → **INR cible = 2,5 (2 - 3)**
+
+### Autres indications
 
 **INR cible 2 - 3 :**
 - Fibrillation atriale non valvulaire
-- Prevention et traitement TVP / EP
+- Prévention et traitement TVP / EP
 - Syndrome des antiphospholipides (selon terrain)
 
-**INR cible 3 - 4,5 :**
-- Valvulopathie mitrale avec :
-  - dilatation oreillette gauche
-  - contraste spontane en echocardiographie transoesophagienne (ETO)
-  - thrombus intra-auriculaire gauche
 
+**Valvulopathie mitrale avec :**
+- Dilatation de l’oreillette gauche  
+- Contraste spontané en ETO  
+- Thrombus intra-auriculaire gauche  
 ---
 
-Rappels des objectifs d'INR, selon recommandations ESC 2025  
+### Facteurs pro-thrombotiques à rechercher
 
-### Facteurs pro-thrombotiques (a rechercher)
-Si >= 1 facteur present -> augmenter la cible INR de +0,5 
+Si ≥ 1 facteur présent → augmenter la cible INR de +0,5
 
 - Fibrillation atriale  
 - Dysfonction VG (FEVG < 35 %)  
-- Etat hypercoagulable  
-- Evenement thrombotique recent (< 12 mois : AVC, TVP, EP)
+- État hypercoagulable  
+- Événement thrombotique récent (< 12 mois : AVC, TVP, EP)
 """)
 
-    ctx = {}
-
-    ctx["valve_mecanique"] = valves
-    ctx["acfa_atcd"] = acfa_atcd
-    ctx["mtev_haut_risque"] = mtev_hr
-    ctx["inr_disponible"] = inr_disponible
-
     
-
-    resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
-        txt=txt_final,
-        ref=ref,
-        atc_map=atc_map,
-        classe_map=classe_map,
-        ctx=ctx
-    )
 
 # =========================
 # CONTEXTE PATIENT / CHIRURGIE
@@ -2676,13 +2638,14 @@ Si >= 1 facteur present -> augmenter la cible INR de +0,5
 
 ind_glp1 = None
 
+
 if diabete_detecte:
     st.divider()
     st.header("Contexte diabète")
 
 
 
-    type_chir = st.selectbox(
+    type_chir = st.radio(
         "Type de chirurgie",
         [
             "AMBULATOIRE ou chirurgie courte avec ≤ 1 repas jeûné",
@@ -2699,6 +2662,30 @@ if diabete_detecte:
 
     if pompe:
         dispositif_insuline = "pompe"
+
+
+# FORXIGA nouvelles règles SFAR
+
+texte_detecte = str(txt_final).lower()  
+
+indication_sglt2 = None
+
+if "forxiga" in texte_detecte or "dapagliflozine" in texte_detecte:
+    st.divider()
+    st.subheader("Contexte SGLT2")
+
+    indication_sglt2 = st.radio(
+        "Indication du Forxiga",
+        [
+            "Diabète",
+            "Insuffisance cardiaque",
+            "Néphroprotection"
+        ],
+        key="indication_sglt2"
+    )
+
+    
+
 
 
 
@@ -2815,7 +2802,6 @@ ctx = {
     "type_chir": type_chir,
     "stress_chir": stress_chir,
     "is_neuro": is_neuro,
-    "r_hem": risque_acte,
     "alr": type_alr,
     "ind_sraa": ind_sraa if ind_sraa else "",
     "indication_aap": indication_aap,
@@ -2827,19 +2813,23 @@ ctx = {
     "categorie_geste": None,
     "demi_vie_heures": None,
     "voie_baclofene": None,
+    "indication_sglt2": indication_sglt2 if indication_sglt2 else "",
 
     "ASA": asa_acte_to_int(asa_acte) if 'asa_acte' in locals() else None,
 
     "atcd_cv": None,
-    "dfg_connu": dfg_connu,
-    "dfg": dfg,
+    "dfg": None,
 
     "dispositif_insuline": "pompe" if st.session_state.get("pompe_insuline", False) else None,
 
     "valve_mecanique": valves,
     "acfa_atcd": acfa_atcd,
     "mtev_haut_risque": mtev_hr,
+    "relais_avk": relais_avk,
 
+    "dfg_relais_avk": dfg_relais_avk,
+    "r_hem": risque_acte,
+    
     "type_traitement_aap": type_traitement_aap if type_traitement_aap else "",
     "bitherapie_aap": type_traitement_aap == "Bithérapie",
     "prev_secondaire": type_traitement_aap == "Prévention secondaire",
@@ -2866,41 +2856,65 @@ ctx = {
     "obstetrique": obstetrique,
     "hydrocortisone_topique": hydrocortisone_topique,
     "hydrocortisone_systemique": hydrocortisone_systemique,
-
     "voie_heparine": voie_heparine,
     "dose_heparine": dose_heparine,
-
+    
     "inr_therapeutique_2_3": inr_disponible == "Oui" and inr_valeur is not None and 2 <= inr_valeur <= 3,
     "inr_hors_zone_2_3": inr_disponible == "Oui" and inr_valeur is not None and not (2 <= inr_valeur <= 3),
     "inr_non_connu": inr_disponible != "Oui",
     
     }
 
-
-# =========================
-# DFG
-# =========================
-
-dfg_ctx = ctx.get("dfg")
-dfg_connu_ctx = ctx.get("dfg_connu")
-
-if dfg_connu_ctx == "Oui" and dfg_ctx is not None:
-    ctx["dfg_inf_30"] = dfg_ctx < 30
-    ctx["dfg_inf_50"] = dfg_ctx < 50
-    ctx["dfg_ge_50"] = dfg_ctx >= 50
-    ctx["dfg_ge_30"] = dfg_ctx >= 30
-    ctx["dfg_30_49"] = 30 <= dfg_ctx <= 49
-else:
-    ctx["dfg_inf_30"] = False
-    ctx["dfg_inf_50"] = False
-    ctx["dfg_ge_50"] = False
-    ctx["dfg_ge_30"] = False
-    ctx["dfg_30_49"] = False
-
-
 # =======================
 # ANALYSE 
 # =========================
+
+resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
+    txt=txt_final,
+    ref=ref,
+    atc_map=atc_map,
+    classe_map=classe_map,
+    ctx=ctx
+)
+
+codes_atc_detectes = [r.get("Code ATC") for r in resultats if r.get("Code ATC")]
+codes_atc_detectes_upper = [str(c).upper().strip() for c in codes_atc_detectes]
+
+aod_detecte = any(
+    code.startswith(("B01AE", "B01AF"))
+    for code in codes_atc_detectes_upper
+)
+
+
+
+# =========================
+# AOD - fonction rénale
+# =========================
+
+dfg_aod = ""
+
+if aod_detecte:
+    st.divider()
+    st.header("AOD - fonction rénale")
+
+    dfg_aod = st.radio(
+        "DFG du patient",
+        [
+            "DFG > 50",
+            "30 ≤ DFG ≤ 50",
+            "DFG < 30",
+            "DFG inconnu"
+        ],
+        key="dfg_aod"
+    )
+
+# Variables attendues par le YAML AOD
+ctx["dfg_connu"] = dfg_aod != "DFG inconnu" and dfg_aod != ""
+ctx["dfg_ge_30"] = dfg_aod in ["DFG > 50", "30 ≤ DFG ≤ 50"]
+ctx["dfg_inf_30"] = dfg_aod == "DFG < 30"
+ctx["dfg_ge_50"] = dfg_aod == "DFG > 50"
+ctx["dfg_30_49"] = dfg_aod == "30 ≤ DFG ≤ 50"
+
 resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
     txt=txt_final,
     ref=ref,
@@ -2910,12 +2924,14 @@ resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
 )
 
 # =========================
+# AVK - fonction rénale relais
+# =========================
+
+
+# =========================
 # HEPARINES ui
 # =========================
-codes_atc_detectes = [r.get("Code ATC") for r in resultats if r.get("Code ATC")]
-codes_atc_detectes_upper = [str(c).upper().strip() for c in codes_atc_detectes]
 
-# reset
 voie_heparine = None
 dose_heparine = None
 
@@ -2925,15 +2941,23 @@ if "B01AB01" in codes_atc_detectes_upper:
     st.subheader("Contexte héparine")
 
     voie_heparine_ui = st.radio(
-        "Voie d'administration de l'héparine non fractioné (HNF)",
+        "Voie d'administration de l'héparine non fractionnée (HNF)",
         ["IVSE", "SC"],
         horizontal=True,
         key="ui_voie_heparine"
     )
 
-    voie_heparine = "IVSE" if "IVSE" in voie_heparine_ui else "SC"
+    voie_heparine = "IVSE" if voie_heparine_ui == "IVSE" else "SC"
 
-   
+    if voie_heparine == "SC":
+        dose_heparine_ui = st.radio(
+            "Type d'anticoagulation HNF SC",
+            ["Dose préventive", "Dose curative"],
+            horizontal=True,
+            key="ui_dose_hnf_sc"
+        )
+
+        dose_heparine = "préventive" if dose_heparine_ui == "Dose préventive" else "curative"
 
 
 # HBPM / Fondaparinux
@@ -2979,6 +3003,7 @@ Curatif :
 ctx["voie_heparine"] = voie_heparine
 ctx["dose_heparine"] = dose_heparine
 
+
 resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
     txt=txt_final,
     ref=ref,
@@ -2986,6 +3011,7 @@ resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
     classe_map=classe_map,
     ctx=ctx
 )
+
 # =========================
 # DETECTION IMIPRAMINIQUES
 # =========================
@@ -3082,6 +3108,13 @@ if resultats:
                 lignes_pdf.append(ligne)
                 au_moins_un_arret = True
                 continue
+   
+    if r["Action"].lower().strip() == "pas de prise le matin":
+        d_stop = date_op - timedelta(days=1)
+        ligne = f"{r['Médicament']} : dernière prise la veille, le {d_stop.strftime('%d/%m/%Y')}"
+        st.write(f"- **{ligne}**")
+        lignes_pdf.append(ligne)
+        au_moins_un_arret = True
     phrase_pdf = ""
 
     if au_moins_un_arret:
