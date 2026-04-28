@@ -3274,20 +3274,17 @@ df_profils_patient = inferer_profils_structures(
 if df_profils_patient is not None and not df_profils_patient.empty:
     profil_principal = df_profils_patient.iloc[0]
 
-    st.success(
-        f"**Profil principal probable : {profil_principal['Profil']}** — certitude {profil_principal['Niveau']}"
-    )
+    for i, row in df_profils_patient.iterrows():
+        if i == 0:
+            titre = "Profil principal probable"
+        else:
+            titre = "Profil associé probable"
 
-    for _, row in df_profils_patient.iterrows():
-        st.markdown(f"""
-        <div class="box-profil">
-            <b>{row['Profil']}</b><br>
-            <b>Certitude :</b> {row['Niveau']}<br>
-            <b>Médicaments sentinelles :</b> {row['Sentinelles']}<br>
-            <b>ATC retrouvés :</b> {row['ATC']}
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.success(
+            f"**{titre} : {row['Profil']}** — certitude {row['Niveau']}\n\n"
+            f"**Médicaments sentinelles :** {row['Sentinelles']}\n\n"
+            f"**ATC retrouvés :** {row['ATC']}"
+        )
     
 else:
     st.info("Aucun profil pathologique fort identifié à partir des médicaments détectés.")
