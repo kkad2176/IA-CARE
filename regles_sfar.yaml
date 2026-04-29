@@ -340,17 +340,17 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {type_chir_neuro: NEUROCHIR_INTRACRANIENNE, atc_codes: [B01AC01, B01AC06]}
       action: ARRET
       jour: J-5
-      precision: "Neurochirurgie intracrânienne ou intrarachidienne : arrêt de l’aspirine à J-5."
+      precision: "Neurochirurgie intracrânienne ou intrarachidienne : dernière prise à J-5."
 
     - if: {type_chir_neuro: NEUROCHIR_INTRACRANIENNE, atc_codes: [B01AC04, B01AC24]}
       action: ARRET
       jour: J-7
-      precision: "Neurochirurgie intracrânienne ou intrarachidienne : arrêt de l'anti P2Y12 à J-7."
+      precision: "Neurochirurgie intracrânienne ou intrarachidienne : dernière prise à J-7."
 
     - if: {type_chir_neuro: NEUROCHIR_INTRACRANIENNE, atc_codes: [B01AC22]}
       action: ARRET
       jour: J-9
-      precision: "Neurochirurgie intracrânienne ou intrarachidienne : arrêt du prasugrel à J-9."
+      precision: "Neurochirurgie intracrânienne ou intrarachidienne : dernière prise à J-9."
 
 
 
@@ -363,7 +363,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC01, B01AC06], aspirine_sup_200: true}
       action: ARRET
       jour: J-3
-      precision: "Aspirine > 200 mg : arrêt à J-3. Préférer si possible la rachianesthésie en    ponction unique à la péridurale."
+      precision: "Aspirine > 200 mg : dernière prise J-3. Préférer si possible la rachianesthésie en    ponction unique à la péridurale."
       source_url:
         - "https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx"
 
@@ -375,12 +375,12 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC04, B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "ALR : arrêt du P2Y12."
+      precision: "ALR : dernière prise J-5."
 
     - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "ALR : arrêt du prasugrel."
+      precision: "ALR : dernière prise j-7 du prasugrel."
 
 
 
@@ -425,49 +425,49 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
       jour: J-5
-      precision: "Stent ≤ 1 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+      precision: "Stent ≤ 1 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise J-5."
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
       jour: J-5
-      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise J-5."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
       jour: J-5
-      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5."
 
     # INTERMEDIAIRE – TICAGRELOR
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5."
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "Stent < 6 mois à haut risque thrombotique :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+      precision: "Stent < 6 mois à haut risque thrombotique :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5."
 
     # INTERMEDIAIRE – PRASUGREL
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-7."
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "Stent < 6 mois à haut risque thrombotique :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+      precision: "Stent < 6 mois à haut risque thrombotique :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-7."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12."
+      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-7."
 
     # ELEVE / IMPORTANT / MAJEUR – ASPIRINE
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
@@ -540,37 +540,37 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
       jour: J-5
-      precision: "Poursuivre l’aspirine et interrompre l’anti-P2Y12."
+      precision: "Poursuivre l’aspirine et dernière prise de l’anti-P2Y12 J-5."
 
     # INTERMEDIAIRE – TICAGRELOR
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "Poursuivre l’aspirine et interrompre l’anti-P2Y12."
+      precision: "Poursuivre l’aspirine et dernière prise de l’anti-P2Y12 à J-5."
 
     # INTERMEDIAIRE – PRASUGREL
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "Poursuivre l’aspirine et interrompre l’anti-P2Y12."
+      precision: "Poursuivre l’aspirine et dernière prise de l’anti-P2Y12 à J-7."
 
     # ELEVE / IMPORTANT / MAJEUR – ASPIRINE
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
       action: ARRET
       jour: J-3
-      precision: "Interrompre les 2 AAP."
+      precision: "Dernière prise J-3 "
 
     # ELEVE / IMPORTANT / MAJEUR – CLOPIDOGREL / TICAGRELOR
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "Interrompre les 2 AAP."
+      precision: "dernière prise J-5."
 
     # ELEVE / IMPORTANT / MAJEUR – PRASUGREL
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "Interrompre les 2 AAP."
+      precision: "dernière prise J-7."
 
 
     # =========================================================
@@ -585,7 +585,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {prev_primaire: true, atc_codes: [B01AC01, B01AC06]}
       action: ARRET
       jour: J-3
-      precision: "Aspirine en prévention primaire : arrêt à J-3."
+      precision: "Aspirine en prévention primaire : dernière prise J-3."
 
     # =========================================================
     #  PREVENTION SECONDAIRE
@@ -606,7 +606,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {prev_secondaire: true, atc_codes: [B01AC01, B01AC06], r_hem: [ELEVE, IMPORTANT, MAJEUR]}
       action: ARRET
       jour: J-3
-      precision: "Aspirine en prévention secondaire : arrêt."
+      precision: "Aspirine en prévention secondaire : Dernière prise J-3."
 
     # CLOPIDOGREL
     - if: {prev_secondaire: true, atc_codes: [B01AC04], r_hem: FAIBLE}
@@ -617,12 +617,12 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {prev_secondaire: true, atc_codes: [B01AC04], r_hem: INTERMEDIAIRE}
       action: ARRET
       jour: J-5
-      precision: "Arrêt du clopidogrel entre 5 et 7 jours avant la chirurgie, avec un relais par aspirine 75 à 100mg le lendemain de l'arrêt."
+      precision: "Dernière prise du clopidogrel entre 5 et 7 jours avant la chirurgie, avec un relais par aspirine 75 à 100mg le lendemain de l'arrêt."
 
     - if: {prev_secondaire: true, atc_codes: [B01AC04], r_hem: [ELEVE, IMPORTANT, MAJEUR]}
       action: ARRET
       jour: J-5
-      precision: "Clopidogrel : arrêt."
+      precision: "Clopidogrel, Dernière prise J-5"
 
  
 
@@ -644,15 +644,19 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J-5
       note: |
         Pour tous les AOD : si DFG < 30 alors dernière prise J-5 et dosage pré opératoire.
-        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+
+        <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
 
     - if:
         type_chir_neuro: "NEUROCHIR_INTRACRANIENNE"
       action: ARRET
       jour: J-5
       note: |
-        Pour tous les AOD : dernière prise J-5.
-        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+        Pour tous les AOD : dernière prise J-5. (Si DFG < 30 alors dernière prise J-5 et dosage pré opératoire (car risque hémorragique très élevé)
+
+
+        <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
+
 
     - if:
         alr: "NEURAXIAL"
@@ -660,16 +664,20 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: ARRET
       jour: J-5
       note: |
-        Pour tous les AOD : si DFG < 30 alors dernière prise J-5 et dosage pré opératoire.
-        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+        Pour tous les AOD : si DFG < 30 alors dernière prise J-5 et dosage pré opératoire (car risque hémorragique très élevé).
+
+        <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
+
 
     - if:
         alr: "NEURAXIAL"
       action: ARRET
       jour: J-5
       note: |
-        Pour tous les AOD : dernière prise J-5.
-        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+        Pour tous les AOD : dernière prise J-5. (Si DFG < 30 alors dernière prise J-5 et dosage pré opératoire (car risque hémorragique très élevé)
+
+        <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
+
 
 
     # ===== PROCÉDURE À FAIBLE RISQUE HÉMORRAGIQUE =====
@@ -680,7 +688,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J-1 
       note: |
         Procédure à faible risque hémorragique alors pas de prise la veille au soir ni le matin de l’intervention (quelque soit le DFG).
-        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+
+        <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
+
 
 
     # ===== PROCÉDURE À RISQUE HÉMORRAGIQUE ÉLEVÉ ===
@@ -694,7 +704,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J-3
       note: |
         Apixaban, rivaroxaban, edoxaban : si DFG >= 30 alors dernière prise J-3.
-        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+
+        <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
+
 
     - if:
         atc_prefix: ["B01AF"]
@@ -704,7 +716,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J-5
       note: |
         Apixaban, rivaroxaban, edoxaban : si DFG < 30 alors dernière prise J-5 sans relais ni dosage.
-        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+
+        <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
+
 
 
     # Dabigatran
@@ -717,7 +731,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J-3
       note: |
         Dabigatran : si DFG > 50 alors dernière prise J-3.
-        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+
+        <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
+
 
     - if:
         atc_codes: ["B01AE07"]
@@ -728,7 +744,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: |
         Dabigatran : si DFG 30 - 50 alors dernière prise J-5 sans relai ni dosage.
         Dabigatran pas recommandé si DFG < 30.
-        Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée
+
+        <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
+
 
 
     # ===== DFG NON CONNU ========+
@@ -1015,7 +1033,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Pas de relais systématique.
         Contrôle INR initial entre J-10 et J-7.
         Objectif le matin de l’intervention : INR < 1.2.
-
+       
 
     # =====  CHIRURGIE À FAIBLE RISQUE + INR CONNU EN ZONE =====
     - if:
@@ -1026,6 +1044,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: |
         Chirurgie à risque hémorragique faible : poursuite possible si INR entre 2 et 3.
         Contrôle INR initial entre J-10 et J-7.
+        
 
     # ===== CHIRURGIE À FAIBLE RISQUE + INR CONNU HORS ZONE =====
     - if:
@@ -1036,7 +1055,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: |
         Chirurgie à risque hémorragique faible mais INR hors zone thérapeutique attendue (2 à 3).
         Vérifier l’indication, la cible INR et discuter la conduite à tenir.
-
+        
     # ===== CHIRURGIE À FAIBLE RISQUE + INR NON CONNU =====
     - if:
         r_hem: ["FAIBLE", "NUL"]
@@ -1045,7 +1064,8 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: "J0"
       note: |
         Chirurgie à risque hémorragique faible : poursuite possible si INR entre 2 et 3.
-        Contrôle INR initial entre J-10 et J-7.
+        Contrôle INR initial entre J-10 et J-7. 
+        
 
 
     # ===== RELAI AVK Selon LE DFG =====
@@ -1058,7 +1078,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Si DFG > 30 alors
         HBPM SC à dose curative en 2 injections par jour avec 1ère injection le soir de J-3 et dernière injection au plus tard le matin de J-1. Si relais par HBPM SC en 1 injection par jour, alors dernière injection à J-2.
 
-        Quoiqu’il arrive (relais ou pas) : faire dosage INR la veille de l’intervention, si INR > au seuil, alors vitamine K 2 à 5mg en per os le soir, puis contrôle INR le lendemain matin
+        
 
     - if:
         relais_avk: true
@@ -1066,26 +1086,32 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: "ARRET + RELAI"
       jour: "J-5"
       note: |
-        Si DFG entre 15 et 29 alors plusieurs schéma possible
-        Enoxaparine 100 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
-        Ou Tinzaparine 175 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
-        Ou HNF calcique SC (adaptée au poids sans surveillance biologique) avec 1ère injection à 333 UI/kg le soir de J-3, puis 250 UI/Kg toutes les 12h avec une dernière injection le matin de J-1
-        Ou HNF IVSE le soir de J-3 et arrêtée 6h avant l’intervention
+        Si DFG entre 15 et 29 alors plusieurs schémas possibles : 
 
-        Quoiqu’il arrive (relais ou pas) : faire dosage INR la veille de l’intervention, si INR > au seuil, alors vitamine K 2 à 5mg en per os le soir, puis contrôle INR le lendemain matin
+        -Enoxaparine 100 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
 
+        -Tinzaparine 175 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
+
+        -HNF calcique SC (adaptée au poids sans surveillance biologique) avec 1ère injection à 333 UI/kg le soir de J-3, puis 250 UI/Kg toutes les 12h avec une dernière injection le matin de J-1
+
+        -HNF IVSE le soir de J-3 et arrêtée 6h avant l’intervention
+
+        
     - if:
         relais_avk: true
         dfg_relais_avk: "DFG < 15"
       action: "ARRET + RELAI"
       jour: "J-5"
       note: |
-        Si DFG < 15 alors plusieurs schéma possible
-        Tinzaparine 175 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
-        Ou HNF calcique SC (adaptée au poids sans surveillance biologique) avec 1ère injection à 333 UI/kg le soir de J-3, puis 250 UI/Kg toutes les 12h avec une dernière injection le matin de J-1
-        Ou HNF IVSE le soir de J-3 et arrêtée 6h avant l’intervention
+        Si DFG < 15 alors plusieurs schémas possibles :
 
-        Quoiqu’il arrive (relais ou pas) : faire dosage INR la veille de l’intervention, si INR > au seuil, alors vitamine K 2 à 5mg en per os le soir, puis contrôle INR le lendemain matin
+        -Tinzaparine 175 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
+
+        -HNF calcique SC (adaptée au poids sans surveillance biologique) avec 1ère injection à 333 UI/kg le soir de J-3, puis 250 UI/Kg toutes les 12h avec une dernière injection le matin de J-1
+
+        -HNF IVSE le soir de J-3 et arrêtée 6h avant l’intervention
+
+        
 
     - if:
         relais_avk: true
@@ -1095,9 +1121,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: |
         DFG inconnu : vérifier la fonction rénale avant de choisir le schéma de relai AVK.
 
-        Quoiqu’il arrive (relais ou pas) : faire dosage INR la veille de l’intervention, si INR > au seuil, alors vitamine K 2 à 5mg en per os le soir, puis contrôle INR le lendemain matin
-
-
+        
 
 
     # ================RISQUE HÉMORRAGIQUE ÉLEVÉ
@@ -1109,6 +1133,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: |
         Risque hémorragique élevé. Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique.
         Si Warfarine alors dernière prise J-6.
+        
 
     - if:
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
@@ -1119,7 +1144,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Risque hémorragique élevé.
         Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique
         Si Fluindione alors dernière prise J-5.
-
+       
     - if:
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
         atc_codes: ["B01AA07"]
@@ -1129,8 +1154,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Risque hémorragique élevé.
         Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique
         Si Acénocoumarol alors dernière prise J-4.
-
-
+       
   
     # ===== PAR DÉFAUT =====
     - default: true
