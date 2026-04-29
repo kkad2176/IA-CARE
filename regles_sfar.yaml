@@ -425,7 +425,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
       jour: J-5
-      precision: "Stent ≤ 1 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise J-5."
+      precision: "Stent ≤ 1 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12  J-5."
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
