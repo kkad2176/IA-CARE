@@ -2416,7 +2416,7 @@ aap_detecte = contexte_famille_detecte(
     txt_final,
     ref,
     atc_map,
-    atc_codes=["B01AC01", "B01AC06", "B01AC04", "B01AC24", "B01AC22"],
+    atc_codes=["B01AC01", "B01AC06", "B01AC04", "B01AC24", "B01AC22", "B01AC30"],
     mots_secours=[
         "ASPIRINE", "KARDEGIC", "CLOPIDOGREL", "PLAVIX",
         "TICAGRELOR", "BRILIQUE", "PRASUGREL", "EFIENT"
@@ -2644,19 +2644,53 @@ Si ≥ 1 facteur présent → augmenter la cible INR de +0,5
 
     
 
+
 # =========================
 # CONTEXTE PATIENT / CHIRURGIE
 # =========================
 
 
 ind_glp1 = None
+indication_sglt2 = None
+
+texte_detecte = str(txt_final).lower()
+
+# =========================
+# SGLT2 (FORXIGA)
+# =========================
+if "forxiga" in texte_detecte or "dapagliflozine" in texte_detecte:
+    st.divider()
+    st.subheader("Contexte SGLT2")
+
+    indication_sglt2 = st.radio(
+        "Indication du Forxiga",
+        [
+            "Diabète",
+            "Insuffisance cardiaque",
+            "Néphroprotection"
+        ],
+        key="indication_sglt2"
+    )
 
 
-if diabete_detecte:
+# =========================
+# CONTEXTE DIABÈTE
+# =========================
+
+afficher_contexte_diabete = diabete_detecte
+
+# si SGLT2 non diabète → on cache
+if indication_sglt2 in ["Insuffisance cardiaque", "Néphroprotection"]:
+    afficher_contexte_diabete = False
+
+# si SGLT2 diabète → on force affichage
+if indication_sglt2 == "Diabète":
+    afficher_contexte_diabete = True
+
+
+if afficher_contexte_diabete:
     st.divider()
     st.header("Contexte diabète")
-
-
 
     type_chir = st.radio(
         "Type de chirurgie",
@@ -2675,31 +2709,6 @@ if diabete_detecte:
 
     if pompe:
         dispositif_insuline = "pompe"
-
-
-# FORXIGA nouvelles règles SFAR
-
-texte_detecte = str(txt_final).lower()  
-
-indication_sglt2 = None
-
-if "forxiga" in texte_detecte or "dapagliflozine" in texte_detecte:
-    st.divider()
-    st.subheader("Contexte SGLT2")
-
-    indication_sglt2 = st.radio(
-        "Indication du Forxiga",
-        [
-            "Diabète",
-            "Insuffisance cardiaque",
-            "Néphroprotection"
-        ],
-        key="indication_sglt2"
-    )
-
-    
-
-
 
 
 corticoides_connus = corticoide_detecte
@@ -3211,7 +3220,24 @@ if resultats:
         c3.write(r.get("Classe", ""))
         c4.write(r.get("Action", ""))
         c5.write(format_jour_avec_date(r.get("Date", ""), date_op))
-        c6.write(enrichir_note_avec_dates(r.get("Note", ""), date_op))
+        note_affichee = enrichir_note_avec_dates(r.get("Note", ""), date_op)
+
+        if (
+            str(r.get("Code ATC", "")).upper().strip().startswith("B01AA")
+            and ctx.get("r_hem") not in ["FAIBLE", "NUL"]
+        ):
+            note_affichee += (
+                "\n\n<div style='background-color:#e7f3ff; padding:10px; border-radius:8px; "
+                "border-left:4px solid #1f77b4; font-size:13px;'>"
+                "<b>Note AVK :</b><br>"
+                "Faire un dosage INR la veille de l’intervention.<br>"
+                "Si INR > au seuil, alors vitamine K 2 à 5 mg per os le soir,<br>"
+                "puis contrôle INR le lendemain matin."
+                "</div>"
+            )
+
+        c6.markdown(note_affichee, unsafe_allow_html=True)
+
 
         liens_bruts = str(r.get("Lien", "")).strip()
         liens_list = [l.strip() for l in liens_bruts.split(" | ") if l.strip()] if liens_bruts else []
