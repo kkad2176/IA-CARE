@@ -1647,10 +1647,23 @@ def extraire_nom_medicament_debut_ligne(txt):
 def extraire_nom_propre(ligne):
     l = normalize_text(ligne)
     l = l.replace("µ", "U")
+
+   
+    l = re.sub(r"\(.*?\)", " ", l)
+
+   
     l = re.sub(r"^[\-\•\.\*\s]+", "", l)
-    l = re.split(r":| MATIN| SOIR| MIDI| JOUR| COMPRIME| COMPRIMES| SACHET| SACHETS", l)[0]
+
+   
+    l = re.split(
+    r":| MG| G| ML| UI| MUI| MCG| UG| µG| SOL| BUV| AMP| AMPOULE| MATIN| SOIR| MIDI| JOUR| COMPRIME| COMPRIMES| GEL| GELULE| GELULES| SACHET| SACHETS| CP| SI BESOIN",
+    l
+    )[0]
+   
     l = DOSE_PATTERN.sub("", l)
     l = re.sub(r"\b\d+[.,]?\d*\b", "", l)
+
+  
     l = re.sub(r"[^A-Z\s\-]", " ", l)
     l = re.sub(r"\s+", " ", l).strip()
 
