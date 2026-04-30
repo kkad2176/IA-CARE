@@ -321,10 +321,12 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - B01AC04   # Clopidogrel
     - B01AC24   # Ticagrelor
     - B01AC22   # Prasugrel
+    - B01AC30   # Duoplavin
 
   conditions:
-
+    # =========================================================
     # --- INCOHERENCES ---
+    # =========================================================
     - if: {prev_primaire: true, atc_codes: [B01AC04, B01AC24, B01AC22]}
       action: INFO
       jour: J0
@@ -336,7 +338,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J0
       precision: "Dose d’aspirine < 75 mg/j : posologie atypique, vérifier la prescription."
 
-    # --- pour NEUROCHIRURGIE ---
+    # =========================================================
+    # --- NEUROCHIRURGIE ---
+    # =========================================================
     - if: {type_chir_neuro: NEUROCHIR_INTRACRANIENNE, atc_codes: [B01AC01, B01AC06]}
       action: ARRET
       jour: J-5
@@ -352,36 +356,99 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J-9
       precision: "Neurochirurgie intracrânienne ou intrarachidienne : dernière prise à J-9."
 
-
-
-
-
     # =========================================================
-    #  ALR
+    # DUOPLAVIN = ASPIRINE + CLOPIDOGREL (BITHERAPIE AAP)
     # =========================================================
 
-    - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC01, B01AC06], aspirine_sup_200: true}
-      action: ARRET
-      jour: J-3
-      precision: "Aspirine > 200 mg : dernière prise J-3. Préférer si possible la rachianesthésie en    ponction unique à la péridurale."
-      source_url:
-        - "https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx"
+    # ---------- HAUT RISQUE THROMBOTIQUE ----------
 
-    - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC01, B01AC06]}
-      action: POURSUITE
+    # FAIBLE
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: FAIBLE, atc_codes: [B01AC30]}
+      action: DIFFERER
       jour: J0
-      precision: "Aspirine ≤200 mg : autorisée pour ALR. Préférer rachianesthésie en ponction unique à la péridurale."
+      precision: "Duoplavin = aspirine + clopidogrel. Stent ≤ 1 mois : différer la procédure. Si impossibilité, poursuivre les 2 AAP."
 
-    - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC04, B01AC24]}
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: FAIBLE, atc_codes: [B01AC30]}
+      action: DIFFERER
+      jour: J0
+      precision: "Duoplavin = aspirine + clopidogrel. Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, poursuivre les 2 AAP."
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: FAIBLE, atc_codes: [B01AC30]}
+      action: DIFFERER
+      jour: J0
+      precision: "Duoplavin = aspirine + clopidogrel. IDM < 6 mois : différer la procédure. Si impossibilité, poursuivre les 2 AAP."
+
+    # INTERMEDIAIRE
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC30]}
       action: ARRET
       jour: J-5
-      precision: "ALR : dernière prise J-5."
+      precision: "Duoplavin = aspirine + clopidogrel. Stent ≤ 1 mois : différer la procédure. Si impossibilité : poursuivre l’aspirine et dernière prise du clopidogrel à J-5."
 
-    - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC22]}
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC30]}
       action: ARRET
-      jour: J-7
-      precision: "ALR : dernière prise j-7 du prasugrel."
+      jour: J-5
+      precision: "Duoplavin = aspirine + clopidogrel. Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité : poursuivre l’aspirine et dernière prise du clopidogrel à J-5."
 
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC30]}
+      action: ARRET
+      jour: J-5
+      precision: "Duoplavin = aspirine + clopidogrel. IDM < 6 mois : différer la procédure. Si impossibilité : poursuivre l’aspirine et dernière prise du clopidogrel à J-5."
+
+    # ELEVE / IMPORTANT / MAJEUR
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC30]}
+      action: ARRET
+      jour: J-5
+      precision: "Duoplavin = aspirine + clopidogrel. Stent ≤ 1 mois : différer la procédure. Si   impossibilité : dernière prise des 2 AAP à J-5 et discussion d’un relais."
+
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC30]}
+      action: ARRET
+      jour: J-5
+      precision: "Duoplavin = aspirine + clopidogrel. Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité : dernière prise des 2 AAP à J-5."
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC30]}
+      action: ARRET
+      jour: J-5
+      precision: "Duoplavin = aspirine + clopidogrel. IDM < 6 mois : différer la procédure. Si impossibilité : dernière prise des 2 AAP à J-5."
+
+
+    # ---------- SANS CRITERE DE HAUT RISQUE ----------
+
+    # FAIBLE
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: FAIBLE, atc_codes: [B01AC30]}
+      action: POURSUITE
+      jour: J0
+      precision: "Duoplavin = aspirine + clopidogrel. Poursuivre les 2 AAP."
+
+    # INTERMEDIAIRE
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes:[B01AC30]}
+      action: ARRET
+      jour: J-5
+      precision: "Duoplavin = aspirine + clopidogrel. Poursuivre l’aspirine et dernière prise du clopidogrel à J-5."
+
+    # ELEVE / IMPORTANT / MAJEUR
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR],          atc_codes: [B01AC30]}
+      action: ARRET
+      jour: J-5
+      precision: "Duoplavin = aspirine + clopidogrel. Dernière prise des 2 AAP à J-5."
+
+    # =========================================================
+    #  BITHERAPIE HAUT RISQUE + ALR
+    # =========================================================
+
+    - if: {bitherapie_aap: true, idm_6m: true, r_hem: FAIBLE, alr: [NEURAXIAL, PROFOND]}
+      action: DIFFERER
+      jour: J0
+      precision: "IDM < 6 mois : différer la procédure. Si impossibilité : poursuivre les 2 AAP. Précision ALR : aspirine ≤ 200 mg autorisée ; dernière prise de l’anti-P2Y12 à J-5."
+
+    - if: {bitherapie_aap: true, stent_1m: true, r_hem: FAIBLE, alr: [NEURAXIAL, PROFOND]}
+      action: DIFFERER
+      jour: J0
+      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité : poursuivre les 2 AAP. Précision ALR : aspirine ≤ 200 mg autorisée ; dernière prise de l’anti-P2Y12 à J-5."
+
+    - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: FAIBLE, alr: [NEURAXIAL, PROFOND]}
+      action: DIFFERER
+      jour: J0
+      precision: "Stent < 6 mois haut risque : différer la procédure. Si impossibilité : poursuivre les 2 AAP. Précision ALR : aspirine ≤ 200 mg autorisée ; dernière prise de l’anti-P2Y12 à J-5."
 
 
     #=========================================================
@@ -430,7 +497,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
       jour: J-5
-      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise J-5."
+      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
@@ -519,10 +586,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
 
 
-# --------------------------------------------------------
-# 2) BITHERAPIE SANS CRITERE DE HAUT RISQUE THROMBOTIQUE
-# (Ou bien aucun des 3 critères ci-dessus)
-# --------------------------------------------------------
+    # --------------------------------------------------------
+    #  BITHERAPIE SANS CRITERE DE HAUT RISQUE THROMBOTIQUE
+    # --------------------------------------------------------
 
     # FAIBLE
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: FAIBLE}
@@ -571,6 +637,36 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: ARRET
       jour: J-7
       precision: "dernière prise J-7."
+
+
+
+    # =========================================================
+    #  ALR
+    # =========================================================
+
+    - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC01, B01AC06], aspirine_sup_200: true}
+      action: ARRET
+      jour: J-3
+      precision: "Aspirine > 200 mg : dernière prise J-3. Préférer si possible la rachianesthésie en    ponction unique à la péridurale."
+      source_url:
+        - "https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx"
+
+    - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC01, B01AC06]}
+      action: POURSUITE
+      jour: J0
+      precision: "Aspirine ≤200 mg : autorisée pour ALR. Préférer rachianesthésie en ponction unique à la péridurale."
+
+    - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC04, B01AC24]}
+      action: ARRET
+      jour: J-5
+      precision: "ALR : dernière prise J-5."
+
+    - if: {alr: [NEURAXIAL, PROFOND], atc_codes: [B01AC22]}
+      action: ARRET
+      jour: J-7
+      precision: "ALR : dernière prise j-7 du prasugrel."
+
+
 
 
     # =========================================================
