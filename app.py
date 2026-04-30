@@ -1497,6 +1497,10 @@ def compter_aap_dans_texte(txt, ref, atc_map):
         meilleur_nom, meilleur_score = meilleur_match_medicament(cand, ref)
         if meilleur_nom and meilleur_score >= 75:
             code = str(atc_map.get(meilleur_nom, "")).upper().strip()
+
+            if code == "B01AC30":
+                return 2
+
             if code.startswith("B01AC"):
                 codes_trouves.add(code)
 
@@ -1901,6 +1905,7 @@ def load_data():
             "PREVISCAN": "B01AA12",
             "FLUINDIONE": "B01AA12",
             "SINTROM": "B01AA07",
+            "DUOPLAVIN": "B01AC30",
         }
 
         for k, v in corrections.items():
@@ -2906,7 +2911,6 @@ aod_detecte = any(
     code.startswith(("B01AE", "B01AF"))
     for code in codes_atc_detectes_upper
 )
-
 
 
 # =========================
