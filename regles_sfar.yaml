@@ -32,11 +32,13 @@ sources_regles:
   regle_6_aod:
     categorie: ANTICOAGULANTS (AOD)
     sources:
-    - https://sfar.org/download/gestion-perioperatoire-des-patients-sous-aod-pour-un-acte-programme/
+      - https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf
+      - https://sfar.org/download/gestion-perioperatoire-des-patients-sous-aod-pour-un-acte-programme/?wpdmdl=33608&refresh=69ee5f1f03df61777229599
+
   regle_7_ains:
     categorie: AINS
     sources:
-    - https://sfar.org/gestion-perioperatoire-des-traitements-chroniques-et-dispositifs-medicaux-anti-infectieux-immunosuppresseurs/
+      - https://sfar.org/gestion-perioperatoire-des-traitements-chroniques-et-dispositifs-medicaux-anti-infectieux-immunosuppresseurs/
   regle_8_psychiatrie_neuro:
     categorie: PSYCHIATRIE / NEURO
     sources:
@@ -48,18 +50,24 @@ sources_regles:
 
   regle_10_avk:
     categorie: ANTI-VITAMINE K (AVK)
+
     sources:
+      - "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
       - "https://www.has-sante.fr/upload/docs/application/pdf/2008-09/surdosage_en_avk_situations_a_risque_et_accidents_hemorragiques_-_synthese_des_recommandations_v2.pdf"
-      - "https://sfar.org/prise-en-charge-des-surdosages-en-antivitamines-k-des-situations-a-risque-hemorragique-et-des-accidents-hemorragiques-chez-les-patients-traites-par-antivitamines-k-en-ville-et-en-milieu-hospitalier/"
+      - "https://sfar.org/wp-content/uploads/2015/10/2_HAS_Prise-en-charge-des-surdosages-en-antivitamines-K.pdf"
       - "https://www.sfed.org/wp-content/uploads/2023/05/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf"
       - "https://inavalverhd.inaheart.org/wp-content/uploads/2025/09/2025-ESC-EACTS-Guidelines-for-the-Management-of-Valvular-Heart-Disease.pdf"
       - "https://pure.eur.nl/ws/portalfiles/portal/182889750/2024_ESC_Guidelines_for_the_management_of_atrial_fibrillation_developed_in_collaboration_with_the_European_Association_for_Cardio-Thoracic_Surgery_EACTS_.pdf"
 
+  atc_prefix:
+    - "B01AA"
 
 
   regle_11_heparines:
     categorie: HEPARINES
     sources:
+      - "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
+
       - "https://sfar.org/wp-content/uploads/2017/10/Bonhomme-Gestion-preoperatoire-du-risque-hemorragique.pdf"
 
 
@@ -1147,11 +1155,12 @@ Maintien possible si intervention courte < 2 h, perturbations du contrÃ´le glycÃ
 - categorie: "Anti-Vitamine K (AVK)"
   source_ref: "regle_10_avk"
   source_url:
-  - "https://www.has-sante.fr/upload/docs/application/pdf/2008-09/surdosage_en_avk_situations_a_risque_et_accidents_hemorragiques_-_synthese_des_recommandations_v2.pdf"
-  - "https://sfar.org/prise-en-charge-des-surdosages-en-antivitamines-k-des-situations-a-risque-hemorragique-et-des-accidents-hemorragiques-chez-les-patients-traites-par-antivitamines-k-en-ville-et-en-milieu-hospitalier/"
-  - "https://www.sfed.org/wp-content/uploads/2023/05/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf"
-  - "https://inavalverhd.inaheart.org/wp-content/uploads/2025/09/2025-ESC-EACTS-Guidelines-for-the-Management-of-Valvular-Heart-Disease.pdf"
-  - "https://pure.eur.nl/ws/portalfiles/portal/182889750/2024_ESC_Guidelines_for_the_management_of_atrial_fibrillation_developed_in_collaboration_with_the_European_Association_for_Cardio-Thoracic_Surgery_EACTS_.pdf"
+    - "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
+    - "https://www.has-sante.fr/upload/docs/application/pdf/2008-09/surdosage_en_avk_situations_a_risque_et_accidents_hemorragiques_-_synthese_des_recommandations_v2.pdf"
+    - "https://sfar.org/wp-content/uploads/2015/10/2_HAS_Prise-en-charge-des-surdosages-en-antivitamines-K.pdf"
+    - "https://www.sfed.org/wp-content/uploads/2023/05/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf"
+    - "https://inavalverhd.inaheart.org/wp-content/uploads/2025/09/2025-ESC-EACTS-Guidelines-for-the-Management-of-Valvular-Heart-Disease.pdf"
+    - "https://pure.eur.nl/ws/portalfiles/portal/182889750/2024_ESC_Guidelines_for_the_management_of_atrial_fibrillation_developed_in_collaboration_with_the_European_Association_for_Cardio-Thoracic_Surgery_EACTS_.pdf"
 
   atc_prefix:
     - "B01AA"
