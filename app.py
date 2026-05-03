@@ -1908,6 +1908,19 @@ def load_data():
             "DUOPLAVIN": "B01AC30",
         }
 
+
+        corrections.update({
+            "HEPARINE": "B01AB01",
+            "HEPARINE IV": "B01AB01",
+            "HEPARINE IVSE": "B01AB01",
+            "HEPARINE SC": "B01AB01",
+            "HNF": "B01AB01",
+            "HNF IV": "B01AB01",
+            "HNF IVSE": "B01AB01",
+            "HNF SC": "B01AB01"
+        })
+
+
         for k, v in corrections.items():
             atc_map[norm(k)] = v
 
@@ -3244,15 +3257,28 @@ if resultats:
 
 
         liens_bruts = str(r.get("Lien", "")).strip()
+
         liens_list = [l.strip() for l in liens_bruts.split(" | ") if l.strip()] if liens_bruts else []
+
+        sources_alr = [
+            "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf",
+            "https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx",
+            "https://sfar.org/wp-content/uploads/2019/10/rfe-anesthesie-loco-regionale-perinerveuse.pdf",
+]
+
+        if str(type_alr).upper().strip() in ["SUPERFICIEL", "PROFOND", "NEURAXIAL"]:
+            liens_list.extend(sources_alr)
+
+        liens_list = list(dict.fromkeys(liens_list))
 
         if liens_list:
             with c7:
                 with st.popover(f"{len(liens_list)} source(s)"):
                     for j, lien in enumerate(liens_list):
-                        st.link_button(f"Source {j+1}", lien)
+                        st.link_button(f"Ouvrir source {j+1}", str(lien).strip())
         else:
             c7.write("")
+
 
         with c8:
             st.selectbox(
