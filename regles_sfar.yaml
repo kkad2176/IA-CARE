@@ -1217,11 +1217,14 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         relais_avk: true
         dfg_relais_avk: "DFG > 30"
       action: "ARRET + RELAI"
-      jour: "J-5"
+      jour: "J-6"
       note: |
-        Si DFG > 30 alors
-        HBPM SC à dose curative en 2 injections par jour avec 1ère injection le soir de J-3 et dernière injection au plus tard le matin de J-1. Si relais par HBPM SC en 1 injection par jour, alors dernière injection à J-2.
+        Risque hémorragique élevé. Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique.
+        Si Warfarine alors dernière prise J-6.
 
+        Si DFG > 30 alors :
+        HBPM SC à dose curative en 2 injections par jour avec 1ère injection le soir de J-3 et dernière injection au plus tard le matin de J-1.
+        Si relais par HBPM SC en 1 injection par jour, alors dernière injection à J-2.
         
 
     - if:
