@@ -3127,7 +3127,7 @@ if resultats:
     lignes_pdf = []
 
     for r in resultats:
-        if r["Action"] == "ARRET":
+        if "ARRET" in r["Action"].upper():
             date_txt = str(r["Date"]).upper().strip()
 
             jours = extraire_nb_jours(date_txt)
