@@ -216,6 +216,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: "ADO : ne pas prendre le matin si chirurgie mineure ou majeure ou avec ≥ 2 repas jeûnés."
 
 - categorie: "SGLT2 - FORXIGA"
+  source_ref: "regle_4_antidiabetique_insuline"
   atc_codes:
     - "A10BK01"
   conditions:
