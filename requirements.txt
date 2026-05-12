@@ -9,3 +9,5 @@ rapidfuzz
 unidecode
 PyMuPDF
 reportlab
+sentence-transformers
+torch
