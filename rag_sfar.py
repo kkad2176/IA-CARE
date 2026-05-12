@@ -713,9 +713,10 @@ def repondre_rag(question, index, passages, model):
             "dans les règles SFAR."
         )
 
-    # =========================
-    # DR-BERT
-    # =========================
+
+
+    # DR BERT
+
 
     if any(m in q for m in mots_doc):
 
@@ -742,4 +743,4 @@ def repondre_rag(question, index, passages, model):
                 + docs
             )
 
-        return reponse
+    return reponse
