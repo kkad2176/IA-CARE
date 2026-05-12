@@ -19,12 +19,17 @@ def norm(txt):
 
 
 def lire_pdf(path):
+
     doc = fitz.open(path)
 
     texte = ""
 
     for page in doc:
-        texte += page.get_text("text") + "\n"
+
+        blocs = page.get_text("blocks")
+
+        for b in blocs:
+            texte += b[4] + "\n"
 
     return texte
 
@@ -47,7 +52,10 @@ def chunk_text(text, size=500, overlap=80):
 
 
 ALIASES = {
+
+
     # AOD
+
     "eliquis": ["AOD"],
     "apixaban": ["AOD"],
     "xarelto": ["AOD"],
@@ -58,8 +66,10 @@ ALIASES = {
     "edoxaban": ["AOD"],
     "aod": ["AOD"],
     "anticoagulant oral direct": ["AOD"],
+    "anticoagulants oraux directs": ["AOD"],
 
     # AVK
+
     "previscan": ["AVK", "Anti-vitamine K"],
     "fluindione": ["AVK", "Anti-vitamine K"],
     "sintrom": ["AVK", "Anti-vitamine K"],
@@ -67,8 +77,10 @@ ALIASES = {
     "coumadine": ["AVK", "Anti-vitamine K"],
     "warfarine": ["AVK", "Anti-vitamine K"],
     "avk": ["AVK", "Anti-vitamine K"],
+    "anti vitamine k": ["AVK", "Anti-vitamine K"],
 
     # AAP
+
     "kardegic": ["AAP (Anti-agrégants plaquettaires)"],
     "aspegic": ["AAP (Anti-agrégants plaquettaires)"],
     "aspirine": ["AAP (Anti-agrégants plaquettaires)"],
@@ -81,7 +93,15 @@ ALIASES = {
     "duoplavin": ["AAP (Anti-agrégants plaquettaires)"],
     "aap": ["AAP (Anti-agrégants plaquettaires)"],
 
-    # Diabète
+    "antiagregant": ["AAP (Anti-agrégants plaquettaires)"],
+    "antiagregants": ["AAP (Anti-agrégants plaquettaires)"],
+    "antiagregant plaquettaire": ["AAP (Anti-agrégants plaquettaires)"],
+    "antiagregants plaquettaires": ["AAP (Anti-agrégants plaquettaires)"],
+    "plaquettaire": ["AAP (Anti-agrégants plaquettaires)"],
+    "plaquettaires": ["AAP (Anti-agrégants plaquettaires)"],
+
+   # Diabète
+
     "metformine": ["Metformine"],
     "glucophage": ["Metformine"],
 
@@ -91,6 +111,7 @@ ALIASES = {
     "empagliflozine": ["SGLT2 (Gliflozines)"],
     "sglt2": ["SGLT2 (Gliflozines)"],
     "gliflozine": ["SGLT2 (Gliflozines)"],
+    "gliflozines": ["SGLT2 (Gliflozines)"],
 
     "ozempic": ["GLP-1 (Analogues : Ozempic, Saxenda...)"],
     "semaglutide": ["GLP-1 (Analogues : Ozempic, Saxenda...)"],
@@ -102,44 +123,6 @@ ALIASES = {
     "victoza": ["GLP-1 (Analogues : Ozempic, Saxenda...)"],
     "glp1": ["GLP-1 (Analogues : Ozempic, Saxenda...)"],
 
-    # Héparines
-    "lovenox": ["Enoxaparine – lovenox"],
-    "enoxaparine": ["Enoxaparine – lovenox"],
-    "inohep": ["Tinzaparine - Inohep"],
-    "tinzaparine": ["Tinzaparine - Inohep"],
-    "arixtra": ["Fundaparinux – arixtra"],
-    "fondaparinux": ["Fundaparinux – arixtra"],
-    "hnf": ["HNF"],
-    "heparine": ["HNF", "Enoxaparine – lovenox"],
-
-    # Corticoïdes
-    "hydrocortisone": ["HYDROCORTISONE SYSTEMIQUE", "CORTICOIDES TOPIQUES"],
-    "hydrocortisone orale": ["HYDROCORTISONE SYSTEMIQUE"],
-    "hydrocortisone per os": ["HYDROCORTISONE SYSTEMIQUE"],
-    "hydrocortisone systemique": ["HYDROCORTISONE SYSTEMIQUE"],
-    "hydrocortisone creme": ["CORTICOIDES TOPIQUES"],
-    "hydrocortisone crème": ["CORTICOIDES TOPIQUES"],
-    "hydrocortisone pommade": ["CORTICOIDES TOPIQUES"],
-    "corticoide topique": ["CORTICOIDES TOPIQUES"],
-    "corticoides": ["CORTICOIDES", "HYDROCORTISONE SYSTEMIQUE"],
-
-    # Cardio
-    "ramipril": ["SRAA"],
-    "perindopril": ["SRAA"],
-    "candesartan": ["SRAA"],
-    "losartan": ["SRAA"],
-    "valsartan": ["SRAA"],
-    "entresto": ["Entresto"],
-    "bisoprolol": ["Bêta-bloquants"],
-    "atenolol": ["Bêta-bloquants"],
-    "metoprolol": ["Bêta-bloquants"],
-    "nebivolol": ["Bêta-bloquants"],
-    "atorvastatine": ["Statines"],
-    "rosuvastatine": ["Statines"],
-    "pravastatine": ["Statines"],
-    "simvastatine": ["Statines"],
-    "statine": ["Statines"],
-
 
     "ado": ["ADO"],
     "sulfamide": ["ADO"],
@@ -147,10 +130,145 @@ ALIASES = {
     "glinide": ["ADO"],
     "glinides": ["ADO"],
     "dpp4": ["ADO"],
+    "gliptine": ["ADO"],
+    "gliptines": ["ADO"],
+    "inhibiteur alpha glucosidase": ["ADO"],
+    "inhibiteurs alpha glucosidases": ["ADO"],
     "antidiabetique oral": ["ADO"],
     "antidiabetiques oraux": ["ADO"],
 
+    "insuline rapide": ["Insuline Rapide ou Mixte"],
+    "insuline mixte": ["Insuline Rapide ou Mixte"],
+    "novorapid": ["Insuline Rapide ou Mixte"],
+    "humalog": ["Insuline Rapide ou Mixte"],
+    "apidra": ["Insuline Rapide ou Mixte"],
 
+    "insuline lente": ["Insuline Basale"],
+    "insuline basale": ["Insuline Basale"],
+    "lantus": ["Insuline Basale"],
+    "toujeo": ["Insuline Basale"],
+    "levemir": ["Insuline Basale"],
+    "tresiba": ["Insuline Basale"],
+
+    "pompe insuline": ["Pompe à Insuline"],
+    "pompe a insuline": ["Pompe à Insuline"],
+
+    # HEPARINES
+
+    "lovenox": ["Enoxaparine – lovenox"],
+    "enoxaparine": ["Enoxaparine – lovenox"],
+    "inohep": ["Tinzaparine - Inohep"],
+    "tinzaparine": ["Tinzaparine - Inohep"],
+    "arixtra": ["Fundaparinux – arixtra"],
+    "fondaparinux": ["Fundaparinux – arixtra"],
+
+    "hnf": ["HNF"],
+    "hnf ivse": ["HNF IVSE"],
+    "hnf sc": ["HNF SC"],
+
+    "heparine": ["HNF", "Enoxaparine – lovenox"],
+    "heparine non fractionnee": ["HNF"],
+
+    # CORTICO
+
+    "hydrocortisone": [
+        "HYDROCORTISONE SYSTEMIQUE",
+        "CORTICOIDES TOPIQUES"
+    ],
+
+    "hydrocortisone orale": ["HYDROCORTISONE SYSTEMIQUE"],
+    "hydrocortisone per os": ["HYDROCORTISONE SYSTEMIQUE"],
+    "hydrocortisone systemique": ["HYDROCORTISONE SYSTEMIQUE"],
+
+    "hydrocortisone creme": ["CORTICOIDES TOPIQUES"],
+    "hydrocortisone pommade": ["CORTICOIDES TOPIQUES"],
+
+    "corticoide": ["CORTICOIDES"],
+    "corticoides": ["CORTICOIDES"],
+    "corticoide topique": ["CORTICOIDES TOPIQUES"],
+
+    "prednisone": ["CORTICOIDES"],
+    "prednisolone": ["CORTICOIDES"],
+    "solupred": ["CORTICOIDES"],
+    "cortancyl": ["CORTICOIDES"],
+
+
+    "ramipril": ["SRAA"],
+    "perindopril": ["SRAA"],
+    "candesartan": ["SRAA"],
+    "losartan": ["SRAA"],
+    "valsartan": ["SRAA"],
+
+    "iec": ["SRAA"],
+    "ara2": ["SRAA"],
+    "sraa": ["SRAA"],
+    "sartan": ["SRAA"],
+
+    "entresto": ["Entresto"],
+    "sacubitril": ["Entresto"],
+    "sacubitril valsartan": ["Entresto"],
+
+    "bisoprolol": ["Bêta-bloquants"],
+    "atenolol": ["Bêta-bloquants"],
+    "metoprolol": ["Bêta-bloquants"],
+    "nebivolol": ["Bêta-bloquants"],
+
+    "beta bloquant": ["Bêta-bloquants"],
+    "beta bloquants": ["Bêta-bloquants"],
+
+    "atorvastatine": ["Statines"],
+    "rosuvastatine": ["Statines"],
+    "pravastatine": ["Statines"],
+    "simvastatine": ["Statines"],
+
+    "statine": ["Statines"],
+    "statines": ["Statines"],
+
+    # DIURETIQUES
+
+    "diuretique": ["Diurétiques"],
+    "diuretiques": ["Diurétiques"],
+    "lasilix": ["Diurétiques"],
+    "furosemide": ["Diurétiques"],
+    "spironolactone": ["Diurétiques"],
+    "aldactone": ["Diurétiques"],
+
+    # AINS
+
+    "ains": ["AINS"],
+    "ibuprofene": ["AINS"],
+    "ketoprofene": ["AINS"],
+    "naproxene": ["AINS"],
+    "diclofenac": ["AINS"],
+    "voltarene": ["AINS"],
+
+    # ANTIARYTHMIQUES
+
+    "amiodarone": ["Antiarythmiques Amio/Sotalol"],
+    "cordarone": ["Antiarythmiques Amio/Sotalol"],
+    "sotalol": ["Antiarythmiques Amio/Sotalol"],
+
+    "flecainide": ["Antiarythmiques Classe I"],
+    "flecaine": ["Antiarythmiques Classe I"],
+
+    # NEURO , PSY
+
+    "baclofene": ["Baclofène"],
+    "baclofène": ["Baclofène"],
+
+    "imipraminique": ["Imipraminiques"],
+    "imipraminiques": ["Imipraminiques"],
+    "anafranil": ["Imipraminiques"],
+    "clomipramine": ["Imipraminiques"],
+    "laroxyl": ["Imipraminiques"],
+    "amitriptyline": ["Imipraminiques"],
+
+    # DERMATO
+
+    "topique": ["Dermatologie"],
+    "topiques": ["Dermatologie"],
+    "dermatologie": ["Dermatologie"],
+    "soins locaux": ["Dermatologie"],
 }
 
 
@@ -559,18 +677,9 @@ def chercher_documents(question, data_store, model, k=3):
 
 
 def repondre_rag(question, index, passages, model):
+
     data_store = index
     data = data_store["yaml"]
-
-    regles = trouver_regles(question, data_store)
-
-    if not regles:
-        return "Médicament ou classe non retrouvé dans les règles SFAR."
-
-    regle = regles[0]
-    cond = choisir_condition(question, regle)
-
-    reponse = format_reponse(data, regle, cond)
 
     q = norm(question)
 
@@ -584,14 +693,53 @@ def repondre_rag(question, index, passages, model):
         "preuve"
     ]
 
+    regles = trouver_regles(question, data_store)
+
+    if regles:
+
+        regle = regles[0]
+        cond = choisir_condition(question, regle)
+
+        reponse = format_reponse(
+            data,
+            regle,
+            cond
+        )
+
+    else:
+
+        reponse = (
+            "Médicament ou classe non retrouvé "
+            "dans les règles SFAR."
+        )
+
+    # =========================
+    # DR-BERT
+    # =========================
+
     if any(m in q for m in mots_doc):
-        docs = chercher_documents(question, data_store, model)
+
+        docs = chercher_documents(
+            question,
+            data_store,
+            model
+        )
 
         if docs:
+
             docs = docs.replace("\n", " ")
             docs = " ".join(docs.split())
+
             docs = docs[:1800]
 
-            reponse += "\n\nDocumentation SFAR :\n\n" + docs
+            dernier_point = docs.rfind(".")
 
-    return reponse
+            if dernier_point != -1:
+                docs = docs[:dernier_point + 1]
+
+            reponse += (
+                "\n\nDocumentation SFAR :\n\n"
+                + docs
+            )
+
+        return reponse
