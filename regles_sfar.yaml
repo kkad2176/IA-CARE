@@ -71,9 +71,6 @@ sources_regles:
       - "https://sfar.org/wp-content/uploads/2017/10/Bonhomme-Gestion-preoperatoire-du-risque-hemorragique.pdf"
 
 
-
-
-
 regles_medicaments:
 - categorie: SRAA (IEC / ARA II)
   source_ref: regle_1_sraa
@@ -90,7 +87,6 @@ regles_medicaments:
     action: POURSUITE
     jour: J0
     note: 'Indication Insuffisance Cardiaque : maintien recommandé.'
-
 
 
 - categorie: "SRAA (Inhibiteurs du système rénine-angiotensine)"
