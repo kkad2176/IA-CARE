@@ -5,6 +5,7 @@ import pandas as pd
 import unidecode
 import fitz
 import numpy as np
+import json
 from sentence_transformers import SentenceTransformer
 
 
@@ -15,8 +16,6 @@ def norm(txt):
     txt = re.sub(r"[^a-z0-9\s\-]", " ", txt)
     txt = re.sub(r"\s+", " ", txt).strip()
     return txt
-
-
 
 
 def lire_pdf(path):
@@ -149,6 +148,16 @@ def construire_index(base_dir):
     with open(yaml_path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
 
+    
+    questions_path = os.path.join(base_dir, "questions.json")
+
+    questions_dataset = []
+
+    if os.path.exists(questions_path):
+        with open(questions_path, "r", encoding="utf-8") as f:
+            questions_dataset = json.load(f)
+
+
     atc_map = {}
 
     csv_path = os.path.join(base_dir, "dci_atc.fichier.csv")
@@ -212,7 +221,8 @@ def construire_index(base_dir):
         "yaml": data,
         "atc_map": atc_map,
         "passages_docs": passages_docs,
-        "embeddings_docs": embeddings_docs
+        "embeddings_docs": embeddings_docs,
+        "questions_dataset": questions_dataset
     }, passages_docs, model
 
 
@@ -290,6 +300,22 @@ def trouver_regles(question, data_store):
     q = norm(question)
     resultats = []
 
+    questions_dataset = data_store.get("questions_dataset", [])
+    print("JSON utilisé")
+    print("JSON utilisé :", len(questions_dataset), flush=True)
+
+    for item in questions_dataset:
+        q_json = norm(item.get("question", ""))
+
+        if q_json and (q_json in q or q in q_json):
+            categorie_json = norm(item.get("categorie", ""))
+
+            for regle in data.get("regles_medicaments", []):
+                if categorie_json in norm(regle.get("categorie", "")):
+                    resultats.append(regle)
+
+    if resultats:
+        return resultats
 
     for mot, categories in ALIASES.items():
         if norm(mot) in q:
@@ -302,7 +328,6 @@ def trouver_regles(question, data_store):
     if resultats:
         return resultats
 
-    #pr trouver dans dci_atc.fichier.csv
     atc, nom = trouver_atc(question, atc_map)
 
     if atc:
@@ -311,7 +336,6 @@ def trouver_regles(question, data_store):
                 resultats.append(regle)
 
     return resultats
-
 
 def choisir_condition(question, regle):
     q = norm(question)
@@ -540,7 +564,6 @@ def chercher_documents(question, data_store, model, k=3):
 
 
 def repondre_rag(question, index, passages, model):
-
     data_store = index
     data = data_store["yaml"]
 
@@ -550,16 +573,19 @@ def repondre_rag(question, index, passages, model):
         regle = regles[0]
         cond = choisir_condition(question, regle)
 
-        reponse = format_reponse(
+        return format_reponse(
             data,
             regle,
             cond
         )
 
-    else:
-        reponse = (
-            "Aucune règle SFAR trouvée."
-        )
+    reponse_json = chercher_reponse_json(question, data_store)
+
+    if reponse_json:
+        return reponse_json
+
+    return "Aucune règle SFAR trouvée."
+
 
    
     #DR BERT UNIQUEMENT SI DEMANDE INFO
