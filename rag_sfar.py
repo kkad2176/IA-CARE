@@ -139,6 +139,18 @@ ALIASES = {
     "pravastatine": ["Statines"],
     "simvastatine": ["Statines"],
     "statine": ["Statines"],
+
+
+    "ado": ["ADO"],
+    "sulfamide": ["ADO"],
+    "sulfamides": ["ADO"],
+    "glinide": ["ADO"],
+    "glinides": ["ADO"],
+    "dpp4": ["ADO"],
+    "antidiabetique oral": ["ADO"],
+    "antidiabetiques oraux": ["ADO"],
+
+
 }
 
 
@@ -299,23 +311,6 @@ def trouver_regles(question, data_store):
 
     q = norm(question)
     resultats = []
-
-    questions_dataset = data_store.get("questions_dataset", [])
-    print("JSON utilisé")
-    print("JSON utilisé :", len(questions_dataset), flush=True)
-
-    for item in questions_dataset:
-        q_json = norm(item.get("question", ""))
-
-        if q_json and (q_json in q or q in q_json):
-            categorie_json = norm(item.get("categorie", ""))
-
-            for regle in data.get("regles_medicaments", []):
-                if categorie_json in norm(regle.get("categorie", "")):
-                    resultats.append(regle)
-
-    if resultats:
-        return resultats
 
     for mot, categories in ALIASES.items():
         if norm(mot) in q:
@@ -569,29 +564,15 @@ def repondre_rag(question, index, passages, model):
 
     regles = trouver_regles(question, data_store)
 
-    if regles:
-        regle = regles[0]
-        cond = choisir_condition(question, regle)
+    if not regles:
+        return "Médicament ou classe non retrouvé dans les règles SFAR."
 
-        return format_reponse(
-            data,
-            regle,
-            cond
-        )
+    regle = regles[0]
+    cond = choisir_condition(question, regle)
 
-    reponse_json = chercher_reponse_json(question, data_store)
+    reponse = format_reponse(data, regle, cond)
 
-    if reponse_json:
-        return reponse_json
-
-    return "Aucune règle SFAR trouvée."
-
-
-   
-    #DR BERT UNIQUEMENT SI DEMANDE INFO
-    # ====================================
-
-    q = question.lower()
+    q = norm(question)
 
     mots_doc = [
         "pourquoi",
@@ -599,35 +580,18 @@ def repondre_rag(question, index, passages, model):
         "documentation",
         "source",
         "explique",
-        "référence",
+        "reference",
         "preuve"
     ]
 
     if any(m in q for m in mots_doc):
-
-        docs = chercher_documents(
-            question,
-            data_store,
-            model
-        )
+        docs = chercher_documents(question, data_store, model)
 
         if docs:
-
             docs = docs.replace("\n", " ")
             docs = " ".join(docs.split())
             docs = docs[:1800]
-            dernier_point = max(
-                docs.rfind("."),
-                docs.rfind("?"),
-                docs.rfind("!")
-            )
 
-            if dernier_point != -1:
-                docs = docs[:dernier_point + 1]
-
-            reponse += (
-                "\n\n Documentation SFAR :\n\n"
-                + docs
-            )
+            reponse += "\n\nDocumentation SFAR :\n\n" + docs
 
     return reponse
