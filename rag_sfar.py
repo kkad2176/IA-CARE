@@ -660,21 +660,30 @@ def chercher_documents(question, data_store, model, k=3):
         q_emb[0]
     )
 
-    meilleurs = np.argsort(scores)[::-1][:k]
+    meilleurs = np.argsort(scores)[::-1][:10]
 
     textes = []
+    vus = set()
 
     for idx in meilleurs:
 
         p = passages_docs[idx]
+        source_clean = re.sub(r"\s*\(\d+\)", "", p["source"])
+
+        if source_clean in vus:
+            continue
+
+        vus.add(source_clean)
 
         textes.append(
             f" {p['source']}\n\n"
             f"{p['texte'][:1200]}"
         )
 
-    return "\n\n------------------\n\n".join(textes)
+        if len(textes) >= k:
+            break
 
+    return "\n\n------------------\n\n".join(textes)
 
 def repondre_rag(question, index, passages, model):
 
