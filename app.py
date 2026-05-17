@@ -51,7 +51,17 @@ def enrichir_note_avec_dates(note, date_intervention):
 
     return re.sub(r"\bJ-\d+\b|\bJ0\b", repl, note)
 
-def generer_pdf_patient(ville, date_doc, civilite, nom_prenom, lignes, phrase):
+def generer_pdf_patient(
+    ville,
+    date_doc,
+    civilite,
+    nom_prenom,
+    lignes,
+    phrase,
+    bilan_texte="",
+    scanner_texte="",
+    allergies_texte=""
+):
     import tempfile, os
 
     fd, path = tempfile.mkstemp(suffix=".pdf")
@@ -88,10 +98,49 @@ def generer_pdf_patient(ville, date_doc, civilite, nom_prenom, lignes, phrase):
     c.drawString(x + 0.3*cm, y, phrase)
 
     c.setFillColorRGB(0, 0, 0)
+    y -= 1.6*cm
+
+    if bilan_texte or scanner_texte or allergies_texte:
+
+        y -= 0.8*cm
+
+        c.setFillColorRGB(0.96, 0.98, 1.0)
+        c.roundRect(x, y - 6.2*cm, 16*cm, 6.5*cm, 10, fill=1, stroke=0)
+
+        c.setFillColorRGB(0.12, 0.35, 0.66)
+        c.setFont("Helvetica-Bold", 15)
+        c.drawString(x + 0.4*cm, y - 0.3*cm, "Préparation pré-opératoire")
+
+        y -= 1.2*cm
+ 
+        def bloc_preop(titre, texte, y):
+            if not texte:
+                return y
+
+            c.setFont("Helvetica-Bold", 12)
+            c.setFillColorRGB(0.10, 0.25, 0.45)
+            c.drawString(x + 0.6*cm, y, titre)
+
+            y -= 0.6*cm
+
+            c.setFont("Helvetica", 11)
+            c.setFillColorRGB(0, 0, 0)
+
+            for ligne in texte.split("\n"):
+                if ligne.strip():
+                    c.drawString(x + 1.0*cm, y, f"• {ligne.strip()}")
+                    y -= 0.5*cm
+
+            return y - 0.3*cm
+
+        y = bloc_preop("Bilans à prévoir", bilan_texte, y)
+        y = bloc_preop("Examens complémentaires", scanner_texte, y)
+        y = bloc_preop("Allergies / précautions", allergies_texte, y)
+
+        c.setFillColorRGB(0, 0, 0)
 
     c.save()
     return path
-
 # =========================================================
 # CONFIGURATION
 # =========================================================
@@ -3133,6 +3182,37 @@ if resultats:
         nom = st.text_input("Nom prénom")
         date_doc = st.date_input("Date", value=date.today())
 
+
+
+        st.subheader("Préparation pré-opératoire")
+
+        bilan_sanguin = st.checkbox("Bilan sanguin à prévoir")
+        scanner = st.checkbox("Scanner / imagerie à prévoir")
+        allergies = st.checkbox("Allergies connues")
+
+        bilan_texte = ""
+        scanner_texte = ""
+        allergies_texte = ""
+
+        if bilan_sanguin:
+            bilan_texte = st.text_area(
+                "Bilans demandés",
+                placeholder="Ex : NFS, plaquettes, créatinine, DFG, TP/TCA..."
+            )
+
+        if scanner:
+            scanner_texte = st.text_area(
+                "Examens complémentaires",
+                placeholder="Ex : scanner injecté, ECG, échographie..."
+            )
+
+        if allergies:
+            allergies_texte = st.text_area(
+                "Allergies / précautions",
+                placeholder="Ex : iode, latex, pénicilline, héparine..."
+            )
+
+
         if st.button("Générer PDF"):
             path = generer_pdf_patient(
                 ville,
@@ -3140,7 +3220,10 @@ if resultats:
                 civilite,
                 nom,
                 lignes_pdf,
-                phrase_pdf
+                phrase_pdf,
+                bilan_texte,
+                scanner_texte,
+                allergies_texte
             )
 
             with open(path, "rb") as f:
@@ -3475,7 +3558,7 @@ div[data-testid="stExpander"]:has(.sfar-chat-marker) * {
 
 
 with st.container():
-    with st.expander("💬 Aide CARE", expanded=False):
+    with st.expander("💬 Aide IA CARE", expanded=False):
         st.markdown('<div class="sfar-chat-marker"></div>', unsafe_allow_html=True)
         st.markdown('<div class="sfar-header">✚ Assistant Expert SFAR</div>', unsafe_allow_html=True)
 
@@ -3542,4 +3625,3 @@ with st.container():
                     })
 
                 st.rerun()
-
