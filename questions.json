@@ -5589,5 +5589,225 @@
       "https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx",
       "https://sfar.org/anesthesie-loco-regionale-perinerveuse/"
     ]
-  }
+  },
+
+  {
+  "question": "Explique la stratégie SFAR en cas de chirurgie à haut risque hémorragique",
+  "categorie": "Risque hémorragique",
+  "action": "ADAPTER",
+  "jour": "Selon traitement et intervention",
+  "note": "En cas de chirurgie à haut risque hémorragique, il faut adapter l’arrêt ou la poursuite des traitements selon le risque de saignement de l’intervention, le risque thrombotique du patient, la fonction rénale et le traitement concerné.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
+  ]
+},
+{
+  "question": "Pourquoi adapter les anticoagulants selon la fonction rénale ?",
+  "categorie": "Anticoagulants",
+  "reponse": "La fonction rénale influence l’élimination des anticoagulants. En cas d’insuffisance rénale, le risque d’accumulation médicamenteuse et de saignement augmente, ce qui nécessite une adaptation des délais d’arrêt et de reprise périopératoires.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf",
+    "https://academic.oup.com/eurheartj/article/45/36/3314/7738779"
+  ]
+}, 
+{
+  "question": "Pourquoi éviter un relais héparinique chez les patients sous AOD ?",
+  "categorie": "AOD",
+  "reponse": "Chez les patients sous AOD, un relais héparinique systématique n’est généralement pas recommandé. Il augmente le risque hémorragique sans bénéfice thrombotique démontré dans la majorité des situations.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf",
+    "https://sfar.org/download/gestion-perioperatoire-des-patients-sous-aod-pour-un-acte-programme/?wpdmdl=33608&refresh=69ee5f1f03df61777229599"
+  ]
+},
+
+{
+  "question": "Pourquoi ne jamais arrêter complètement l’insuline basale chez un patient DT1 ?",
+  "categorie": "Insuline Basale",
+  "reponse": "Chez un patient diabétique de type 1, l’insuline basale ne doit jamais être interrompue complètement car cela expose à un risque majeur d’acidocétose diabétique, même en période de jeûne préopératoire.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2025/09/Fiches-simplifieges-DiabeGte-2025-V4.pdf"
+  ]
+},
+
+
+{
+  "question": "Pourquoi le risque hémorragique doit-il être évalué avant une intervention chirurgicale ?",
+  "categorie": "Risque hémorragique",
+  "reponse": "Le risque hémorragique doit être évalué par une anamnèse personnelle et familiale de diathèse hémorragique et un examen physique.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2017/10/Bonhomme-Gestion-preoperatoire-du-risque-hemorragique.pdf"
+  ]
+},
+
+{
+  "question": "Faut-il prescrire systématiquement un bilan d’hémostase avant une chirurgie ?",
+  "categorie": "Risque hémorragique",
+  "reponse": "Il est recommandé de ne pas prescrire de façon systématique un bilan d’hémostase, quel que soit le type d’intervention ou le type d’anesthésie choisi.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2017/10/Bonhomme-Gestion-preoperatoire-du-risque-hemorragique.pdf"
+  ]
+},
+
+{
+  "question": "Sur quoi repose la décision d’arrêter un traitement antithrombotique avant une chirurgie ?",
+  "categorie": "Antithrombotiques",
+  "reponse": "La décision de poursuivre un traitement antithrombotique ou de l’interrompre se base sur l’évaluation du risque hémorragique et du risque thrombotique.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2017/10/Bonhomme-Gestion-preoperatoire-du-risque-hemorragique.pdf"
+  ]
+},
+
+{
+  "question": "Quand un relais héparinique est-il recommandé lors de l’arrêt d’un anticoagulant oral ?",
+  "categorie": "Anticoagulants",
+  "reponse": "En cas d’arrêt des anticoagulants oraux, le relais par une héparine est réservé aux situations à risque thrombotique élevé.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2017/10/Bonhomme-Gestion-preoperatoire-du-risque-hemorragique.pdf"
+  ]
+},
+
+{
+  "question": "Pourquoi la consultation d’anesthésie est-elle importante avant une chirurgie ?",
+  "categorie": "Anesthésie",
+  "reponse": "La consultation d’anesthésie permet d’évaluer les risques liés à un traitement antithrombotique, le risque hémorragique si le traitement est poursuivi et le risque thrombotique s’il est arrêté.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2017/10/Bonhomme-Gestion-preoperatoire-du-risque-hemorragique.pdf"
+  ]
+},
+
+{
+  "question": "Pourquoi ne faut-il jamais arrêter l’insuline lente chez un patient diabétique de type 1 ?",
+  "categorie": "Diabète",
+  "reponse": "Chez le patient DT1, il ne faut jamais arrêter l’insuline lente quelle que soit la glycémie.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2025/09/Fiches-simplifieges-DiabeGte-2025-V4.pdf"
+  ]
+},
+
+{
+  "question": "Quel est le risque majeur si l’insuline basale est arrêtée chez un patient DT1 ?",
+  "categorie": "Diabète",
+  "reponse": "L’arrêt de l’insuline basale expose à un risque vital d’acidocétose.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2025/09/Fiches-simplifieges-DiabeGte-2025-V4.pdf"
+  ]
+},
+
+{
+  "question": "Quels sont les objectifs glycémiques en péri-opératoire ?",
+  "categorie": "Diabète",
+  "reponse": "Les objectifs glycémiques en péri-opératoire sont de 5 à 10 mmol/L soit 0,9 à 1,8 g/L.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2025/09/Fiches-simplifieges-DiabeGte-2025-V4.pdf"
+  ]
+},
+
+{
+  "question": "Quand faut-il contrôler l’HbA1c avant une chirurgie ?",
+  "categorie": "Diabète",
+  "reponse": "Il faut récupérer le dernier dosage d’HbA1c ou réaliser un dosage si le patient n’en a pas fait depuis plus de 3 mois ou s’il présente un déséquilibre du diabète.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2025/09/Fiches-simplifieges-DiabeGte-2025-V4.pdf"
+  ]
+},
+
+{
+  "question": "Quelles sont les règles de jeûne chez un patient diabétique avant une intervention ?",
+  "categorie": "Diabète",
+  "reponse": "Le dernier repas solide doit être pris à H-6 et les liquides clairs sont autorisés jusqu’à H-2 de l’intervention.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2025/09/Fiches-simplifieges-DiabeGte-2025-V4.pdf"
+  ]
+},
+
+{
+  "question": "Quelle est la conduite recommandée pour les AOD lors d’un acte à faible risque hémorragique ?",
+  "categorie": "AOD",
+  "reponse": "Pour les actes à faible risque hémorragique, il est proposé de ne pas prendre d’AOD la veille au soir ni le matin de l’intervention.",
+  "sources": [
+    "https://sitegihp.fr/wp-content/uploads/2015/09/Gestion-perioperatoire-des-patients-sous-AOD-pour-un-acte-programme.pdf"
+  ]
+},
+
+{
+  "question": "Quand reprendre un AOD après un geste invasif programmé ?",
+  "categorie": "AOD",
+  "reponse": "Le traitement peut être repris selon le schéma habituel du patient et au moins 6 heures après la fin du geste invasif.",
+  "sources": [
+    "https://sitegihp.fr/wp-content/uploads/2015/09/Gestion-perioperatoire-des-patients-sous-AOD-pour-un-acte-programme.pdf"
+  ]
+},
+
+{
+  "question": "Quel délai d’arrêt est recommandé pour le rivaroxaban avant un acte à haut risque hémorragique ?",
+  "categorie": "AOD",
+  "reponse": "Pour un acte à haut risque hémorragique, une dernière prise à J-3 est proposée pour le rivaroxaban.",
+  "sources": [
+    "https://sitegihp.fr/wp-content/uploads/2015/09/Gestion-perioperatoire-des-patients-sous-AOD-pour-un-acte-programme.pdf"
+  ]
+},
+
+{
+  "question": "Faut-il encore faire un relais héparinique chez les patients sous AOD ?",
+  "categorie": "AOD",
+  "reponse": "Il n’y a plus de place pour les relais anticoagulants sauf situations exceptionnelles.",
+  "sources": [
+    "https://sitegihp.fr/wp-content/uploads/2015/09/Gestion-perioperatoire-des-patients-sous-AOD-pour-un-acte-programme.pdf"
+  ]
+},
+
+
+{
+  "question": "Pourquoi la gestion des anticoagulants doit-elle être individualisée avant une endoscopie ?",
+  "categorie": "Endoscopie",
+  "reponse": "La gestion des traitements antithrombotiques nécessite d’évaluer l’équilibre entre le risque hémorragique lié à la procédure et le risque de thrombose lié à l’interruption du traitement.",
+  "sources": [
+    "https://www.fmcgastro.org/wp-content/uploads/file/pdf-2023/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf"
+  ]
+},
+
+{
+  "question": "Pourquoi le patient doit-il être informé avant une endoscopie sous anticoagulant ?",
+  "categorie": "Endoscopie",
+  "reponse": "Les patients doivent être informés des risques thrombotiques liés à l’arrêt des anticoagulants ainsi que des risques hémorragiques liés à la poursuite du traitement.",
+  "sources": [
+    "https://www.fmcgastro.org/wp-content/uploads/file/pdf-2023/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf"
+  ]
+},
+
+{
+  "question": "Pourquoi les agonistes GLP-1 posent-ils problème en anesthésie ?",
+  "categorie": "GLP1",
+  "reponse": "Les agonistes des récepteurs GLP-1 peuvent modifier la vidange gastrique et exposer à un risque d’inhalation en péri-opératoire.",
+  "sources": [
+    "https://sfar.org/mise-au-point-traitement-du-diabete-agonistes-recepteurs-glp1-et-anesthesie/"
+  ]
+},
+
+{
+  "question": "Pourquoi une prise en charge multidisciplinaire est-elle recommandée chez les patients sous GLP-1 ?",
+  "categorie": "GLP1",
+  "reponse": "La déclaration de consensus souligne l’importance d’une prise en charge multidisciplinaire afin d’améliorer la sécurité péri-opératoire des patients traités par agonistes du GLP-1.",
+  "sources": [
+    "https://sfar.org/mise-au-point-traitement-du-diabete-agonistes-recepteurs-glp1-et-anesthesie/"
+  ]
+},
+
+{
+  "question": "Pourquoi le risque thromboembolique doit-il être évalué avant une procédure invasive ?",
+  "categorie": "Anticoagulants",
+  "reponse": "La gestion des anticoagulants pour une procédure invasive programmée doit prendre en compte le risque thromboembolique du patient et le risque hémorragique de la procédure.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
+  ]
+},
+
+{
+  "question": "Pourquoi plusieurs sociétés savantes participent-elles aux recommandations GIHP/SFAR ?",
+  "categorie": "Recommandations",
+  "reponse": "Les recommandations sont élaborées en collaboration avec de nombreuses sociétés médicales et chirurgicales afin d’adapter la gestion des anticoagulants à chaque spécialité interventionnelle.",
+  "sources": [
+    "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
+  ]
+}
 ]
