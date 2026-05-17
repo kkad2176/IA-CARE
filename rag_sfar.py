@@ -34,19 +34,24 @@ def lire_pdf(path):
     return texte
 
 
-def chunk_text(text, size=500, overlap=80):
+def chunk_text(text, size=1200):
+
+    phrases = re.split(r'(?<=[\.\!\?])\s+', text)
 
     chunks = []
+    courant = ""
 
-    start = 0
+    for phrase in phrases:
 
-    while start < len(text):
+        if len(courant) + len(phrase) < size:
+            courant += " " + phrase
 
-        chunks.append(
-            text[start:start + size]
-        )
+        else:
+            chunks.append(courant.strip())
+            courant = phrase
 
-        start += size - overlap
+    if courant:
+        chunks.append(courant.strip())
 
     return chunks
 
@@ -608,6 +613,7 @@ def choisir_condition(question, regle):
 
 
 def format_reponse(data, regle, cond):
+
     categorie = regle.get("categorie", "-")
 
     if cond:
@@ -623,24 +629,146 @@ def format_reponse(data, regle, cond):
     else:
         action = regle.get("action", "-")
         jour = regle.get("jour", "-")
-        note = regle.get("note") or regle.get("precision") or "-"
+        note = (
+            regle.get("note")
+            or regle.get("precision")
+            or "-"
+        )
 
     sources = sources_regle(data, regle)
 
-    texte = f"Catégorie : {categorie}\n"
-    texte += f"Action : {action}\n"
-    texte += f"Jour : {jour}\n"
-    texte += f"Note : {note}\n"
+    action_humaine = action.lower()
+
+    if action_humaine == "arret":
+        action_humaine = (
+            "arrêter le traitement"
+        )
+
+    elif action_humaine == "arrêt":
+        action_humaine = (
+            "arrêter le traitement"
+        )
+
+    elif action_humaine == "dosage":
+        action_humaine = (
+            "réaliser un dosage du traitement avant l’intervention"
+        )
+
+    elif action_humaine == "poursuite":
+        action_humaine = (
+            "poursuivre le traitement"
+        )
+
+    elif "stop matin" in action_humaine:
+        action_humaine = (
+            "arrêter le traitement le matin de l’intervention"
+        )
+
+    elif "stop soir" in action_humaine:
+        action_humaine = (
+            "arrêter le traitement le soir précédant l’intervention"
+        )
+
+    elif "stop" in action_humaine:
+        action_humaine = action_humaine.replace(
+            "stop",
+            "arrêter le traitement"
+        )
+
+    elif "continuer" in action_humaine:
+        action_humaine = action_humaine.replace(
+            "continuer",
+            "continuer le traitement"
+        )
+
+    texte = (
+        f"Traitement concerné : {categorie}\n\n"
+        f"Pour cette situation, il faut "
+        f"{action_humaine}."
+    )
+
+    if jour and jour != "-":
+        texte += (
+            f" Cette mesure doit être appliquée "
+            f"à {jour}."
+        )
+
+    if note and note != "-":
+        texte += (
+            f"\n\nPrécision : {note}"
+        )
 
     if sources:
-        texte += "\nSources :\n"
+
+        texte += "\n\nSources SFAR :"
+
         for s in sources:
-            texte += f"- {s}\n"
+            texte += f"\n- {s}"
 
     return texte
 
 
-def chercher_documents(question, data_store, model, k=3):
+
+
+def chercher_reponse_json(question, data_store):
+
+    q = norm(question)
+    mots_q = set(q.split())
+
+    meilleur = None
+    meilleur_score = 0
+
+    for item in data_store.get("questions_dataset", []):
+
+        texte = " ".join([
+            item.get("question", ""),
+            item.get("categorie", ""),
+            item.get("reponse", ""),
+            item.get("note", "")
+        ])
+
+        mots_item = set(norm(texte).split())
+
+        score = len(mots_q & mots_item)
+
+        if score > meilleur_score:
+            meilleur_score = score
+            meilleur = item
+
+    if meilleur_score >= 4:
+        return meilleur
+
+    return None
+
+
+def format_reponse_json(item):
+
+    categorie = item.get("categorie", "-")
+
+    reponse = (
+        item.get("reponse")
+        or item.get("note")
+        or "-"
+    )
+
+    sources = item.get("sources", [])
+
+    texte = (
+        f"Traitement concerné : {categorie}\n\n"
+        f"{reponse}"
+    )
+
+    if sources:
+
+        texte += "\n\nSources SFAR :"
+
+        for s in sources:
+            texte += f"\n- {s}"
+
+    return texte
+
+
+def chercher_documents(question, data_store, model, k=1):
 
     passages_docs = data_store["passages_docs"]
     embeddings_docs = data_store["embeddings_docs"]
@@ -660,7 +788,7 @@ def chercher_documents(question, data_store, model, k=3):
         q_emb[0]
     )
 
-    meilleurs = np.argsort(scores)[::-1][:10]
+    meilleurs = np.argsort(scores)[::-1][:1]
 
     textes = []
     vus = set()
@@ -668,16 +796,32 @@ def chercher_documents(question, data_store, model, k=3):
     for idx in meilleurs:
 
         p = passages_docs[idx]
-        source_clean = re.sub(r"\s*\(\d+\)", "", p["source"])
+
+        source_clean = re.sub(
+            r"\s*\(\d+\)",
+            "",
+            p["source"]
+        )
 
         if source_clean in vus:
             continue
 
+        texte = p["texte"]
+
+        
+        if len(texte) < 250:
+            continue
+
+ 
+        if texte.lower().count("the ") > 8:
+            continue
+
         vus.add(source_clean)
 
+        texte = texte[:1200]
+
         textes.append(
-            f" {p['source']}\n\n"
-            f"{p['texte'][:1200]}"
+            f"{p['source']}\n\n{texte}"
         )
 
         if len(textes) >= k:
@@ -702,32 +846,55 @@ def repondre_rag(question, index, passages, model):
         "preuve"
     ]
 
-    regles = trouver_regles(question, data_store)
+    question_explication = (
+        q.startswith("pourquoi")
+        or q.startswith("explique")
+    )
+  
 
-    if regles:
+    reponse_json = None
 
-        regle = regles[0]
-        cond = choisir_condition(question, regle)
+    if question_explication:
 
-        reponse = format_reponse(
-            data,
-            regle,
-            cond
+        reponse_json = chercher_reponse_json(
+            question,
+            data_store
         )
+
+        if reponse_json:
+            reponse = format_reponse_json(reponse_json)
+
+        else:
+            regles = trouver_regles(question, data_store)
+
+            if regles:
+                regle = regles[0]
+                cond = choisir_condition(question, regle)
+                reponse = format_reponse(data, regle, cond)
+            else:
+                reponse = "Je n’ai pas retrouvé de recommandation correspondante."
 
     else:
 
-        reponse = (
-            "Médicament ou classe non retrouvé "
-            "dans les règles SFAR."
-        )
+        regles = trouver_regles(question, data_store)
 
+        if regles:
+            regle = regles[0]
+            cond = choisir_condition(question, regle)
+            reponse = format_reponse(data, regle, cond)
 
+        else:
+            reponse_json = chercher_reponse_json(
+                question,
+                data_store
+            )
 
-    # DR BERT
+            if reponse_json:
+                reponse = format_reponse_json(reponse_json)
+            else:
+                reponse = "Je n’ai pas retrouvé de recommandation correspondante."
 
-
-    if any(m in q for m in mots_doc):
+    if any(m in q for m in mots_doc) and not reponse_json:
 
         docs = chercher_documents(
             question,
@@ -748,7 +915,8 @@ def repondre_rag(question, index, passages, model):
                 docs = docs[:dernier_point + 1]
 
             reponse += (
-                "\n\nDocumentation SFAR :\n\n"
+                "\n\nJustification SFAR :\n\n"
+                "Pour justifier cette conduite, voici l’extrait documentaire retrouvé :\n\n"
                 + docs
             )
 
