@@ -23,6 +23,7 @@ from reportlab.lib import colors
 from datetime import date, timedelta
 from collections import defaultdict
 from rag_sfar import construire_index, repondre_rag
+from reportlab.lib.utils import ImageReader
 
 def format_jour_avec_date(jour, date_intervention):
     if not jour or not date_intervention:
@@ -60,9 +61,11 @@ def generer_pdf_patient(
     phrase,
     bilan_texte="",
     scanner_texte="",
-    allergies_texte=""
+    allergies_texte="",
+    medecin=""
 ):
     import tempfile, os
+    import fitz
 
     fd, path = tempfile.mkstemp(suffix=".pdf")
     os.close(fd)
@@ -70,77 +73,189 @@ def generer_pdf_patient(
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
 
-    x = 2*cm
-    y = h - 2.5*cm
+    # =========================
+    # FOND APHM
+    # =========================
 
-    c.setFont("Helvetica", 12)
-    c.drawString(x, y, f"{ville}, le {date_doc}")
-    y -= 1.2*cm
+    fond_path = os.path.join(
+        os.path.dirname(__file__),
+        "SKM_451i26051814360.pdf"
+    )
 
-    c.drawString(x, y, f"{civilite} {nom_prenom}")
-    y -= 1.5*cm
+    try:
+        doc_fond = fitz.open(fond_path)
+        page = doc_fond[0]
 
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(x, y, "Calendrier Patient")
-    y -= 1.3*cm
+        pix = page.get_pixmap(
+            matrix=fitz.Matrix(2, 2),
+            alpha=False
+        )
 
-    c.setFont("Helvetica", 12)
-    for l in lignes:
-        c.drawString(x, y, f"- {l}")
-        y -= 1*cm
+        bg_path = os.path.join(
+            os.path.dirname(__file__),
+            "fond_temp.png"
+        )
 
-    y -= 0.8*cm
+        pix.save(bg_path)
 
-    c.setFillColorRGB(0.91, 0.95, 1.0)
-    c.roundRect(x, y - 0.35*cm, 16*cm, 1.1*cm, 8, fill=1, stroke=0)
+        c.drawImage(
+            bg_path,
+            0,
+            0,
+            width=w,
+            height=h
+        )
 
-    c.setFillColorRGB(0.12, 0.35, 0.66)
-    c.drawString(x + 0.3*cm, y, phrase)
+    except Exception as e:
+        print("Fond APHM non chargé :", e)
+
+    # =========================
+    # ZONE TEXTE
+    # =========================
+
+    x = 6.2 * cm
+    y = h - 8.0 * cm
 
     c.setFillColorRGB(0, 0, 0)
-    y -= 1.6*cm
+
+    # Date en haut à droite
+    c.setFont("Helvetica", 10)
+    c.drawRightString(
+        w - 2.2 * cm,
+        h - 4.0 * cm,
+        f"{ville}, le {date_doc}"
+    )
+
+    # Patient
+    c.setFont("Helvetica", 11)
+    c.drawString(
+        x,
+        y,
+        f"{civilite} {nom_prenom}"
+    )
+    y -= 1.1 * cm
+
+    y -= 0.4 * cm
+
+    # Lignes traitement
+    c.setFont("Helvetica", 11)
+
+    for l in lignes:
+        c.drawString(
+            x,
+            y,
+            f"- {l}"
+        )
+        y -= 0.75 * cm
+
+    y -= 0.4 * cm
+
+    # Phrase info
+    if phrase:
+
+        c.setFillColorRGB(0.91, 0.95, 1.0)
+        c.roundRect(
+            x,
+            y - 0.35 * cm,
+            13.5 * cm,
+            1.0 * cm,
+            8,
+            fill=1,
+            stroke=0
+        )
+
+        c.setFillColorRGB(0.12, 0.35, 0.66)
+        c.setFont("Helvetica", 9.5)
+        c.drawString(
+            x + 0.3 * cm,
+            y,
+            phrase
+        )
+
+        c.setFillColorRGB(0, 0, 0)
+        y -= 1.4 * cm
+
+    # =========================
+    # PREPARATION PRE-OP
+    # =========================
 
     if bilan_texte or scanner_texte or allergies_texte:
 
-        y -= 0.8*cm
+        y -= 0.2 * cm
 
         c.setFillColorRGB(0.96, 0.98, 1.0)
-        c.roundRect(x, y - 6.2*cm, 16*cm, 6.5*cm, 10, fill=1, stroke=0)
+        c.roundRect(
+            x,
+            y - 5.6 * cm,
+            13.5 * cm,
+            5.9 * cm,
+            10,
+            fill=1,
+            stroke=0
+        )
 
         c.setFillColorRGB(0.12, 0.35, 0.66)
-        c.setFont("Helvetica-Bold", 15)
-        c.drawString(x + 0.4*cm, y - 0.3*cm, "Préparation pré-opératoire")
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(
+            x + 0.4 * cm,
+            y - 0.3 * cm,
+            "Préparation pré-opératoire"
+        )
 
-        y -= 1.2*cm
- 
+        y -= 1.1 * cm
+
         def bloc_preop(titre, texte, y):
             if not texte:
                 return y
 
-            c.setFont("Helvetica-Bold", 12)
+            c.setFont("Helvetica-Bold", 10.5)
             c.setFillColorRGB(0.10, 0.25, 0.45)
-            c.drawString(x + 0.6*cm, y, titre)
+            c.drawString(
+                x + 0.6 * cm,
+                y,
+                titre
+            )
 
-            y -= 0.6*cm
+            y -= 0.5 * cm
 
-            c.setFont("Helvetica", 11)
+            c.setFont("Helvetica", 9.5)
             c.setFillColorRGB(0, 0, 0)
 
             for ligne in texte.split("\n"):
                 if ligne.strip():
-                    c.drawString(x + 1.0*cm, y, f"• {ligne.strip()}")
-                    y -= 0.5*cm
+                    c.drawString(
+                        x + 1.0 * cm,
+                        y,
+                        f"- {ligne.strip()}"
+                    )
+                    y -= 0.42 * cm
 
-            return y - 0.3*cm
+            return y - 0.2 * cm
 
         y = bloc_preop("Bilans à prévoir", bilan_texte, y)
         y = bloc_preop("Examens complémentaires", scanner_texte, y)
         y = bloc_preop("Allergies / précautions", allergies_texte, y)
 
-        c.setFillColorRGB(0, 0, 0)
+        if medecin:
 
-    c.save()
-    return path
+            c.setFillColorRGB(0, 0, 0)
+
+            c.setFont("Helvetica", 10)
+
+            c.drawRightString(
+                w - 3*cm,
+                3.2*cm,
+                f"Dr {medecin}"
+            )
+
+            c.drawRightString(
+                w - 3*cm,
+                2.6*cm,
+                "Signature :"
+            )
+
+        c.save()
+        return path
 # =========================================================
 # CONFIGURATION
 # =========================================================
@@ -2211,8 +2326,6 @@ with st.sidebar:
    
     type_alr = st.selectbox("ALR prévue", ["AUCUNE", "SUPERFICIEL", "NEURAXIAL", "PROFOND"])
 
-
-
 #----------------------------
 #---- RAPPEL ALR PROFONDES
 #-----------------------------
@@ -2414,12 +2527,6 @@ sraa_detecte = contexte_famille_detecte(
         "CANDESARTAN", "TELMISARTAN"
     ]
 )
-
-
-
-
-
-
 
 
 # =========================
@@ -3177,59 +3284,100 @@ if resultats:
 
 
     if lignes_pdf:
-        ville = st.text_input("Ville", value="Marseille")
-        civilite = st.selectbox("Civilité", ["Madame", "Monsieur"])
-        nom = st.text_input("Nom prénom")
-        date_doc = st.date_input("Date", value=date.today())
 
+        st.subheader("Ordonnance")
 
+        afficher_pdf = st.checkbox(
+            "Voulez-vous créer une ordonnance?"
+        )
 
-        st.subheader("Préparation pré-opératoire")
+        if afficher_pdf:
 
-        bilan_sanguin = st.checkbox("Bilan sanguin à prévoir")
-        scanner = st.checkbox("Scanner / imagerie à prévoir")
-        allergies = st.checkbox("Allergies connues")
+            ville = st.text_input("Ville", value="Marseille")
 
-        bilan_texte = ""
-        scanner_texte = ""
-        allergies_texte = ""
-
-        if bilan_sanguin:
-            bilan_texte = st.text_area(
-                "Bilans demandés",
-                placeholder="Ex : NFS, plaquettes, créatinine, DFG, TP/TCA..."
+            civilite = st.selectbox(
+                "Civilité",
+                ["Madame", "Monsieur"]
             )
 
-        if scanner:
-            scanner_texte = st.text_area(
-                "Examens complémentaires",
-                placeholder="Ex : scanner injecté, ECG, échographie..."
+            nom = st.text_input("Nom prénom")
+            medecin = st.text_input(
+                "Nom du médecin",
+                placeholder="Ex : Martin"
             )
 
-        if allergies:
-            allergies_texte = st.text_area(
-                "Allergies / précautions",
-                placeholder="Ex : iode, latex, pénicilline, héparine..."
+            date_doc = st.date_input(
+                "Date",
+                value=date.today()
             )
 
+            st.subheader("Préparation pré-opératoire")
 
-        if st.button("Générer PDF"):
-            path = generer_pdf_patient(
-                ville,
-                date_doc.strftime("%d/%m/%Y"),
-                civilite,
-                nom,
-                lignes_pdf,
-                phrase_pdf,
-                bilan_texte,
-                scanner_texte,
-                allergies_texte
+            ajouter_prepa = st.checkbox(
+                "Ajouter des examens ou précautions"
             )
 
-            with open(path, "rb") as f:
-                st.download_button("Télécharger PDF", f, "calendrier.pdf")
+            bilan_texte = ""
+            scanner_texte = ""
+            allergies_texte = ""
 
+            if ajouter_prepa:
 
+                bilan_sanguin = st.checkbox(
+                    "Bilan sanguin"
+                )
+
+                scanner = st.checkbox(
+                    "Scanner / imagerie"
+                )
+
+                allergies = st.checkbox(
+                    "Allergies"
+                )
+
+                if bilan_sanguin:
+
+                    bilan_texte = st.text_area(
+                        "Bilans demandés",
+                        placeholder="Ex : NFS, créatinine, TP/TCA..."
+                    )
+
+                if scanner:
+
+                    scanner_texte = st.text_area(
+                        "Examens complémentaires",
+                        placeholder="Ex : scanner injecté, ECG..."
+                    )
+
+                if allergies:
+
+                    allergies_texte = st.text_area(
+                        "Allergies / précautions",
+                        placeholder="Ex : iode, latex..."
+                    )
+
+            if st.button("Générer PDF"):
+
+                path = generer_pdf_patient(
+                    ville,
+                    date_doc.strftime("%d/%m/%Y"),
+                    civilite,
+                    nom,
+                    lignes_pdf,
+                    phrase_pdf,
+                    bilan_texte,
+                    scanner_texte,
+                    allergies_texte,
+                    medecin
+                )
+
+                with open(path, "rb") as f:
+
+                    st.download_button(
+                        "Télécharger PDF",
+                        f,
+                        "calendrier.pdf"
+                    )
 
 
     st.divider()
@@ -3398,8 +3546,6 @@ if df_profils_patient is not None and not df_profils_patient.empty:
 
         st.success(
             f"**{titre} : {row['Profil']}** — certitude {row['Niveau']}\n\n"
-            f"**Médicaments sentinelles :** {row['Sentinelles']}\n\n"
-            f"**ATC retrouvés :** {row['ATC']}"
         )
     
 else:
