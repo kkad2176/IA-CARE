@@ -73,10 +73,6 @@ def generer_pdf_patient(
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
 
-    # =========================
-    # FOND APHM
-    # =========================
-
     fond_path = os.path.join(
         os.path.dirname(__file__),
         "SKM_451i26051814360.pdf"
@@ -109,16 +105,11 @@ def generer_pdf_patient(
     except Exception as e:
         print("Fond APHM non chargé :", e)
 
-    # =========================
-    # ZONE TEXTE
-    # =========================
-
     x = 6.2 * cm
     y = h - 8.0 * cm
 
     c.setFillColorRGB(0, 0, 0)
 
-    # Date en haut à droite
     c.setFont("Helvetica", 10)
     c.drawRightString(
         w - 2.2 * cm,
@@ -126,7 +117,6 @@ def generer_pdf_patient(
         f"{ville}, le {date_doc}"
     )
 
-    # Patient
     c.setFont("Helvetica", 11)
     c.drawString(
         x,
@@ -137,7 +127,6 @@ def generer_pdf_patient(
 
     y -= 0.4 * cm
 
-    # Lignes traitement
     c.setFont("Helvetica", 11)
 
     for l in lignes:
@@ -150,7 +139,6 @@ def generer_pdf_patient(
 
     y -= 0.4 * cm
 
-    # Phrase info
     if phrase:
 
         c.setFillColorRGB(0.91, 0.95, 1.0)
@@ -174,10 +162,6 @@ def generer_pdf_patient(
 
         c.setFillColorRGB(0, 0, 0)
         y -= 1.4 * cm
-
-    # =========================
-    # PREPARATION PRE-OP
-    # =========================
 
     if bilan_texte or scanner_texte or allergies_texte:
 
@@ -351,7 +335,6 @@ def afficher_pdf(uploaded_pdf):
             caption=f"Page {i+1}",
             use_container_width=True
         )
-
 
 
 def extraire_texte_pdf(uploaded_pdf):
