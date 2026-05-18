@@ -103,7 +103,7 @@ def generer_pdf_patient(
         )
 
     except Exception as e:
-        print("Fond APHM non chargé :", e)
+        st.error(f"Erreur fond PDF : {e}")
 
     x = 6.2 * cm
     y = h - 8.0 * cm
@@ -3354,16 +3354,21 @@ if resultats:
                     medecin
                 )
 
-                with open(path, "rb") as f:
+                if path and os.path.exists(path):
 
-                    st.download_button(
-                        "Télécharger PDF",
-                        f,
-                        "calendrier.pdf"
-                    )
+                    with open(path, "rb") as f:
 
+                        st.download_button(
+                            "Télécharger PDF",
+                            f,
+                            "calendrier.pdf"
+                        )
+
+                else:
+                    st.error("Le PDF n’a pas pu être généré.")
 
     st.divider()
+
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
