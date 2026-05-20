@@ -3260,7 +3260,7 @@ if resultats:
     phrase_pdf = ""
 
     if au_moins_un_arret:
-        phrase_pdf = "Poursuivre le reste du traitement jusqu'au jour de l'intervention avec un peu d'eau."
+        phrase_pdf = "Poursuivre le reste des médicaments jusqu'au jour de l'intervention avec un peu d'eau."
         st.info(phrase_pdf)
     else:
         st.info("Aucun arrêt médicamenteux daté à planifier selon les règles actuelles.")
