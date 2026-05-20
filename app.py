@@ -103,7 +103,7 @@ def generer_pdf_patient(
         )
 
     except Exception as e:
-        st.error(f"Erreur fond PDF : {e}")
+        print(f"Erreur fond PDF : {e}")
 
     x = 6.2 * cm
     y = h - 8.0 * cm
@@ -220,26 +220,26 @@ def generer_pdf_patient(
         y = bloc_preop("Examens complémentaires", scanner_texte, y)
         y = bloc_preop("Allergies / précautions", allergies_texte, y)
 
-        if medecin:
+    if medecin:
 
-            c.setFillColorRGB(0, 0, 0)
+        c.setFillColorRGB(0, 0, 0)
 
-            c.setFont("Helvetica", 10)
+        c.setFont("Helvetica", 10)
 
-            c.drawRightString(
-                w - 3*cm,
-                3.2*cm,
-                f"Dr {medecin}"
-            )
+        c.drawRightString(
+            w - 3*cm,
+            3.2*cm,
+            f"Dr {medecin}"
+        )
 
-            c.drawRightString(
-                w - 3*cm,
-                2.6*cm,
-                "Signature :"
-            )
+        c.drawRightString(
+            w - 3*cm,
+            2.6*cm,
+            "Signature :"
+        )
 
-        c.save()
-        return path
+    c.save()
+    return path
 # =========================================================
 # CONFIGURATION
 # =========================================================
