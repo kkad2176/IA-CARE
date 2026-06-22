@@ -3401,7 +3401,7 @@ for r in resultats:
         if match_h:
             heures = int(match_h.group(1))
             lignes_pdf.append(
-                f"{r['Médicament']} : dernière prise à H-{heures} avant l’intervention"
+                f"{r['Médicament']} : dernière prise : {heures} heures avant l’intervention"
             )
             au_moins_un_arret = True
             continue
