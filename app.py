@@ -336,7 +336,6 @@ def afficher_pdf(uploaded_pdf):
             use_container_width=True
         )
 
-
 def extraire_texte_pdf(uploaded_pdf):
     contenu = uploaded_pdf.getvalue()
     doc = fitz.open(stream=contenu, filetype="pdf")
@@ -369,7 +368,6 @@ def corriger_texte_vocal_medicamenteux(texte, ref):
         return ""
 
     txt = normalize_text(texte)
-
    
     txt = txt.replace(" PH ", " F ")
     txt = txt.replace(" Y ", " I ")
@@ -457,9 +455,8 @@ def extraire_medicaments_depuis_transcription_vocale(texte, ref):
 
     txt = normalize_text(texte)
 
-    # =========================
-    # SUPPRESSION DES DOSAGES
-    # =========================
+    # SUP DES DOSAGES
+
     txt = re.sub(r"\b\d+[.,]?\d*\s*(MG|G|MCG|UG|ML|UI|MUI)\b", " ", txt)
     txt = re.sub(r"\b\d+[.,]?\d*\b", " ", txt)
 
@@ -590,14 +587,14 @@ def asa_acte_to_int(asa_val):
     return None
 
 def calculer_asa(age, nb_medocs, risque_chir):
-    # 1. On définit le score de base : Minimum ASA 2 (ta règle)
+    # Minimum ASA 2 
     score = 2
     
-    # 2. Règle de l'âge : Plus de 60 ans -> ASA 3 d'office
+    # 2 Règle de l'âge : Plus de 60 ans -> ASA 3 d'office
     if age >= 60:
         score = 3
         
-    # 3. Règle des médicaments : Plus de 3 médicaments -> ASA 3 d'office
+    # 3 Plus de 3 médicaments -> ASA 3 d'office
     elif nb_medocs > 3:
         score = 3
 
@@ -626,7 +623,6 @@ def charger_yaml_regles():
             "sources_regles": {},
             "regles_medicaments": []
         }
-
 
 
 
@@ -691,7 +687,6 @@ def trouver_regle_par_categorie(data, categorie):
 
 
 
-
 def valider_bloc_regle(bloc):
     if not isinstance(bloc, dict):
         return False, "Le bloc proposé n'est pas un dictionnaire."
@@ -712,9 +707,6 @@ def valider_bloc_regle(bloc):
                 return False, "Chaque condition doit contenir 'if' ou 'default'."
 
     return True, None
-
-
-
 
 
 def clean_medicament_name(name):
@@ -755,7 +747,6 @@ def parser_commande_chat(message):
             "new": m.group("new").strip()
         }
 
-    # modifie sans détail
     m = re.match(
         r"^modifie(?:r)?\s+(?:la\s+)?(?:regle|règle)\s+(?P<categorie>.+)$",
         msg,
@@ -769,7 +760,6 @@ def parser_commande_chat(message):
             "categorie": categorie
         }
 
-    # affiche
     m = re.match(
         r"^affiche(?:r)?\s+(?:la\s+)?(?:regle|règle)\s+(?P<categorie>.+)$",
         msg,
@@ -783,7 +773,6 @@ def parser_commande_chat(message):
             "categorie": categorie
         }
 
-    # supprime
     m = re.match(
         r"^supprime(?:r)?\s+(?:la\s+)?(?:regle|règle)\s+(?P<categorie>.+)$",
         msg,
@@ -821,7 +810,6 @@ def remplacer_valeur_dans_objet(obj, old_value, new_value):
                     modifie = True
 
     return modifie
-
 
 def preparer_modification_depuis_commande(cmd):
     data = charger_yaml_regles()
@@ -968,8 +956,6 @@ def nettoyer_ligne_medicament_manuscrit(ligne):
     return l
 
 
-
-
 def nettoyer_texte(txt):
     txt = str(txt).lower()
 
@@ -1081,8 +1067,6 @@ def extraire_lignes_candidates_manuscrit(txt):
     for ligne in lignes:
         if est_ligne_non_medicamenteuse(ligne):
             continue
-        # if est_ligne_posologie(ligne):
-        #     continue
 
         ligne_nettoyee = nettoyer_ligne_medicament_manuscrit(ligne)
         nb_alpha = len(re.findall(r"[A-Z]", ligne_nettoyee))
@@ -1102,11 +1086,11 @@ def meilleur_match_medicament(candidate, ref):
     if len(cand) < 3:
         return None, 0
 
-    # 1. match exact prioritaire
+
     if cand in ref:
         return cand, 100
 
-    # 2. pour les noms courts / un seul mot : très strict
+
     if len(cand.split()) == 1:
         match = process.extractOne(cand, ref, scorer=fuzz.ratio)
         if match:
@@ -1118,7 +1102,6 @@ def meilleur_match_medicament(candidate, ref):
 
         return None, 0
 
-    # 3. pour les noms multi-mots : un peu plus souple
     best_name = None
     best_score = 0
 
@@ -1225,7 +1208,6 @@ def conditions_match(ctx, regle, atc=None):
     return meilleure_cond
 
 
-        
 def moteur_yaml(atc, ctx):
     atc = str(atc).upper().strip()
     liste_regles = REGLES.get("regles_medicaments") or []
@@ -1294,7 +1276,6 @@ def moteur_global(atc, ctx):
     if ans_yaml:
         return ans_yaml
 
-    # 
     if ctx.get("corticoides"):
         return {
             "action": "POURSUITE",
@@ -1303,7 +1284,6 @@ def moteur_global(atc, ctx):
             "source": ""
         }
 
-    # 
     return {
         "action": "NON SPECIFIE",
         "jour": "",
@@ -1493,19 +1473,13 @@ def moteur_expert_sfar(atc, ctx):
 
 
     # ----------------------------
-    # 5. AAP
-    # ----------------------------
-    
-
-    # 7. AINS
-    # ----------------------------
     if atc.startswith("M01A"):
         if r_hem in ["ELEVE", "IMPORTANT", "MAJEUR"]:
             return {"action": "ARRET", "note": "Arrêt selon 5 demi-vies."}
         return {"action": "POURSUITE"}
 
-    # ----------------------------
-    # 8. Psy / neuro
+
+    #Psy / neuro
     # ----------------------------
     if atc == "M03BX01":
         if u(ctx.get("voie_baclofene")) == "PER_OS":
@@ -1531,8 +1505,8 @@ def moteur_expert_sfar(atc, ctx):
             return {"action": "POURSUITE", "note": "Dose habituelle + Hydrocortisone 100mg."}
         return {"action": "POURSUITE"}
 
-    # ----------------------------
-    # 10. AVK
+
+    #  AVK
     # ----------------------------
     if atc.startswith("B01AA"):
         if ctx.get("valve_mecanique") or ctx.get("acfa_atcd") or ctx.get("mtev_haut_risque"):
@@ -1784,11 +1758,6 @@ def extraire_nom_propre(ligne):
 
     return l
 
-
-
-
-
-
 def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
     resultats = []
     vus = set()
@@ -1820,9 +1789,9 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
         meilleur_nom, meilleur_score = meilleur_match_medicament(nom_court, ref)
         seuil = 90 if mode == "imprime" else 80
 
-        # =========================
-        # CAS 1 — PAS DE MATCH BASE FIABLE
-        # =========================
+    
+        
+        # CAS 1 medicament non reconnu 
         if not meilleur_nom or meilleur_score < seuil:
             nom_affiche = nettoyer_nom_affichage_medicament(brute if brute else nettoyee)
 
@@ -1910,7 +1879,21 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
             continue
 
         vus.add(atc)
-        ans = moteur_global(atc, ctx)
+
+        ctx_med = ctx.copy()
+
+        if atc.startswith(("B01AA", "B01AE", "B01AF")):
+            ctx_med["r_hem"] = ctx.get("r_hem_aod_avk")
+
+        elif atc.startswith("B01AC"):
+            ctx_med["r_hem"] = ctx.get("r_hem_aap")
+
+        else:
+            ctx_med["r_hem"] = ""
+
+        ans = moteur_global(atc, ctx_med)
+
+   
 
         if not ans:
             ans = {
@@ -1945,40 +1928,12 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
 # CHARGEMENT DES DONNEES
 # =========================================================
 
-def get_stress_cortico_from_id(id_acte, df_inter_cortico):
-    if not id_acte or df_inter_cortico.empty:
-        return False, "", ""
-
-    id_acte = str(id_acte).strip().upper()
-
-    df_tmp = df_inter_cortico.copy()
-    df_tmp.columns = [str(c).strip().upper() for c in df_tmp.columns]
-
-    if "ID" not in df_tmp.columns:
-        return False, "", ""
-
-    df_tmp["ID"] = df_tmp["ID"].astype(str).str.strip().str.upper()
-
-    row = df_tmp[df_tmp["ID"] == id_acte]
-
-    if row.empty:
-        return False, "", ""
-
-    stress_raw = str(row.iloc[0].get("STRESS CHIR CORTICO", "")).strip()
-    stress_norm = stress_raw.upper()
-
-    stress_faible = stress_norm == "FAIBLE"
-
-    return stress_faible, stress_raw, stress_norm
-
-
 
 @st.cache_data
 def load_data():
     try:
         atc = pd.read_csv(os.path.join(BASE_DIR, "dci_atc.fichier.csv"), sep=";")
-        inter = pd.read_csv(os.path.join(BASE_DIR, "Feuille1-Tableau 1.csv"), sep=";")
-        inter_cortico = pd.read_csv(os.path.join(BASE_DIR, "Feuil1-Tableau 1cortico.csv"), sep=";")
+        inter = pd.read_csv(os.path.join(BASE_DIR, "risque hemorragique VF.csv"), sep=";")
         taxo = pd.read_csv(os.path.join(BASE_DIR, "TAXONOMIE-Tableau 1.csv"), sep=";")
         libelles = pd.read_csv(os.path.join(BASE_DIR, "LISTE_FINALE_AVEC_LIBELLES.csv"), sep=";")
         sentinelles = pd.read_csv(os.path.join(BASE_DIR, "Medicaments Sentinelles-Tableau.csv"), sep=";")
@@ -1986,7 +1941,7 @@ def load_data():
 
         atc.columns = [normalize_colname(c) for c in atc.columns]
         inter.columns = [normalize_colname(c) for c in inter.columns]
-        inter_cortico.columns = [normalize_colname(c) for c in inter_cortico.columns]
+      
         taxo.columns = [normalize_colname(c) for c in taxo.columns]
         libelles.columns = [normalize_colname(c) for c in libelles.columns]
         sentinelles.columns = [normalize_colname(c) for c in sentinelles.columns]
@@ -2059,7 +2014,7 @@ def load_data():
 
         ref = list(atc_map.keys())
 
-        return atc_map, ref, classe_map, inter, inter_cortico, taxo, sentinelles, profils
+        return atc_map, ref, classe_map, inter, taxo, sentinelles, profils
 
 
     except Exception as e:
@@ -2067,8 +2022,7 @@ def load_data():
         return {}, [], {}, pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
 
-atc_map, ref, classe_map, df_inter, df_inter_cortico, df_taxo, df_sentinelles, df_profils = load_data()
-
+atc_map, ref, classe_map, df_inter, df_taxo, df_sentinelles, df_profils = load_data()
 # =========================================================
 # PROFILS PATHOLOGIQUES
 # =========================================================
@@ -2098,7 +2052,56 @@ def inferer_profils_structures(codes_atc_detectes, df_sentinelles_ready, df_prof
         return pd.DataFrame()
 
     codes_atc_detectes = [str(c).upper().strip() for c in codes_atc_detectes]
-    hits = df_sentinelles_ready[df_sentinelles_ready["CODE ATC"].isin(codes_atc_detectes)].copy()
+
+    hits_list = []
+
+    df_sent = df_sentinelles_ready.copy()
+    df_sent["CODE ATC CLEAN"] = df_sent["CODE ATC"].astype(str).str.upper().str.strip()
+
+    df_prof = df_profils_ready.copy()
+    df_prof["CODES ATC CLES CLEAN"] = df_prof["CODES ATC CLES"].astype(str).str.upper()
+
+    for code_patient in codes_atc_detectes:
+        code_patient = str(code_patient).upper().strip()
+
+        exact = df_sent[df_sent["CODE ATC CLEAN"] == code_patient]
+ 
+        if not exact.empty:
+            hits_list.append(exact.iloc[0].to_dict())
+            continue
+
+        prefix6 = df_sent[
+            df_sent["CODE ATC CLEAN"].apply(
+                lambda code_ref: code_patient.startswith(str(code_ref)[:6])
+            )
+        ]
+
+        if not prefix6.empty:
+            hits_list.append(prefix6.iloc[0].to_dict())
+            continue
+
+        for _, row in df_prof.iterrows():
+            texte_codes = str(row.get("CODES ATC CLES CLEAN", ""))
+            codes_refs = re.findall(r"[A-Z]\d{2}[A-Z0-9]{0,4}", texte_codes)
+
+            if any(code_patient.startswith(code_ref) for code_ref in codes_refs):
+                hits_list.append({
+                    "MEDICAMENT SENTINELLE": "",
+                    "CODE ATC": code_patient,
+                    "PROFIL IDENTIFIE": row.get("PROFIL PATHOLOGIQUE", ""),
+                    "SEUL SUFFIT": "OUI",
+                    "CERTITUDE": "ELEVEE"
+                })
+                break
+
+    hits = pd.DataFrame(hits_list)
+
+    hits.columns = [str(c).upper().strip() for c in hits.columns]
+
+    if "PROFIL IDENTIFIE" in hits.columns:
+        hits["_PROFIL_NORM"] = hits["PROFIL IDENTIFIE"].apply(normalize_text)
+        hits = hits.drop_duplicates(subset=["_PROFIL_NORM"], keep="first")
+        hits = hits.drop(columns=["_PROFIL_NORM"])
 
     if hits.empty:
         return pd.DataFrame()
@@ -2132,7 +2135,8 @@ def inferer_profils_structures(codes_atc_detectes, df_sentinelles_ready, df_prof
         profile_certitudes[profil_norm].append(certitude)
         profile_sentinelles[profil_norm].append(medic)
 
-    rows = []
+    rows_dict = {}
+
     for profil_norm, score in profile_scores.items():
         sub = df_profils_ready[df_profils_ready["PROFIL PATHOLOGIQUE_NORM"] == profil_norm]
 
@@ -2144,6 +2148,8 @@ def inferer_profils_structures(codes_atc_detectes, df_sentinelles_ready, df_prof
             libelle = corriger_nom_profil(profil_norm.title())
             asa_min = ""
 
+        cle = normalize_text(libelle)
+
         certs = sorted(set(profile_certitudes[profil_norm]))
         if "TRES ELEVEE" in certs:
             niveau = "Très forte"
@@ -2152,17 +2158,19 @@ def inferer_profils_structures(codes_atc_detectes, df_sentinelles_ready, df_prof
         else:
             niveau = "Modérée"
 
-        rows.append({
-            "Profil": libelle,
-            "Score": score,
-            "Niveau": niveau,
-            "ASA min": asa_min,
-            "ATC": ", ".join(sorted(set(profile_atc[profil_norm]))),
-            "Sentinelles": ", ".join(sorted(set(profile_sentinelles[profil_norm])))
-        })
+        if cle not in rows_dict or score > rows_dict[cle]["Score"]:
+            rows_dict[cle] = {
+                "Profil": libelle,
+                "Score": score,
+                "Niveau": niveau,
+                "ASA min": asa_min,
+                "ATC": ", ".join(sorted(set(profile_atc[profil_norm]))),
+                "Sentinelles": ", ".join(sorted(set(profile_sentinelles[profil_norm])))
+            }
+
+    rows = list(rows_dict.values())
 
     return pd.DataFrame(rows).sort_values("Score", ascending=False).head(3).reset_index(drop=True)
-
 
 # =========================================================
 # SIDEBAR
@@ -2175,43 +2183,30 @@ with st.sidebar:
 
 
 
-
     type_chir = "MINEURE"
 
 
     st.divider()
     st.header("Chirurgie")
 
-    if not df_taxo.empty and "SPECIALITE" in df_taxo.columns:
-        spe = st.selectbox("Spécialité", sorted(df_taxo["SPECIALITE"].dropna().unique()))
-        df_grp = df_taxo[df_taxo["SPECIALITE"] == spe]
+    if not df_inter.empty and "SPECIALITE" in df_inter.columns:
+        spe = st.selectbox(
+            "Spécialité",
+            sorted(df_inter["SPECIALITE"].dropna().unique())
+        )
 
-        grp = st.selectbox("Groupe", sorted(df_grp["GROUPE"].dropna().unique()))
-        code_grp_series = df_taxo[
-            (df_taxo["SPECIALITE"] == spe) & (df_taxo["GROUPE"] == grp)
-        ]["CODE GRP"]
+        df_grp = df_inter[df_inter["SPECIALITE"] == spe]
 
-        code_grp = code_grp_series.iloc[0] if not code_grp_series.empty else None
+        grp = st.selectbox(
+            "Groupe",
+            sorted(df_grp["SOUS-GROUPE"].dropna().unique())
+        )
 
-        if code_grp is not None and not df_inter.empty and "ID" in df_inter.columns:
-            code_grp = str(code_grp).strip().upper()
+        df_actes_filtre = df_grp[df_grp["SOUS-GROUPE"] == grp].copy()
 
-            row_grp = df_taxo[
-                (df_taxo["SPECIALITE"] == spe) & (df_taxo["GROUPE"] == grp)
-            ]
-
-            code_spe = str(row_grp["CODE SPE"].iloc[0]).strip().upper()
-            ids_inter = df_inter["ID"].astype(str).str.strip().str.upper()
-
-            mask_acte = ids_inter.str.startswith(code_spe + "-" + code_grp + "-")
-            df_actes_filtre = df_inter[mask_acte].copy()
-
-            liste_actes = sorted(
-                df_actes_filtre["INTERVENTION CHIRURGICALE"].dropna().unique()
-            )
-        else:
-            df_actes_filtre = pd.DataFrame()
-            liste_actes = []
+        liste_actes = sorted(
+            df_actes_filtre["INTERVENTION CHIRURGICALE"].dropna().unique()
+        )
 
         acte_nom = st.selectbox(
             "Intervention",
@@ -2223,7 +2218,7 @@ with st.sidebar:
         is_neuro = False
         if spe is not None and str(spe).strip().upper() in ["NEUROCHIRURGIE", "RACHIS"]:
             is_neuro = True
-
+        data_acte_filtre = pd.DataFrame()
         if not df_actes_filtre.empty and acte_nom != "Aucune intervention trouvée":
             data_acte_filtre = df_actes_filtre[
                 df_actes_filtre["INTERVENTION CHIRURGICALE"] == acte_nom
@@ -2235,8 +2230,8 @@ with st.sidebar:
 
          
 
-            risque_acte = val_upper(data_acte.get("RISQUE HEMORRAGIQUE", "NON RENSEIGNE"))
-            controle_hemorragique = val_upper(data_acte.get("CONTROLE HEMORRAGIQUE", "STANDARD"))
+            risque_aod_avk = val_upper(data_acte.get("RISQUE H AOD - AVK", "NON RENSEIGNE"))
+            risque_aap = val_upper(data_acte.get("RISQUE H AAP", "NON RENSEIGNE"))
             asa_acte = clean_display_value(data_acte.get("ASA", ""))
             antibio = data_acte.get("ANTIBIOPROPHYLAXIE", "Non renseignée")
             dose_antibio = data_acte.get("DOSE", "Non renseignée")
@@ -2245,36 +2240,16 @@ with st.sidebar:
 
             id_acte = clean_display_value(data_acte.get("ID", "")).strip().upper()
 
-        # LISTE DES CHIRURGIES A STRESS FAIBLE
-            ids_faibles = [
-                "OPH-ANT-01",   # cataracte
-                "THO-END-05",   # endoscopie
-      
-            ]
 
-
-            if id_acte in ids_faibles:
-                stress_chir = "faible"
-            else:
-                stress_chir = "modéré/élevé"
-
-
-
-
-
-
-
-            stress_cortico_faible, stress_cortico_raw, stress_cortico_norm = get_stress_cortico_from_id(
-                id_acte,
-                df_inter_cortico
-            )
-            
+            stress_cortico_raw = clean_display_value(data_acte.get("STRESS CHIR CORTICO", ""))
+            stress_cortico_norm = val_upper(stress_cortico_raw)
+            stress_cortico_faible = stress_cortico_norm == "FAIBLE"
             stress_chir = "faible" if stress_cortico_faible else "modéré/élevé"
 
         else:
             data_acte = pd.Series(dtype=object)
-            risque_acte = "NON RENSEIGNE"
-            controle_hemorragique = "STANDARD"
+            risque_aod_avk = "NON RENSEIGNE"
+            risque_aap = "NON RENSEIGNE"
             asa_acte = ""
             antibio = "Non renseignée"
             dose_antibio = "Non renseignée"
@@ -2285,16 +2260,14 @@ with st.sidebar:
 
 
 
-
-
     else:
         spe = None
         grp = None
         acte_nom = None
         is_neuro = False
         data_acte = pd.Series(dtype=object)
-        risque_acte = "NON RENSEIGNE"
-        controle_hemorragique = "STANDARD"
+        risque_aod_avk = "NON RENSEIGNE"
+        risque_aap = "NON RENSEIGNE"
         asa_acte = ""
         antibio = "Non renseignée"
         dose_antibio = "Non renseignée"
@@ -2303,10 +2276,7 @@ with st.sidebar:
         stress_cortico_faible = False
         st.warning("Taxonomie chirurgie indisponible ou colonnes non reconnues.")
 
-   
-
-
-   
+    
     type_alr = st.selectbox("ALR prévue", ["AUCUNE", "SUPERFICIEL", "NEURAXIAL", "PROFOND"])
 
 #----------------------------
@@ -2386,39 +2356,43 @@ with st.sidebar:
 # =========================================================
 st.title("IA CARE - système d'aide à la décision")
 
-col_input, col_scan = st.columns(2)
+st.markdown("""
+<style>
 
-with col_input:
-    audio = st.audio_input(" Dictée vocale, veuillez parler clairement et lentement, en énonçant les médicaments un par un.")
+/* Tous les boutons */
+div[data-testid="stButton"] button {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%) !important;
+    border: 1.5px solid #cfe0ff !important;
+    border-radius: 16px !important;
+    height: 68px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: #2f3140 !important;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.04) !important;
+}
+
+/* Bouton sélectionné */
+div[data-testid="stButton"] button[kind="primary"] {
+    background: linear-gradient(180deg, #eef5ff 0%, #e4efff 100%) !important;
+    border: 2px solid #8ab6ff !important;
+    color: #0757c2 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 6px 16px rgba(7,87,194,0.12) !important;
+}
+
+/* Survol */
+div[data-testid="stButton"] button:hover {
+    border: 2px solid #8ab6ff !important;
+    background: #f1f7ff !important;
+    color: #0757c2 !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 
-    if audio and st.button("Transcrire Voix"):
-        try:
-            lignes = transcrire_audio_robuste(audio)
-            st.session_state.txt = "\n".join(lignes)
-            st.session_state.ocr_lines = lignes
-        except Exception as e:
-            st.error(f"Erreur transcription audio : {e}")
-
-
-with col_scan:
-    photo = st.file_uploader("Scan Ordonnance ou PDF", type=["jpg", "png", "jpeg", "pdf"])
-
-if photo is not None:
-    try:
-        if str(getattr(photo, "type", "")).lower() == "application/pdf":
-            st.subheader("Ordonnance scannée")
-            afficher_pdf(photo)
-            photo.seek(0)
-        else:
-            img_preview = Image.open(photo).convert("RGB")
-            st.subheader("Ordonnance scannée")
-            st.image(img_preview, caption="Aperçu de l'ordonnance", use_container_width=True)
-            photo.seek(0)
-    except Exception as e:
-        st.warning(f"Impossible d'afficher le document : {e}")
-
-
+if "mode_entree" not in st.session_state:
+    st.session_state.mode_entree = None
 
 if "txt" not in st.session_state:
     st.session_state.txt = ""
@@ -2432,63 +2406,160 @@ if "manual_meds_buffer" not in st.session_state:
 if "manual_meds_validated" not in st.session_state:
     st.session_state.manual_meds_validated = ""
 
-manual_meds = st.text_area(
-    "Saisie manuelle des médicaments",
-    value=st.session_state.manual_meds_buffer,
-    height=120,
-    placeholder="Exemple :\nAtorvastatine\nBisoprolol\nRamipril\nKardegic"
-)
+if "ajout_manuel" not in st.session_state:
+    st.session_state.ajout_manuel = ""
 
-col_manual_1, col_manual_2 = st.columns([1, 1])
+st.markdown("### Choisir une méthode d'entrée")
 
-with col_manual_1:
-    if st.button("Valider saisie manuelle"):
-        st.session_state.manual_meds_buffer = manual_meds
-        st.session_state.manual_meds_validated = manual_meds
-        st.success("Saisie manuelle enregistrée.")
+col_voix, col_scan, col_manuel = st.columns(3)
 
-with col_manual_2:
-    if st.button("Effacer saisie manuelle"):
+with col_voix:
+    voix_type = "primary" if st.session_state.mode_entree == "voix" else "secondary"
+
+    if st.button("Dictée vocale", use_container_width=True, type=voix_type):
+        st.session_state.mode_entree = "voix"
+        st.rerun()
+
+with col_scan:
+    scan_type = "primary" if st.session_state.mode_entree == "scan" else "secondary"
+
+    if st.button("Scan ordonnance", use_container_width=True, type=scan_type):
+        st.session_state.mode_entree = "scan"
+        st.rerun()
+
+with col_manuel:
+    manuel_type = "primary" if st.session_state.mode_entree == "manuel" else "secondary"
+
+    if st.button("Saisie manuelle", use_container_width=True, type=manuel_type):
+        st.session_state.mode_entree = "manuel"
+        st.rerun()
+
+
+if st.session_state.mode_entree == "voix":
+
+    audio = st.audio_input(
+        "Dictée vocale, veuillez parler clairement et lentement, en énonçant les médicaments un par un."
+    )
+
+    if audio and st.button("Transcrire voix"):
+        try:
+            lignes = transcrire_audio_robuste(audio)
+            st.session_state.txt = "\n".join(lignes)
+            st.session_state.ocr_lines = lignes
+        except Exception as e:
+            st.error(f"Erreur transcription audio : {e}")
+
+
+elif st.session_state.mode_entree == "scan":
+
+    photo = st.file_uploader(
+        "Scan Ordonnance ou PDF",
+        type=["jpg", "png", "jpeg", "pdf"]
+    )
+
+    if photo is not None:
+        try:
+            if str(getattr(photo, "type", "")).lower() == "application/pdf":
+                st.subheader("Ordonnance scannée")
+                afficher_pdf(photo)
+                photo.seek(0)
+            else:
+                img_preview = Image.open(photo).convert("RGB")
+                st.subheader("Ordonnance scannée")
+                st.image(img_preview, caption="Aperçu de l'ordonnance", use_container_width=True)
+                photo.seek(0)
+        except Exception as e:
+            st.warning(f"Impossible d'afficher le document : {e}")
+
+    if photo and st.button("Lancer Scan Document"):
+        try:
+            if str(getattr(photo, "type", "")).lower() == "application/pdf":
+                lignes = extraire_texte_pdf(photo)
+            else:
+                img = Image.open(photo).convert("RGB")
+                lignes = extraire_lignes_ocr_image(img)
+
+            lignes_filtrees = filtrer_lignes_scan_avec_dosage(lignes)
+
+            st.session_state.ocr_lines = lignes_filtrees
+            st.session_state.txt = "\n".join(lignes_filtrees)
+            photo.seek(0)
+
+        except Exception as e:
+            st.error(f"Erreur OCR document : {e}")
+
+
+elif st.session_state.mode_entree == "manuel":
+
+    manual_meds = st.text_area(
+        "Saisie manuelle",
+        value=st.session_state.manual_meds_buffer,
+        height=120,
+        placeholder="Exemple :\nAtorvastatine\nBisoprolol\nRamipril\nKardegic"
+    )
+
+    col_manual_1, col_manual_2 = st.columns([1, 1])
+
+    with col_manual_1:
+        if st.button("Valider saisie manuelle"):
+            st.session_state.manual_meds_buffer = manual_meds
+            st.session_state.manual_meds_validated = manual_meds
+            st.success("Saisie manuelle enregistrée.")
+
+    with col_manual_2:
+        if st.button("Effacer saisie manuelle"):
+            st.session_state.manual_meds_buffer = ""
+            st.session_state.manual_meds_validated = ""
+            st.rerun()
+
+
+if "ajout_manuel" not in st.session_state:
+    st.session_state.ajout_manuel = ""
+
+question_ajout = st.checkbox("Compléter les traitements si besoin")
+
+if question_ajout:
+
+    ajout_manuel = st.text_area(
+        "",
+        value=st.session_state.ajout_manuel,
+        height=80,
+        placeholder="Ajouter un traitement..."
+    )
+
+    col_a, col_b = st.columns([1, 1])
+
+    with col_a:
+        if st.button("Ajouter"):
+            st.session_state.ajout_manuel = ajout_manuel
+            st.success("Traitement ajouté.")
+
+    with col_b:
+        if st.button("Effacer ajout"):
+            st.session_state.ajout_manuel = ""
+            st.rerun()
+
+
+if (
+    st.session_state.get("txt")
+    or st.session_state.get("manual_meds_validated")
+    or st.session_state.get("ajout_manuel")
+):
+
+    if st.button("Effacer les données détectées"):
+        st.session_state.txt = ""
+        st.session_state.ocr_lines = []
         st.session_state.manual_meds_buffer = ""
         st.session_state.manual_meds_validated = ""
+        st.session_state.ajout_manuel = ""
         st.rerun()
 
 
 
-if st.session_state.get("txt"):
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Effacer la transcription"):
-            st.session_state.txt = ""
-            st.session_state.ocr_lines = []
-            st.rerun()
-
-   
-
-
-if photo and st.button("Lancer Scan Document"):
-    try:
-        if str(getattr(photo, "type", "")).lower() == "application/pdf":
-            lignes = extraire_texte_pdf(photo)
-        else:
-            img = Image.open(photo).convert("RGB")
-            lignes = extraire_lignes_ocr_image(img)
-
-        lignes_filtrees = filtrer_lignes_scan_avec_dosage(lignes)
-
-        st.session_state.ocr_lines = lignes_filtrees
-        st.session_state.txt = "\n".join(lignes_filtrees)
-        photo.seek(0)
-
-    except Exception as e:
-        st.error(f"Erreur OCR document : {e}")
-
-st.write("---")
 
 txt_source = st.session_state.txt
 manual_text = st.session_state.manual_meds_validated.strip()
+ajout_text = st.session_state.ajout_manuel.strip()
 
 if manual_text:
     if txt_source.strip():
@@ -2496,7 +2567,18 @@ if manual_text:
     else:
         txt_source = manual_text
 
-txt_final = st.text_area("Données détectées :", txt_source, height=180)
+if ajout_text:
+    if txt_source.strip():
+        txt_source = txt_source + "\n" + ajout_text
+    else:
+        txt_source = ajout_text
+
+with st.expander("Voir les données détectées"):
+    txt_final = st.text_area(
+        "",
+        txt_source,
+        height=180
+    )
 
 sraa_detecte = contexte_famille_detecte(
     txt_final,
@@ -2665,7 +2747,7 @@ if avk_detecte:
     st.header("Anti-vitamine K (AVK)")
 
     # ================= RELAI =================
-    if risque_acte not in ["FAIBLE", "NUL"]:
+    if risque_aod_avk not in ["FAIBLE", "NUL"]:
         st.markdown("**Situations qui imposent un relai pré-procédural :**")
 
         valves = st.checkbox("Valve mécanique")
@@ -2764,8 +2846,6 @@ Si ≥ 1 facteur présent → augmenter la cible INR de +0,5
 """)
 
     
-
-
 # =========================
 # CONTEXTE PATIENT / CHIRURGIE
 # =========================
@@ -2931,6 +3011,22 @@ if corticoides_connus and not hydrocortisone_topique:
     obstetrique = (spe == "Obstétrique")
 
 
+
+#----
+def normaliser_risque_yaml(risque):
+    r = str(risque or "").upper().strip()
+
+    mapping = {
+        "NUL": "NUL",
+        "FAIBLE": "FAIBLE",
+        "INTERMEDIAIRE": "INTERMEDIAIRE",
+        "ELEVE": "ELEVE",
+        "TRES ELEVE": "MAJEUR",
+    }
+
+    return mapping.get(r, r)
+
+
 # =========================
 # HEPARINES 
 # =========================
@@ -2952,7 +3048,10 @@ ctx = {
     "aspirine_sup_100": dose_aspirine > 100,
     "aspirine_sup_200": dose_aspirine > 200,
     "dose_aspirine_inf_300": dose_aspirine <= 300,
-    "controle_hem": controle_hemorragique,
+    "controle_hem": "",
+    "r_hem_aod_avk": normaliser_risque_yaml(risque_aod_avk),
+    "r_hem_aap": normaliser_risque_yaml(risque_aap),
+    "r_hem": normaliser_risque_yaml(risque_aod_avk),
     "categorie_geste": None,
     "demi_vie_heures": None,
     "voie_baclofene": None,
@@ -2971,7 +3070,6 @@ ctx = {
     "relais_avk": relais_avk,
 
     "dfg_relais_avk": dfg_relais_avk,
-    "r_hem": risque_acte,
     
     "type_traitement_aap": type_traitement_aap if type_traitement_aap else "",
     "bitherapie_aap": type_traitement_aap == "Bithérapie",
@@ -3182,18 +3280,264 @@ if imipraminiques_detectes:
         ctx=ctx
     )
 
+st.markdown("""
+<style>
+.card {
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.card-green {
+    border: 1px solid #bfe5c8;
+    background-color: #f4fbf6;
+}
+
+.card-orange {
+    border: 1px solid #ffd1a8;
+    background-color: #fff8f2;
+}
+
+.card-blue {
+    border: 1px solid #bfd8ff;
+    background-color: #f6faff;
+}
+
+.card-title-green {
+    color: #16813a;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.card-title-blue {
+    color: #0757c2;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.card-title-orange {
+    color: #f26b00;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.green-box {
+    background-color: #eaf7ee;
+    color: #16813a;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 18px;
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+.orange-box {
+    background-color: #fff3e0;
+    color: #e65100;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 18px;
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+.blue-box {
+    background-color: #eef5ff;
+    color: #0757c2;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 18px;
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+.big-asa {
+    color: #16813a;
+    font-size: 25px;
+    font-weight: 700;
+}
+</style>
+""", unsafe_allow_html=True)
+
+if texte_detecte.strip():
+
+    st.markdown("""
+    <h2 style="
+    font-weight:800;
+    font-size:42px;
+    margin-bottom:25px;">
+    Synthèse de l'évaluation préopératoire
+    </h2>
+    """, unsafe_allow_html=True)
 
 
+# =========================
+# CALENDRIER
+# =========================
 
-with st.expander("Voir les lignes retenues pour la détection"):
-    if candidats_retenus:
-        for brute, nettoyee, mode in candidats_retenus:
-            st.write(f"**Mode :** {mode}")
-            st.write(f"**Brut :** {brute}")
-            st.write(f"**Nettoyé :** {nettoyee}")
-            st.write("---")
-    else:
-        st.write("Aucune ligne candidate retenue.")
+au_moins_un_arret = False
+lignes_pdf = []
+
+for r in resultats:
+    action = str(r["Action"]).upper().strip()
+    date_txt = str(r["Date"]).upper().strip()
+
+    if "ARRET" in action:
+        jours = extraire_nb_jours(date_txt)
+
+        if jours is not None:
+            d_stop = date_op - timedelta(days=jours)
+            lignes_pdf.append(
+                f"{r['Médicament']} : dernière prise le {d_stop.strftime('%d/%m/%Y')}"
+            )
+            au_moins_un_arret = True
+            continue
+
+        match_h = re.search(r"(\d+)\s*H", date_txt)
+        if match_h:
+            heures = int(match_h.group(1))
+            lignes_pdf.append(
+                f"{r['Médicament']} : dernière prise à H-{heures} avant l’intervention"
+            )
+            au_moins_un_arret = True
+            continue
+
+    if action == "PAS DE PRISE LE MATIN":
+        d_stop = date_op - timedelta(days=1)
+        lignes_pdf.append(
+            f"{r['Médicament']} : dernière prise la veille, le {d_stop.strftime('%d/%m/%Y')}"
+        )
+        au_moins_un_arret = True
+
+
+phrase_pdf = ""
+
+if au_moins_un_arret:
+    phrase_pdf = "Poursuivre le reste des médicaments jusqu'au jour de l'intervention avec un peu d'eau."
+else:
+    phrase_pdf = "Aucun arrêt médicamenteux daté à planifier selon les règles actuelles."
+
+lignes_html = ""
+
+for ligne in lignes_pdf:
+    lignes_html += f"""
+    <div style="
+        background:#e8f0ff;
+        color:#0b57d0;
+        padding:8px 14px;
+        border-radius:10px;
+        font-weight:700;
+        display:inline-block;
+        margin-bottom:12px;
+    ">
+        {ligne}
+    </div><br>
+    """
+
+if lignes_html:
+    contenu_calendrier = lignes_html + f"<br>{phrase_pdf}"
+else:
+    contenu_calendrier = phrase_pdf
+
+
+if resultats:
+
+    with st.container(border=True):
+
+        st.markdown("## :blue[Calendrier Patient]")
+
+        st.markdown(f"""
+        <div class="blue-box">
+            {contenu_calendrier}
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("### :blue[Ordonnance préopératoire]")
+
+        afficher_pdf = st.checkbox("Créer une ordonnance")
+
+
+    if afficher_pdf:
+
+        ville = st.text_input("Ville", value="Marseille")
+
+        civilite = st.selectbox(
+            "Civilité",
+            ["Madame", "Monsieur"]
+        )
+
+        nom = st.text_input("Nom prénom")
+
+        medecin = st.text_input(
+            "Nom du médecin",
+            placeholder="Ex : Martin"
+        )
+
+        date_doc = st.date_input(
+            "Date",
+            value=date.today()
+        )
+
+        st.subheader("Préparation pré-opératoire")
+
+        ajouter_prepa = st.checkbox("Ajouter des examens ou précautions")
+
+        bilan_texte = ""
+        scanner_texte = ""
+        allergies_texte = ""
+
+        if ajouter_prepa:
+
+            bilan_sanguin = st.checkbox("Bilan sanguin")
+            scanner = st.checkbox("Scanner / imagerie")
+            allergies = st.checkbox("Allergies")
+
+            if bilan_sanguin:
+                bilan_texte = st.text_area(
+                    "Bilans demandés",
+                    placeholder="Ex : NFS, créatinine, TP/TCA..."
+                )
+
+            if scanner:
+                scanner_texte = st.text_area(
+                    "Examens complémentaires",
+                    placeholder="Ex : scanner injecté, ECG..."
+                )
+
+            if allergies:
+                allergies_texte = st.text_area(
+                    "Allergies / précautions",
+                    placeholder="Ex : iode, latex, héparine..."
+                )
+
+        if st.button("Générer PDF"):
+
+            path = generer_pdf_patient(
+                ville,
+                date_doc.strftime("%d/%m/%Y"),
+                civilite,
+                nom,
+                lignes_pdf,
+                phrase_pdf,
+                bilan_texte,
+                scanner_texte,
+                allergies_texte,
+                medecin
+            )
+
+            if path and os.path.exists(path):
+                with open(path, "rb") as f:
+                    st.download_button(
+                        "Télécharger PDF",
+                        f,
+                        "calendrier.pdf"
+                    )
+            else:
+                st.error("Le PDF n’a pas pu être généré.")
 
 
 # =========================
@@ -3204,13 +3548,8 @@ codes_atc_detectes = []
 if resultats:
     codes_atc_detectes = list(vus)
     asa_calcule = calculer_asa(age, len(codes_atc_detectes), None)
-
     asa_affiche = ctx.get("ASA")
-
-    if asa_affiche is not None:
-        st.subheader(f"ASA retenu pour l'intervention : {asa_affiche}")
-    else:
-        st.subheader(f"Score ASA Prédit : {asa_calcule}")
+    asa_a_afficher = asa_affiche if asa_affiche is not None else asa_calcule
 
     df_final = pd.DataFrame(resultats)
 
@@ -3221,181 +3560,109 @@ if resultats:
 
     df_final["Lien"] = df_final["Lien"].apply(format_lien_unique)
 
-    # =========================
-    # CALENDRIER
-    # =========================
-    st.subheader("Calendrier Patient")
-
-    au_moins_un_arret = False
-    lignes_pdf = []
-
-    for r in resultats:
-        if "ARRET" in r["Action"].upper():
-            date_txt = str(r["Date"]).upper().strip()
-
-            jours = extraire_nb_jours(date_txt)
-            if jours is not None:
-                d_stop = date_op - timedelta(days=jours)
-                ligne = f"{r['Médicament']} : dernière prise le {d_stop.strftime('%d/%m/%Y')}"
-                st.write(f"- **{ligne}**")
-                lignes_pdf.append(ligne)
-                au_moins_un_arret = True
-                continue
-
-            match_h = re.search(r"(\d+)\s*H", date_txt)
-            if match_h:
-                heures = int(match_h.group(1))
-                ligne = f"{r['Médicament']} : dernière prise à H-{heures} avant l’intervention"
-                st.write(f"- **{ligne}**")
-                lignes_pdf.append(ligne)
-                au_moins_un_arret = True
-                continue
-   
-    if r["Action"].lower().strip() == "pas de prise le matin":
-        d_stop = date_op - timedelta(days=1)
-        ligne = f"{r['Médicament']} : dernière prise la veille, le {d_stop.strftime('%d/%m/%Y')}"
-        st.write(f"- **{ligne}**")
-        lignes_pdf.append(ligne)
-        au_moins_un_arret = True
-    phrase_pdf = ""
-
-    if au_moins_un_arret:
-        phrase_pdf = "Poursuivre le reste des médicaments jusqu'au jour de l'intervention avec un peu d'eau."
-        st.info(phrase_pdf)
-    else:
-        st.info("Aucun arrêt médicamenteux daté à planifier selon les règles actuelles.")
 
 
-    if lignes_pdf:
+    df_profils_patient = inferer_profils_structures(
+        codes_atc_detectes,
+        df_sentinelles_ready,
+        df_profils_ready
+    )
 
-        st.subheader("Ordonnance")
-
-        afficher_pdf = st.checkbox(
-            "Voulez-vous créer une ordonnance?"
-        )
-
-        if afficher_pdf:
-
-            ville = st.text_input("Ville", value="Marseille")
-
-            civilite = st.selectbox(
-                "Civilité",
-                ["Madame", "Monsieur"]
-            )
-
-            nom = st.text_input("Nom prénom")
-            medecin = st.text_input(
-                "Nom du médecin",
-                placeholder="Ex : Martin"
-            )
-
-            date_doc = st.date_input(
-                "Date",
-                value=date.today()
-            )
-
-            st.subheader("Préparation pré-opératoire")
-
-            ajouter_prepa = st.checkbox(
-                "Ajouter des examens ou précautions"
-            )
-
-            bilan_texte = ""
-            scanner_texte = ""
-            allergies_texte = ""
-
-            if ajouter_prepa:
-
-                bilan_sanguin = st.checkbox(
-                    "Bilan sanguin"
-                )
-
-                scanner = st.checkbox(
-                    "Scanner / imagerie"
-                )
-
-                allergies = st.checkbox(
-                    "Allergies"
-                )
-
-                if bilan_sanguin:
-
-                    bilan_texte = st.text_area(
-                        "Bilans demandés",
-                        placeholder="Ex : NFS, créatinine, TP/TCA..."
-                    )
-
-                if scanner:
-
-                    scanner_texte = st.text_area(
-                        "Examens complémentaires",
-                        placeholder="Ex : scanner injecté, ECG..."
-                    )
-
-                if allergies:
-
-                    allergies_texte = st.text_area(
-                        "Allergies / précautions",
-                        placeholder="Ex : iode, latex..."
-                    )
-
-            if st.button("Générer PDF"):
-
-                path = generer_pdf_patient(
-                    ville,
-                    date_doc.strftime("%d/%m/%Y"),
-                    civilite,
-                    nom,
-                    lignes_pdf,
-                    phrase_pdf,
-                    bilan_texte,
-                    scanner_texte,
-                    allergies_texte,
-                    medecin
-                )
-
-                if path and os.path.exists(path):
-
-                    with open(path, "rb") as f:
-
-                        st.download_button(
-                            "Télécharger PDF",
-                            f,
-                            "calendrier.pdf"
-                        )
-
-                else:
-                    st.error("Le PDF n’a pas pu être généré.")
-
-    st.divider()
-
-
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2 = st.columns(2)
 
     with col1:
+        st.markdown(f"""
+        <div class="card card-green">
+            <div class="card-title-green">Score ASA Prédit</div>
+            <div class="green-box">
+                Score ASA : <span class="big-asa">{asa_a_afficher}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+  
+    with col2:
+        if df_profils_patient is not None and not df_profils_patient.empty:
+
+            profils_html = ""
+
+            for i, row in df_profils_patient.iterrows():
+                titre = "Profil principal probable" if i == 0 else "Profil associé probable"
+
+                profils_html += (
+                    f"<b>{titre}</b><br>"
+                    f"{row['Profil']}<br>"
+                    f"Certitude : {row['Niveau']}<br><br>"
+                )
+
+            bloc_html = f"""
+            <div class="card card-green">
+                <div class="card-title-green">Profils pathologiques probables</div>
+                <div class="green-box">
+                    {profils_html}
+                </div>
+            </div>
+            """
+
+            st.markdown(bloc_html, unsafe_allow_html=True)
+
+
+
+st.divider()
+
+
+if resultats:
+
+    afficher_risque_aod_avk = aod_detecte or avk_detecte
+    afficher_risque_aap = aap_detecte
+
+    colonnes = ["Patient", "Date chirurgie"]
+
+    if afficher_risque_aod_avk:
+        colonnes.append("Risque AOD/AVK")
+
+    if afficher_risque_aap:
+        colonnes.append("Risque AAP")
+
+    colonnes.append("ALR")
+
+    cols = st.columns(len(colonnes))
+
+    i = 0
+
+    with cols[i]:
         st.markdown("**Patient**")
         st.markdown(f"### {age} ans")
+    i += 1
 
-    with col2:
+    with cols[i]:
         st.markdown("**Date chirurgie**")
         st.markdown(f"### {date_op.strftime('%d/%m/%Y')}")
+    i += 1
 
-    with col3:
-        st.markdown("**Risque chirurgical**")
-        st.markdown(f"### {risque_acte}")
+    if afficher_risque_aod_avk:
+        with cols[i]:
+            st.markdown("**Risque AOD/AVK**")
+            st.markdown(f"### {risque_aod_avk}")
+        i += 1
 
-    with col4:
-        st.markdown("**Contrôle Hém.**")
-        st.markdown(f"### {controle_hemorragique}")
+    if afficher_risque_aap:
+        with cols[i]:
+            st.markdown("**Risque AAP**")
+            st.markdown(f"### {risque_aap}")
+        i += 1
 
-    with col5:
+    with cols[i]:
         st.markdown("**ALR**")
         st.markdown(f"### {type_alr}")
+
+
+
 
     st.subheader("Tableau des recommandations")
 
     col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns(
-        [2.2, 1.1, 3.0, 2.0, 1.0, 3.4, 2.3, 1.8, 2.8]
+        [2.0, 1.4, 2.8, 1.4, 1.8, 4.0, 1.6, 1.6, 2.0]
     )
 
     col1.markdown("**Médicament**")
@@ -3408,11 +3675,12 @@ if resultats:
     col8.markdown("**Validation médecin**")
     col9.markdown("**Commentaire médecin**")
 
+
     st.divider()
 
     for i, r in enumerate(resultats):
         c1, c2, c3, c4, c5, c6, c7, c8, c9 = st.columns(
-            [2.2, 1.1, 3.0, 2.0, 1.0, 3.4, 2.3, 1.8, 2.8]
+            [2.0, 1.4, 2.8, 1.4, 1.8, 4.0, 1.6, 1.6, 2.0]
         )
 
         c1.write(r.get("Médicament", ""))
@@ -3508,43 +3776,10 @@ if resultats:
     )
 
 
-
-
-
-#------- Profils pathologiques probables --------------------------
-st.subheader("Profils pathologiques probables")
-
-df_profils_patient = inferer_profils_structures(
-    codes_atc_detectes,
-    df_sentinelles_ready,
-    df_profils_ready
-)
-
-# =========================
-# PROFILS PATIENT
-# =========================
-if df_profils_patient is not None and not df_profils_patient.empty:
-    profil_principal = df_profils_patient.iloc[0]
-
-    for i, row in df_profils_patient.iterrows():
-        if i == 0:
-            titre = "Profil principal probable"
-        else:
-            titre = "Profil associé probable"
-
-        st.success(
-            f"**{titre} : {row['Profil']}** — certitude {row['Niveau']}\n\n"
-        )
-    
-else:
-    st.info("Aucun profil pathologique fort identifié à partir des médicaments détectés.")
-
-
-
 # =========================
 # QUESTIONNAIRE DE SATISFACTION
 # =========================
-st.divider()
+
 
 afficher_satisfaction = st.checkbox("Remplir le questionnaire de satisfaction")
 
