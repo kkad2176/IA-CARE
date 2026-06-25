@@ -1315,7 +1315,7 @@ def moteur_expert_sfar(atc, ctx):
     is_neurochir = ctx.get("type_chir_neuro") == "NEUROCHIR_INTRACRANIENNE"
     r_hem = u(ctx.get("r_hem"))
     alr = u(ctx.get("alr"))
-    stress_chir = u(ctx.get("stress_chir"))
+    stress_cortico_faible = ctx.get("stress_cortico_faible", False)
     ind_sraa = u(ctx.get("ind_sraa"))
 
     is_ambu = "AMBULATOIRE" in type_chir
@@ -1493,17 +1493,7 @@ def moteur_expert_sfar(atc, ctx):
             return {"action": "POURSUITE"}
         return {"action": "INFO_MANQUANTE"}
 
-    # ----------------------------
-    # 9. Corticoïdes
-    # ----------------------------
-    if atc.startswith("H02AB"):
-        if stress_chir == "MINEUR":
-            return {"action": "POURSUITE"}
-        if stress_chir == "MODERE":
-            return {"action": "POURSUITE", "note": "Dose habituelle + Hydrocortisone 50mg."}
-        if stress_chir == "MAJEUR":
-            return {"action": "POURSUITE", "note": "Dose habituelle + Hydrocortisone 100mg."}
-        return {"action": "POURSUITE"}
+
 
 
     #  AVK
@@ -1933,7 +1923,7 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
 def load_data():
     try:
         atc = pd.read_csv(os.path.join(BASE_DIR, "dci_atc.fichier.csv"), sep=";")
-        inter = pd.read_csv(os.path.join(BASE_DIR, "risque hemorragique VF.csv"), sep=";")
+        inter = pd.read_csv(os.path.join(BASE_DIR, "risque.hemorragique.csv"), sep=";")
         taxo = pd.read_csv(os.path.join(BASE_DIR, "TAXONOMIE-Tableau 1.csv"), sep=";")
         libelles = pd.read_csv(os.path.join(BASE_DIR, "LISTE_FINALE_AVEC_LIBELLES.csv"), sep=";")
         sentinelles = pd.read_csv(os.path.join(BASE_DIR, "Medicaments Sentinelles-Tableau.csv"), sep=";")
@@ -2182,27 +2172,68 @@ with st.sidebar:
     date_op = st.date_input("Date intervention", date.today() + timedelta(days=7))
 
 
-
-    type_chir = "MINEURE"
-
-
     st.divider()
     st.header("Chirurgie")
 
     if not df_inter.empty and "SPECIALITE" in df_inter.columns:
-        spe = st.selectbox(
+
+        liste_specialites = sorted(
+            s for s in df_inter["SPECIALITE"].dropna().unique()
+            if str(s).strip().upper() != "ALR"
+        )
+
+        liste_specialites_affichage = [
+            s.replace("CHIR ", "").title()
+            for s in liste_specialites
+        ]
+
+        spe_affichage = st.selectbox(
             "Spécialité",
-            sorted(df_inter["SPECIALITE"].dropna().unique())
+            liste_specialites_affichage,
+            key="specialite_chirurgie"
         )
 
-        df_grp = df_inter[df_inter["SPECIALITE"] == spe]
+        mapping_specialites = dict(zip(liste_specialites_affichage, liste_specialites))
+        spe = mapping_specialites[spe_affichage]
 
-        grp = st.selectbox(
-            "Groupe",
-            sorted(df_grp["SOUS-GROUPE"].dropna().unique())
+        type_alr_affichage = st.selectbox(
+            "Type d'ALR",
+           [
+                "Aucune ALR",
+                "Anesthésie neuraxiale",
+                "Blocs périphériques profonds",
+                "Blocs périphériques superficiels"
+            ],
+            key="type_alr_chirurgie"
         )
 
-        df_actes_filtre = df_grp[df_grp["SOUS-GROUPE"] == grp].copy()
+        mapping_alr = {
+            "Aucune ALR": "",
+            "Anesthésie neuraxiale": "NEURAXIAL",
+            "Blocs périphériques profonds": "PROFOND",
+            "Blocs périphériques superficiels": "SUPERFICIEL"
+        }
+
+        type_alr = mapping_alr[type_alr_affichage]
+
+        if type_alr_affichage != "Aucune ALR":
+            df_actes_filtre = df_inter[
+                (df_inter["SPECIALITE"].astype(str).str.strip().str.upper() == "ALR") &
+                (df_inter["SOUS-GROUPE"].astype(str).str.strip() == type_alr_affichage)
+    ].copy()
+
+            grp = type_alr_affichage
+
+        else:
+            df_grp = df_inter[df_inter["SPECIALITE"] == spe].copy()
+
+            grp = st.selectbox(
+                "Groupe",
+                sorted(df_grp["SOUS-GROUPE"].dropna().unique()),
+                key="groupe_chirurgie"
+            )
+
+            df_actes_filtre = df_grp[df_grp["SOUS-GROUPE"] == grp].copy()
 
         liste_actes = sorted(
             df_actes_filtre["INTERVENTION CHIRURGICALE"].dropna().unique()
@@ -2214,7 +2245,10 @@ with st.sidebar:
             key="intervention_chirurgie"
         )
 
-        # Détection automatique neurochirurgie / rachis
+        type_chir = spe
+
+
+        
         is_neuro = False
         if spe is not None and str(spe).strip().upper() in ["NEUROCHIRURGIE", "RACHIS"]:
             is_neuro = True
@@ -2240,11 +2274,22 @@ with st.sidebar:
 
             id_acte = clean_display_value(data_acte.get("ID", "")).strip().upper()
 
+            stress_cortico_raw = clean_display_value(
+                data_acte.get(
+                    "STRESS CHIR CORTICO",
+                    data_acte.get("stress chir cortico", "")
+                )
+            )
 
-            stress_cortico_raw = clean_display_value(data_acte.get("STRESS CHIR CORTICO", ""))
             stress_cortico_norm = val_upper(stress_cortico_raw)
             stress_cortico_faible = stress_cortico_norm == "FAIBLE"
-            stress_chir = "faible" if stress_cortico_faible else "modéré/élevé"
+
+
+
+            stress_cortico_norm = val_upper(stress_cortico_raw)
+
+            stress_cortico_faible = (stress_cortico_norm == "FAIBLE")
+
 
         else:
             data_acte = pd.Series(dtype=object)
@@ -2256,9 +2301,7 @@ with st.sidebar:
             stress_cortico_raw = ""
             stress_cortico_norm = ""
             stress_cortico_faible = False
-            stress_chir = "modéré/élevé"
-
-
+ 
 
     else:
         spe = None
@@ -2276,12 +2319,9 @@ with st.sidebar:
         stress_cortico_faible = False
         st.warning("Taxonomie chirurgie indisponible ou colonnes non reconnues.")
 
-    
-    type_alr = st.selectbox("ALR prévue", ["AUCUNE", "SUPERFICIEL", "NEURAXIAL", "PROFOND"])
 
-#----------------------------
-#---- RAPPEL ALR PROFONDES
-#-----------------------------
+#RAPPEL ALR PROFONDES
+
     if type_alr == "PROFOND":
         with st.expander(" Rappel – ALR profondes"):
             st.markdown("""
@@ -2926,11 +2966,14 @@ obstetrique = False
 hydrocortisone_topique = False
 hydrocortisone_systemique = False
 
+
+
 if "stress_cortico_faible" not in locals():
     stress_cortico_faible = False
 
-if "stress_chir" not in locals():
-    stress_chir = "modéré/élevé"
+stress_cortico_affichage = "FAIBLE" if stress_cortico_faible else "NON FAIBLE"
+
+
 
 hydrocortisone_detectee = "hydrocortisone" in str(st.session_state).lower()
 
@@ -2995,12 +3038,10 @@ if corticoides_connus and not hydrocortisone_topique:
         "Déterminé automatiquement à partir de l’intervention sélectionnée."
     )
 
-    stress_chir = "faible" if stress_cortico_faible else "modéré/élevé"
-
-    if stress_chir == "faible":
-        st.success("Faible")
+    if stress_cortico_faible:
+        st.success("FAIBLE")
     else:
-        st.warning("Modéré / Élevé")
+        st.warning("NON FAIBLE")
 
 
     chirurgie_courte = False
@@ -3038,8 +3079,7 @@ dose_heparine = None
 # =========================
 ctx = {
     "type_chir_neuro": "NEUROCHIR_INTRACRANIENNE" if spe in ["Neurochirurgie", "Rachis"] else None,
-    "type_chir": type_chir,
-    "stress_chir": stress_chir,
+    "type_chir": spe,
     "is_neuro": is_neuro,
     "alr": type_alr,
     "ind_sraa": ind_sraa if ind_sraa else "",
@@ -3385,32 +3425,59 @@ lignes_pdf = []
 for r in resultats:
     action = str(r["Action"]).upper().strip()
     date_txt = str(r["Date"]).upper().strip()
+    note = str(r.get("Note", "")).lower()
 
     if "ARRET" in action:
         jours = extraire_nb_jours(date_txt)
 
         if jours is not None:
             d_stop = date_op - timedelta(days=jours)
+
             lignes_pdf.append(
                 f"{r['Médicament']} : dernière prise le {d_stop.strftime('%d/%m/%Y')}"
             )
+
+            if "relais par aspirine" in note:
+                d_relais = d_stop + timedelta(days=1)
+
+                lignes_pdf.append(
+                    f"Relais par aspirine 75 à 100 mg à débuter le {d_relais.strftime('%d/%m/%Y')}"
+                )
+
             au_moins_un_arret = True
             continue
 
         match_h = re.search(r"(\d+)\s*H", date_txt)
+
         if match_h:
             heures = int(match_h.group(1))
+
             lignes_pdf.append(
                 f"{r['Médicament']} : dernière prise : {heures} heures avant l’intervention"
             )
+
+            if "relais par aspirine" in note:
+                lignes_pdf.append(
+                    "Relais par aspirine 75 à 100 mg à débuter le lendemain de l’arrêt"
+                )
+
             au_moins_un_arret = True
             continue
 
     if action == "PAS DE PRISE LE MATIN":
         d_stop = date_op - timedelta(days=1)
+
         lignes_pdf.append(
             f"{r['Médicament']} : dernière prise la veille, le {d_stop.strftime('%d/%m/%Y')}"
         )
+
+        if "relais par aspirine" in note:
+            d_relais = d_stop + timedelta(days=1)
+
+            lignes_pdf.append(
+                f"Relais par aspirine 75 à 100 mg à débuter le {d_relais.strftime('%d/%m/%Y')}"
+            )
+
         au_moins_un_arret = True
 
 
