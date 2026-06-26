@@ -2240,6 +2240,19 @@ with st.sidebar:
         type_alr = mapping_alr[type_alr_affichage]
 
 
+        technique_neuraxiale = ""
+
+        if type_alr_affichage == "Anesthésie neuraxiale":
+            technique_neuraxiale = st.selectbox(
+                "Technique neuraxiale",
+                [
+                    "Rachianesthésie",
+                    "Péridurale",
+                    "Péri-rachi combinée"
+                ],
+                key="technique_neuraxiale"
+             )
+
 
 
         type_chir = spe
@@ -3093,6 +3106,7 @@ ctx = {
     "demi_vie_heures": None,
     "voie_baclofene": None,
     "indication_sglt2": indication_sglt2 if indication_sglt2 else "",
+    "technique_neuraxiale": technique_neuraxiale,
 
     "ASA": asa_acte_to_int(asa_acte) if 'asa_acte' in locals() else None,
 
