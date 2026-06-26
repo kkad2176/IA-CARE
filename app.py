@@ -2196,8 +2196,31 @@ with st.sidebar:
         mapping_specialites = dict(zip(liste_specialites_affichage, liste_specialites))
         spe = mapping_specialites[spe_affichage]
 
+        
+
+        df_grp = df_inter[df_inter["SPECIALITE"] == spe].copy()
+
+        grp = st.selectbox(
+            "Groupe",
+            sorted(df_grp["SOUS-GROUPE"].dropna().unique()),
+            key="groupe_chirurgie"
+        )
+
+        df_actes_filtre = df_grp[df_grp["SOUS-GROUPE"] == grp].copy()
+
+        liste_actes = sorted(
+            df_actes_filtre["INTERVENTION CHIRURGICALE"].dropna().unique()
+        )
+
+        acte_nom = st.selectbox(
+            "Intervention",
+            liste_actes if liste_actes else ["Aucune intervention trouvée"],
+            key="intervention_chirurgie"
+        )
+
+
         type_alr_affichage = st.selectbox(
-            "Type d'ALR",
+            "ALR prévue",
            [
                 "Aucune ALR",
                 "Anesthésie neuraxiale",
@@ -2216,34 +2239,8 @@ with st.sidebar:
 
         type_alr = mapping_alr[type_alr_affichage]
 
-        if type_alr_affichage != "Aucune ALR":
-            df_actes_filtre = df_inter[
-                (df_inter["SPECIALITE"].astype(str).str.strip().str.upper() == "ALR") &
-                (df_inter["SOUS-GROUPE"].astype(str).str.strip() == type_alr_affichage)
-    ].copy()
 
-            grp = type_alr_affichage
 
-        else:
-            df_grp = df_inter[df_inter["SPECIALITE"] == spe].copy()
-
-            grp = st.selectbox(
-                "Groupe",
-                sorted(df_grp["SOUS-GROUPE"].dropna().unique()),
-                key="groupe_chirurgie"
-            )
-
-            df_actes_filtre = df_grp[df_grp["SOUS-GROUPE"] == grp].copy()
-
-        liste_actes = sorted(
-            df_actes_filtre["INTERVENTION CHIRURGICALE"].dropna().unique()
-        )
-
-        acte_nom = st.selectbox(
-            "Intervention",
-            liste_actes if liste_actes else ["Aucune intervention trouvée"],
-            key="intervention_chirurgie"
-        )
 
         type_chir = spe
 
