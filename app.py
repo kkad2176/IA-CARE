@@ -1923,7 +1923,7 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
 def load_data():
     try:
         atc = pd.read_csv(os.path.join(BASE_DIR, "dci_atc.fichier.csv"), sep=";")
-        inter = pd.read_csv(os.path.join(BASE_DIR, "risque.hemorragique.csv"), sep=";")
+        inter = pd.read_csv(os.path.join(BASE_DIR, "risque.hemorragique2.csv"), sep=";")
         taxo = pd.read_csv(os.path.join(BASE_DIR, "TAXONOMIE-Tableau 1.csv"), sep=";")
         libelles = pd.read_csv(os.path.join(BASE_DIR, "LISTE_FINALE_AVEC_LIBELLES.csv"), sep=";")
         sentinelles = pd.read_csv(os.path.join(BASE_DIR, "Medicaments Sentinelles-Tableau.csv"), sep=";")
@@ -2981,7 +2981,11 @@ hydrocortisone_systemique = False
 if "stress_cortico_faible" not in locals():
     stress_cortico_faible = False
 
-stress_cortico_affichage = "FAIBLE" if stress_cortico_faible else "NON FAIBLE"
+stress_cortico_affichage = (
+    "FAIBLE"
+    if stress_cortico_faible
+    else "MODÉRÉ-ÉLEVÉ"
+)
 
 
 
@@ -3051,7 +3055,7 @@ if corticoides_connus and not hydrocortisone_topique:
     if stress_cortico_faible:
         st.success("FAIBLE")
     else:
-        st.warning("NON FAIBLE")
+        st.warning("MODÉRÉ-ÉLEVÉ")
 
 
     chirurgie_courte = False
