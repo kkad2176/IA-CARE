@@ -3093,7 +3093,7 @@ dose_heparine = None
 # =========================
 ctx = {
     "type_chir_neuro": "NEUROCHIR_INTRACRANIENNE" if val_upper(spe) in ["NEUROCHIRURGIE", "RACHIS"] else None,
-    "type_chir": spe,
+    "type_chir": type_chir,
     "is_neuro": is_neuro,
     "alr": type_alr,
     "ind_sraa": ind_sraa if ind_sraa else "",
