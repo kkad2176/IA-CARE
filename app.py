@@ -3092,7 +3092,7 @@ dose_heparine = None
 # CONTEXTE GLOBAL 
 # =========================
 ctx = {
-    "type_chir_neuro": "NEUROCHIR_INTRACRANIENNE" if "NEUROCHIRURGIE" in val_upper(spe) or "RACHIS" in val_upper(spe) else None,
+    "type_chir_neuro": "NEUROCHIR_INTRACRANIENNE" if val_upper(spe) in ["NEUROCHIRURGIE", "RACHIS"] else None,
     "type_chir": spe,
     "is_neuro": is_neuro,
     "alr": type_alr,
