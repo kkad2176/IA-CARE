@@ -22,7 +22,6 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from datetime import date, timedelta
 from collections import defaultdict
-from rag_sfar import construire_index, repondre_rag
 from reportlab.lib.utils import ImageReader
 
 def format_jour_avec_date(jour, date_intervention):
@@ -260,21 +259,8 @@ if os.path.exists(yaml_path):
 MED_TO_ATC = {}
 
 
-@st.cache_resource
-def charger_rag():
-    return construire_index(BASE_DIR)
-
-index_rag, passages_rag, model_rag = charger_rag()
-
 
 st.set_page_config(page_title="IA CARE - Expert SFAR", layout="wide")
-
-
-if "messages_sfar" not in st.session_state:
-    st.session_state.messages_sfar = []
-
-if "show_sfar_chat" not in st.session_state:
-    st.session_state.show_sfar_chat = False
 
 
 @st.cache_resource
@@ -3933,146 +3919,3 @@ Merci d’évaluer votre expérience :
             file_name=f"questionnaire_satisfaction_{date.today().isoformat()}.csv",
             mime="text/csv"
         )
-
-
-#--------------------------
-#----ASSISTANT SFAR---------
-
-st.markdown("""
-<style>
-
-div[data-testid="stExpander"]:has(.sfar-chat-marker) {
-    position: fixed !important;
-    bottom: 20px !important;
-    right: 20px !important;
-    width: 340px !important;
-    z-index: 999999 !important;
-    background-color: white !important;
-    border-radius: 20px !important;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.2) !important;
-}
-
-
-.sfar-header {
-    background: linear-gradient(135deg, #c86cff 0%, #8f5cff 100%);
-    color: white;
-    padding: 14px;
-    font-weight: 700;
-    font-size: 14px;
-    margin: -10px -10px 10px -10px;
-}
-
-.custom-chat-view {
-    height: 280px !important;
-    overflow-y: scroll !important; /* Force l'affichage du rail */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-right: 10px;
-}
-
-
-.custom-chat-view::-webkit-scrollbar {
-    width: 6px !important;
-}
-.custom-chat-view::-webkit-scrollbar-thumb {
-    background: #c86cff !important;
-    border-radius: 10px !important;
-}
-.custom-chat-view::-webkit-scrollbar-track {
-    background: #f1f1f1 !important;
-}
-
-.chat-bubble {
-    padding: 10px 14px;
-    font-size: 13px;
-    max-width: 85%;
-    border-radius: 18px;
-    margin-bottom: 5px;
-}
-.user { background: linear-gradient(135deg, #c86cff, #8f5cff); color: white; margin-left: auto; border-bottom-right-radius: 4px; }
-.assistant { background-color: #f2f3f7; color: #1a1a1a; border-bottom-left-radius: 4px; }
-
-
-div[data-testid="stExpander"]:has(.sfar-chat-marker) * {
-    cursor: default !important;
-}
-.stButton button, .stButton p, [role="button"] {
-    cursor: pointer !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# =========================
-# CHATBOT
-# =========================
-
-
-with st.container():
-    with st.expander("💬 Aide IA CARE", expanded=False):
-        st.markdown('<div class="sfar-chat-marker"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="sfar-header">✚ Assistant Expert SFAR</div>', unsafe_allow_html=True)
-
-        if "messages_sfar" not in st.session_state:
-            st.session_state.messages_sfar = []
-
-        chat_html = '<div class="custom-chat-view" id="chat-v4">'
-        for msg in st.session_state.messages_sfar:
-            cl = "user" if msg["role"] == "user" else "assistant"
-            chat_html += f'<div class="chat-bubble {cl}">{msg["content"]}</div>'
-        chat_html += '</div>'
-        st.markdown(chat_html, unsafe_allow_html=True)
-
-
-        st.components.v1.html(f"""
-            <script>
-            var chatDiv = window.parent.document.getElementById('chat-v4');
-            if (chatDiv) {{ chatDiv.scrollTop = chatDiv.scrollHeight; }}
-            </script>
-        """, height=0)
-
-        
-        with st.form(key="chat_form", clear_on_submit=True):
-
-            col1, col2 = st.columns([5,1])
-
-            with col1:
-                prompt = st.text_input(
-                    "",
-                    placeholder="Question...",
-                    key="user_query",
-                    label_visibility="collapsed"
-                )
-
-            with col2:
-                submit_button = st.form_submit_button("➤")
- 
-            if submit_button and prompt.strip():
-
-                st.session_state.messages_sfar.append({
-                    "role": "user",
-                    "content": prompt
-                })
-
-                try:
-
-                    reponse = repondre_rag(
-                        prompt,
-                        index_rag,
-                        passages_rag,
-                        model_rag
-                    )
-
-                    st.session_state.messages_sfar.append({
-                        "role": "assistant",
-                        "content": reponse
-                    })
-
-                except Exception as e:
-
-                    st.session_state.messages_sfar.append({
-                        "role": "assistant",
-                        "content": f"Erreur : {e}"
-                    })
-
-                st.rerun()
