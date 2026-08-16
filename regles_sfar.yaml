@@ -173,6 +173,67 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: "Pompe à insuline : perfusion de G10% 40 mL/h à partir du premier repas jeûné ; arrêt de la pompe au bloc ; relais IVSE."
 
 
+
+
+- categorie: "Association Metformine + SGLT2"
+  source_ref: "regle_4_antidiabetique_insuline"
+  atc_codes:
+    - "A10BD15"   # Xigduo (Dapagliflozine + Metformine)
+    - "A10BD16"   # Vokanamet (Canagliflozine + Metformine)
+    - "A10BD20"   # Synjardi (Empagliflozine + Metformine)
+    - "A10BD23"   # Segluromet (Ertugliflozine + Metformine)
+
+  conditions:
+
+    - if:
+        type_chir: "URGENCE"
+      action: "ARRET"
+      jour: "Immédiat"
+      note: "Association metformine + SGLT2 : arrêt immédiat en urgence."
+
+    - default: true
+      action: "ARRET"
+      jour: "J-3"
+      note: "Association metformine + SGLT2 : dernière prise à J-3 (risque d’acidocétose euglycémique lié au SGLT2). Si prise à moins de J-3 : cétonémie capillaire obligatoire."
+
+
+
+
+
+
+
+- categorie: "Association Metformine + DPP4"
+  source_ref: "regle_4_antidiabetique_insuline"
+  atc_codes:
+    - "A10BD07"   # Janumet (Sitagliptine + Metformine)
+    - "A10BD08"   # Vildagliptine  Metformine
+    - "A10BD10"   # Metformine  Saxagliptine + 
+    - "A10BD11"   # Linagliptine + Metformine
+    - "A10BD13"   # Alogliptine + Metformine
+
+  conditions:
+
+    - if:
+        type_chir: "AMBULATOIRE ou chirurgie courte avec ≤ 1 repas jeûné"
+      action: "POURSUITE"
+      jour: "J0"
+      note: "Association metformine + DPP4 : poursuite si ambulatoire ou chirurgie courte avec ≤ 1 repas jeûné."
+
+    - if:
+        type_chir: "URGENCE"
+      action: "ARRET"
+      jour: "Immédiat"
+      note: "Association metformine + DPP4 : arrêt immédiat en urgence."
+
+    - default: true
+      action: "Pas de prise le matin"
+      jour: "J0 matin"
+      note: "Association metformine + DPP4 : ne pas prendre le matin si chirurgie mineure ou majeure ou avec ≥ 2 repas jeûnés."
+
+
+
+
+
 - categorie: "Metformine"
   source_ref: "regle_4_antidiabetique_insuline"
   atc_codes:
@@ -211,7 +272,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: "Immédiat"
       note: "ADO : arrêt immédiat en urgence."
     - default: true
-      action: "STOP MATIN"
+      action: "Pas de prise le matin"
       jour: "J0 matin"
       note: "ADO : ne pas prendre le matin si chirurgie mineure ou majeure ou avec ≥ 2 repas jeûnés."
 
@@ -1176,103 +1237,421 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - "https://inavalverhd.inaheart.org/wp-content/uploads/2025/09/2025-ESC-EACTS-Guidelines-for-the-Management-of-Valvular-Heart-Disease.pdf"
     - "https://pure.eur.nl/ws/portalfiles/portal/182889750/2024_ESC_Guidelines_for_the_management_of_atrial_fibrillation_developed_in_collaboration_with_the_European_Association_for_Cardio-Thoracic_Surgery_EACTS_.pdf"
 
+
+
   atc_prefix:
     - "B01AA"
 
   conditions:
 
-    # =====  NEUROCHIRURGIE =====
+    # =====================================================
+    # LVAD 
+    # =======================================================
+
     - if:
-        type_chir_neuro: "NEUROCHIR_INTRACRANIENNE"
+        indication_avk: "LVAD"
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        lvad_reprise_24_48h: true
+      action: "POURSUITE AVK + CCP"
+      jour: "J0"
+      note: |
+        Ne pas interrompre l’AVK. Au moment de la procédure, antagoniser temporairement avec des concentrés de complexe prothrombinique (CCP) seuls, sans vitamine K, selon l’INR, avec objectif INR < 1,5 (dose moyenne indicative : environ 20 UI/kg). Reprendre l’AVK le soir de la procédure à la dose habituelle, sans relais héparinique. Contrôler l’INR quotidiennement jusqu’au retour dans la cible 2-3.
+
+    - if:
+        indication_avk: "LVAD"
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        lvad_reprise_24_48h: false
+      action: "ARRET + RELAI"
+      jour: "Selon molécule"
+      note: |
+        Arrêter l’AVK et réaliser un relais pré-procédural par HBPM à dose curative : première injection soir J-3 ; dernière injection au plus tard matin J-1 ; pas de contrôle anti-Xa systématique le matin de l’intervention. Reprendre l’AVK dans les 24 premières heures et ne pas réaliser de relais héparinique curatif postopératoire.
+
+
+    # =========================================
+    # RISQUE HEMORRAGIQUE FAIBLE
+    # ========================================
+
+
+    # RISQUE FAIBLE AVEC FACTEUR HEMORRAGIQUE SUP
+    - if:
+        r_hem: ["FAIBLE", "NUL"]
+        facteur_hemorragique_supplementaire: true
+      action: "REEVALUATION MEDICALE"
+      jour: ""
+      note: |
+        Réévaluation médicale nécessaire : un facteur supplémentaire peut conduire à interrompre l’anticoagulant.
+
+
+
+    - if:
+        r_hem: ["FAIBLE", "NUL"]
+        facteur_hemorragique_supplementaire: false
+      action: "POURSUITE"
+      jour: "J0"
+      note: |
+        Poursuivre l’AVK. Contrôler l’INR dans la semaine précédant la procédure pour vérifier l’absence de surdosage. Après la procédure poursuivre/reprendre l’AVK à l’heure et à la posologie habituelles.
+
+
+
+
+    
+    # RISQUE HEMORRAGIQUE ELEVE
+
+    # WARFARINE
+    - if:
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        atc_codes: ["B01AA03"]
+        lvad_sans_arret_avk: false
+      action: "ARRET"
+      jour: "J-6"
+      note: |
+        Dernière prise de warfarine à J-6. Contrôler l’INR à J-1.
+
+    # FLUINDIONE
+    - if:
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        atc_codes: ["B01AA12"]
+        lvad_sans_arret_avk: false
       action: "ARRET"
       jour: "J-5"
       note: |
-        Arrêt AVK à J-5 pour tous les AVK.
-        Pas de relais systématique.
-        Contrôle INR initial entre J-10 et J-7.
-        Objectif le matin de l’intervention : INR < 1.2.
-       
+        Dernière prise de fluindione à J-5. Contrôler l’INR à J-1.
 
-    # =====  CHIRURGIE À FAIBLE RISQUE + INR CONNU EN ZONE =====
+    # ACENOCOUMAROL
     - if:
-        r_hem: ["FAIBLE", "NUL"]
-        inr_therapeutique_2_3: true
-      action: "POURSUITE"
-      jour: "J0"
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        atc_codes: ["B01AA07"]
+        lvad_sans_arret_avk: false
+      action: "ARRET"
+      jour: "J-4"
       note: |
-        Chirurgie à risque hémorragique faible : poursuite possible si INR entre 2 et 3.
-        Contrôle INR initial entre J-10 et J-7.
-        
+        Dernière prise d’acénocoumarol à J-4. Contrôler l’INR à J-1.
 
-    # ===== CHIRURGIE À FAIBLE RISQUE + INR CONNU HORS ZONE =====
+
+  
+    # INR J-1
+
     - if:
-        r_hem: ["FAIBLE", "NUL"]
-        inr_hors_zone_2_3: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        neuro_ou_neuraxial: false
+        lvad_sans_arret_avk: false
+      action: "CONTROLE INR"
+      jour: "J-1"
+      note: |
+        Le seuil de sécurité hémostatique à J-1 est INR ≤ 1,5.
+
+    - if:
+        neuro_ou_neuraxial: true
+      action: "CONTROLE INR"
+      jour: "J-1"
+      note: |
+        Le seuil de sécurité hémostatique est INR ≤ 1,2.
+
+    - if:
+        inr_sup_seuil_avk: true
+        lvad_sans_arret_avk: false
+      action: "VITAMINE K"
+      jour: "J-1"
+      note: |
+        Administrer 2 à 5 mg de vitamine K par voie orale à J-1 et contrôler l’INR le lendemain.
+
+
+    #######################
+    #########FA#####################
+
+    - if:
+        indication_avk: "FA"
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        acfa_atcd: false
+      action: "PAS DE RELAIS"
+      jour: ""
+      note: |
+        Ne pas réaliser de relais héparinique pré-procédural lors de l’arrêt des AVK.
+
+    - if:
+        indication_avk: "FA"
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        acfa_atcd: true
+      action: "RELAIS PREOPERATOIRE"
+      jour: "J-3"
+      note: |
+        Réaliser un relais pré-procédural par HBPM à dose curative : première injection le soir de J-3 ; dernière injection au plus tard le matin de J-1 ; pas de contrôle systématique de l’activité anti-Xa le matin de la procédure.
+
+    - if:
+        indication_avk: "FA"
+        fa_avc_moins_3_mois: true
+        procedure_differable: true
+      action: "DIFFERER PROCEDURE"
+      jour: ""
+      note: |
+        Proposer de différer la procédure au minimum au-delà du 3e mois suivant l’AVC.
+
+    - if:
+        indication_avk: "FA"
+        reprise_avk_24h: true
+      action: "REPRISE AVK"
+      jour: "J0 / J1"
+      note: |
+        Reprendre l’AVK dans les 24 premières heures à la posologie habituelle, sans dose de charge et sans relais héparinique à dose curative, qu’il existe ou non un antécédent d’AVC.
+
+    - if:
+        indication_avk: "FA"
+        reprise_avk_24h: false
+      action: "RELAIS POSTOPERATOIRE"
+      jour: "H48-H72"
+      note: |
+        Initier une anticoagulation par héparine à dose curative, HBPM de préférence à HNF, idéalement 48 à 72 h après la procédure.
+
+
+    # ================================================
+    # VALVE mecanique
+    # ==============================================
+
+    - if:
+        indication_avk: "VALVE_MECANIQUE"
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: "RELAIS PREOPERATOIRE"
+      jour: "J-3"
+      note: |
+        Un relais héparinique pré-procédural à dose curative est indiqué.
+
+    - if:
+        indication_avk: "VALVE_MECANIQUE"
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: "INFO"
+      jour: ""
+      note: |
+        Si possible, programmer la procédure le matin afin de ne pas prolonger l’arrêt des anticoagulants.
+
+    - if:
+        indication_avk: "VALVE_MECANIQUE"
+        reprise_avk_24h: true
+      action: "REPRISE AVK"
+      jour: "J0 / J1"
+      note: |
+        Reprendre l’AVK dans les 24 premières heures à la posologie habituelle, sans dose de charge.
+
+    - if:
+        indication_avk: "VALVE_MECANIQUE"
+        valve_aortique_double_ailette: true
+        rythme_sinusal: true
+        atcd_thrombotique_valve: false
+        reprise_avk_24h: true
+      action: "PAS DE RELAIS POSTOPERATOIRE"
+      jour: ""
+      note: |
+        Ne pas réaliser de relais héparinique curatif postopératoire.
+
+   
+    - if:
+        indication_avk: "VALVE_MECANIQUE"
+        valve_aortique_double_ailette: false
+      action: "RELAIS POSTOPERATOIRE"
+      jour: "H48-H72"
+      note: |
+        Réaliser un relais postopératoire par héparine à dose curative, HBPM en 2 injections/j de   préférence à HNF, débuté idéalement 48 à 72 h après la procédure. Arrêter l’héparine dès le premier INR ≥ 2.
+
+    - if:
+        indication_avk: "VALVE_MECANIQUE"
+        valve_aortique_double_ailette: true
+        rythme_sinusal: false
+      action: "RELAIS POSTOPERATOIRE"
+      jour: "H48-H72"
+      note: |
+        Réaliser un relais postopératoire par héparine à dose curative, HBPM en 2 injections/j de préférence à HNF, débuté idéalement 48 à 72 h après la procédure. Arrêter l’héparine dès le premier INR ≥ 2.
+
+    - if:
+        indication_avk: "VALVE_MECANIQUE"
+        valve_aortique_double_ailette: true
+        rythme_sinusal: true
+        atcd_thrombotique_valve: true
+      action: "RELAIS POSTOPERATOIRE"
+      jour: "H48-H72"
+      note: |
+        Réaliser un relais postopératoire par héparine à dose curative, HBPM en 2 injections/j de  préférence à HNF, débuté idéalement 48 à 72 h après la procédure. Arrêter l’héparine dès le premier INR ≥ 2.
+
+
+
+
+    # =======================
+    # MTEV
+    # ================================
+
+    - if:
+        indication_avk: "MTEV"
+        mtev_complexe: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: "AVIS_SPECIALISE"
-      jour: "J0"
+      jour: ""
       note: |
-        Chirurgie à risque hémorragique faible mais INR hors zone thérapeutique attendue (2 à 3).
-        Vérifier l’indication, la cible INR et discuter la conduite à tenir.
-        
-    # ===== CHIRURGIE À FAIBLE RISQUE + INR NON CONNU =====
+        Cas complexe : contacter le médecin référent et discussion multidisciplinaire pour stratégie personnalisée.
+
     - if:
-        r_hem: ["FAIBLE", "NUL"]
-        inr_non_connu: true
-      action: "POURSUITE"
-      jour: "J0"
+        indication_avk: "MTEV"
+        mtev_complexe: false
+        mtev_haut_risque: true
+        procedure_differable: true
+      action: "DIFFERER PROCEDURE"
+      jour: ""
       note: |
-        Chirurgie à risque hémorragique faible : poursuite possible si INR entre 2 et 3.
-        Contrôle INR initial entre J-10 et J-7. 
-        
+        Proposer de différer la procédure au minimum au-delà du 1er mois et de préférence au-delà du 3ième mois.
+
+    - if:
+        indication_avk: "MTEV"
+        mtev_complexe: false
+        mtev_moins_1_mois: true
+        procedure_differable: false
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: "DISCUSSION MEDICALE"
+      jour: ""
+      note: |
+        Discuter la mise en place pré-procédurale d’un filtre cave optionnel.
+
+    - if:
+        indication_avk: "MTEV"
+        mtev_complexe: false
+        mtev_haut_risque: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: "RELAIS PREOPERATOIRE"
+      jour: "J-3"
+      note: |
+        Réaliser un relais pré-procédural par HBPM à dose curative : première injection le soir de J-3 ; dernière injection au plus tard le matin de J-1 ; pas de contrôle anti-Xa systématique le matin de l’intervention.
+
+    - if:
+        indication_avk: "MTEV"
+        mtev_complexe: false
+        mtev_haut_risque: false
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: "PAS DE RELAIS"
+      jour: ""
+      note: |
+        Ne pas réaliser de relais héparinique pré-procédural.
+
+    - if:
+        indication_avk: "MTEV"
+        reprise_avk_24h: true
+      action: "REPRISE AVK"
+      jour: "J0 / J1"
+      note: |
+        Reprendre l’AVK dans les 24 premières heures à la posologie habituelle, sans dose de charge.
+
+ 
+    # RELAIS CURATIF POST OPE et EP/TVP proximale < 3 mois ou déficit en protéine C/S
+
+    - if:
+        indication_avk: "MTEV"
+        mtev_complexe: false
+        mtev_haut_risque: true
+      action: "RELAIS POSTOPERATOIRE"
+      jour: "H48-H72"
+      note: |
+        Réaliser un relais postopératoire par héparine à dose curative, HBPM de préférence à HNF, débuté idéalement 48 à 72 h après la procédure. Arrêter l’héparine dès le premier INR ≥ 2.
 
 
-    # ===== RELAI AVK Selon LE DFG =====
+    # Déficit en protéine C ou S et ça exclu < 3 mois pour éviter un doublon
+    - if:
+        indication_avk: "MTEV"
+        mtev_complexe: false
+        mtev_haut_risque: false
+        deficit_proteine_c_s: true
+      action: "RELAIS POSTOPERATOIRE"
+      jour: "H48-H72"
+      note: |
+        Réaliser un relais postopératoire par héparine à dose curative, HBPM de préférence à HNF, débuté idéalement 48 à 72 h après la procédure. Arrêter l’héparine dès le premier INR ≥ 2.
+
+
+
+
+
+    - if:
+        indication_avk: "MTEV"
+        mtev_complexe: false
+        mtev_haut_risque: false
+        deficit_proteine_c_s: false
+        reprise_avk_24h: true
+      action: "PAS DE RELAIS POSTOPERATOIRE"
+      jour: ""
+      note: |
+        Ne pas réaliser de relais héparinique curatif postopératoire.
+
+
+
+    # ===================================
+    # ADAPTATION DU RELAIS EN FCT DU DFG
+    # ========================================
+
+
+    # DFG > 30
     - if:
         relais_avk: true
         dfg_relais_avk: "DFG > 30"
-      action: "ARRET + RELAI"
-      jour: "J-6"
+        schema_hbpm: "2 injections par jour (Enoxaparine 100 UI/kg toutes les 12h)"
+      action: "RELAIS HBPM"
+      jour: "J-3"
       note: |
-        Risque hémorragique élevé. Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique.
-        Si Warfarine alors dernière prise J-6.
+        2 injections par jour (Enoxaparine 100 UI/kg toutes les 12h) avec 1ère injection le soir de J-3 et dernière injection au plus tard le matin de J-1.
 
-        Si DFG > 30 alors :
-        HBPM SC à dose curative en 2 injections par jour avec 1ère injection le soir de J-3 et dernière injection au plus tard le matin de J-1.
-        Si relais par HBPM SC en 1 injection par jour, alors dernière injection à J-2.
-        
 
+    - if:
+        relais_avk: true
+        dfg_relais_avk: "DFG > 30"
+        schema_hbpm: "1 injection par jour (Tinzaparine 175 UI/kg x 1/j)"
+      action: "RELAIS HBPM"
+      jour: "J-3"
+      note: |
+        1 injection par jour (Tinzaparine 175 UI/kg x 1/j), alors 1ère injection le soir de J-3 et dernière injection le soir de J-2.
+
+
+    # DFG < 30 + HOSPITALISATION PREVUE
+    - if:
+        relais_avk: true
+        dfg_relais_avk: ["15 ≤ DFG < 30", "DFG < 15"]
+        mode_prise_en_charge_relais: "Hospitalisation prévue"
+      action: "ADAPTATION RELAIS"
+      jour: "J-3"
+      note: |
+        Choix recommandé : HNF IVSE curative débutée le soir de J-3 et arrêtée 6 h avant la procédure. Surveillance et adaptation selon le protocole habituel. Proposition : selon protocole local ou posologie de 12 à 15 UI/kg/h max, puis 1ère activité anti-Xa à H6 et adaptation posologique selon le protocole d’ajustement local.
+
+
+
+    # DFG < 30 + PRISE EN CHARGE EXTRAHOSPITALIERE + HNF CALCIQUE SC
+    - if:
+        relais_avk: true
+        dfg_relais_avk: ["15 ≤ DFG < 30", "DFG < 15"]
+        mode_prise_en_charge_relais: "Prise en charge extrahospitalière"
+        type_heparine_relais: "HNF calcique SC"
+      action: "HNF CALCIQUE SC"
+      jour: "J-3"
+      note: |
+        HNF calcique : 333 UI/kg SC le soir de J-3, puis 250 UI/kg toutes les 12 h ; dernière injection le matin de J-1.
+
+
+
+
+    # DFG 15-29 + PRISE EN CHARGE EXTRAHOSPITALIERE + HBPM
     - if:
         relais_avk: true
         dfg_relais_avk: "15 ≤ DFG < 30"
-      action: "ARRET + RELAI"
-      jour: "J-5"
+        mode_prise_en_charge_relais: "Prise en charge extrahospitalière"
+        type_heparine_relais: "HBPM"
+      action: "ADAPTATION RELAIS"
+      jour: "J-3"
       note: |
-        Si DFG entre 15 et 29 alors plusieurs schémas possibles : 
+        Tinzaparine 175 UI/kg x1/j OU enoxaparine 100 UI/kg x1/j ; première injection soir J-3 ; dernière injection soir J-2 ; aucune HBPM à J-1.
 
-        -Enoxaparine 100 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
 
-        -Tinzaparine 175 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
 
-        -HNF calcique SC (adaptée au poids sans surveillance biologique) avec 1ère injection à 333 UI/kg le soir de J-3, puis 250 UI/Kg toutes les 12h avec une dernière injection le matin de J-1
-
-        -HNF IVSE le soir de J-3 et arrêtée 6h avant l’intervention
-
-        
+# DFG < 15 + PRISE EN CHARGE EXTRAHOSPITALIERE + HBPM
     - if:
         relais_avk: true
         dfg_relais_avk: "DFG < 15"
-      action: "ARRET + RELAI"
-      jour: "J-5"
+        mode_prise_en_charge_relais: "Prise en charge extrahospitalière"
+        type_heparine_relais: "HBPM"
+      action: "ADAPTATION RELAIS"
+      jour: "J-3"
       note: |
-        Si DFG < 15 alors plusieurs schémas possibles :
+        Si option HBPM choisie : tinzaparine 175 UI/kg x1/j, soir J-3 puis soir J-2 ; pas d’HBPM à  J-1. Les autres HBPM ne sont pas recommandées.
 
-        -Tinzaparine 175 UI/kg x 1/j avec la 1ère injection le soir de J-3 et la dernière injection le soir de J-2 (soit 2 injections au total)
-
-        -HNF calcique SC (adaptée au poids sans surveillance biologique) avec 1ère injection à 333 UI/kg le soir de J-3, puis 250 UI/Kg toutes les 12h avec une dernière injection le matin de J-1
-
-        -HNF IVSE le soir de J-3 et arrêtée 6h avant l’intervention
-
-        
 
     - if:
         relais_avk: true
@@ -1280,54 +1659,166 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: "INFO"
       jour: ""
       note: |
-        DFG inconnu : vérifier la fonction rénale avant de choisir le schéma de relai AVK.
-
-        
+        DFG inconnu : vérifier la fonction rénale avant de choisir le schéma de relais AVK.
 
 
-    # ================RISQUE HÉMORRAGIQUE ÉLEVÉ
-    - if:
-        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
-        atc_codes: ["B01AA03"]
-      action: "ARRET"
-      jour: "J-6"
-      note: |
-        Risque hémorragique élevé. Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique.
-        Si Warfarine alors dernière prise J-6.
-        
+
 
     - if:
-        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
-        atc_codes: ["B01AA12"]
-      action: "ARRET"
-      jour: "J-5"
+        relais_postop_indique: true
+        dfg_relais_avk: "15 ≤ DFG < 30"
+      action: "ADAPTATION RELAIS POSTOPERATOIRE"
+      jour: "H48-H72"
       note: |
-        Risque hémorragique élevé.
-        Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique
-        Si Fluindione alors dernière prise J-5.
-       
+        Débuter idéalement 48 à 72 h après la procédure. HNF curative = choix recommandé.
+        Alternatives possibles : tinzaparine 175 UI/kg x1/j ou enoxaparine 100 UI/kg x1/j.
+
+
+
+    - if:
+        relais_postop_indique: true
+        dfg_relais_avk: "DFG < 15"
+      action: "ADAPTATION RELAIS POSTOPERATOIRE"
+      jour: "H48-H72"
+      note: |
+        Débuter idéalement 48 à 72 h après la procédure. HNF curative = choix recommandé.
+        La tinzaparine 175 UI/kg x1/j peut être utilisée en alternative avec contrôle anti-Xa 4 à 6 h  après la 3e injection ; si anti-Xa > 1,5 UI/ml, demander un avis spécialisé.
+
+
+
+
+
+
+
+
+
+    # =========================================================
+    # ADAPTATION DU RELAIS EN FCT DU POIDS
+    # =========================================================
+    # SI POIDS >= 100 KG + DFG > 30
+    - if:
+        relais_avk: true
+        poids_ge_100: true
+        dfg_relais_avk: "DFG > 30"
+      action: "ADAPTATION RELAIS"
+      jour: ""
+      note: |
+        Poids ≥ 100 kg : privilégier une HBPM curative en première intention.
+        Ne pas augmenter la dose au-delà de la dose recommandée pour 100 kg.
+        Exemples de plafonds : tinzaparine/daltéparine/nadroparine 18 000 UI x1/j ; enoxaparine 10 000 UI x2/j.
+        Pas de surveillance biologique systématique des HBPM.
+
+
+    #100 KG+ HNF IVSE CHOISIE 
+
+    - if:
+        relais_avk: true
+        poids_ge_100: true
+        hnf_ivse_choisie: true
+      action: "ADAPTATION HNF IVSE"
+      jour: ""
+      note: |
+        Utiliser une dose initiale réduite par rapport au schéma strictement pondéral ; exemple : 1500 UI/h (36 000 UI/j), puis adapter selon la surveillance biologique habituelle.
+
+
+
+
+     # SI POIDS >= 100 KG + DFG < 30 
+    - if:
+        relais_avk: true
+        poids_ge_100: true
+        dfg_relais_avk: ["15 ≤ DFG < 30", "DFG < 15"]
+      action: "ADAPTATION RELAIS"
+      jour: ""
+      note: |
+        Poids ≥ 100 kg et DFG < 30 : si une HBPM est retenue, ne pas augmenter la dose au-delà de la dose recommandée pour 100 kg.
+
+
+
+    - if:
+        relais_avk: true
+        poids_inf_50: true
+      action: "ADAPTATION RELAIS"
+      jour: ""
+      note: |
+        Privilégier une HBPM curative en première intention, avec dose ajustée au poids corporel selon le RCP. HNF en seconde intention.
+
+
+
+    - if:
+        relais_avk: true
+        poids_extreme_et_dfg_inf_30: true
+      action: "VALIDATION MEDICALE"
+      jour: ""
+      note: |
+        Situation combinée : validation médicale du schéma héparinique requise.
+
+
+
+
+    # =========================================================
+    # REPRISE POST OP
+    # =========================================================
+
     - if:
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
-        atc_codes: ["B01AA07"]
-      action: "ARRET"
-      jour: "J-4"
+        reprise_avk_24h: true
+      action: "REPRISE AVK"
+      jour: "J0 / J1"
       note: |
-        Risque hémorragique élevé.
-        Contrôle initial de l’INR (J -10 à J -7) pour vérifier si en zone thérapeutique
-        Si Acénocoumarol alors dernière prise J-4.
-       
-  
-    # ===== PAR DÉFAUT =====
-    - default: true
-      action: "ARRET"
-      jour: "J-5"
-      note: |
-        Arrêt AVK à J-5 pour tous les AVK.
-        Pas de relais systématique.
-        Contrôle INR initial entre J-10 et J-7.
-        Contrôle INR la veille ou matin de l'intervention.
+        Reprendre dans les 24 premières heures à la posologie habituelle sans dose de charge, sauf règle spécifique explicitement contraire.
 
 
+    - if:
+        relais_postop_indique: true
+      action: "RELAIS POSTOPERATOIRE"
+      jour: "H48-H72"
+      note: |
+        Débuter idéalement 48 à 72 h après la procédure.
+
+    - if:
+        relais_postop_indique: true
+        inr_ge_2_postop: true
+      action: "ARRET HEPARINE"
+      jour: ""
+      note: |
+        Arrêter l’héparine dès le premier INR ≥ 2.
+
+
+
+
+    - if:
+        chevauchement_non_acceptable: true
+      action: "DECISION MEDICALE"
+      jour: ""
+      note: |
+        Le médecin peut décider de différer de quelques jours la reprise des AVK après le début des héparines.
+        Ne pas automatiser le délai.
+
+
+    - if:
+        anticoag_curative_non_reprise: true
+        thromboprophylaxie_indiquee: true
+      action: "THROMBOPROPHYLAXIE"
+      jour: ""
+      note: |
+        Réaliser la thromboprophylaxie postopératoire selon les indications et modalités habituelles.
+        L’interrompre lorsque l’anticoagulation devient curative.
+
+
+
+
+    # =========================================================
+    # PAR DEFAUT
+    # =========================================================
+
+
+    - if:
+        indication_avk: "AUTRE"
+      action: "AVIS_SPECIALISE"
+      jour: ""
+      note: |
+        Indication d’AVK non prévue par les branches FA / valve mécanique / MTEV / LVAD.
 
 
 
