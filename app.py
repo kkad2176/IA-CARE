@@ -25,6 +25,9 @@ from reportlab.lib import colors
 from datetime import date, timedelta
 from collections import defaultdict
 from reportlab.lib.utils import ImageReader
+from reportlab.platypus import Paragraph
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.enums import TA_LEFT
 
 def format_jour_avec_date(jour, date_intervention):
     if not jour or not date_intervention:
@@ -339,7 +342,15 @@ def generer_pdf_ordonnance_pharmacie(
 
 
 
-    c.setFont("Helvetica", 10.5)
+    style_pharmacie = ParagraphStyle(
+        "style_pharmacie",
+        fontName="Helvetica",
+        fontSize=10.5,
+        leading=14,
+        alignment=TA_LEFT
+    )
+
+    largeur_texte = 13.2 * cm
 
     for ligne in ordonnance_pharmacie.split("\n"):
 
@@ -349,17 +360,41 @@ def generer_pdf_ordonnance_pharmacie(
             y -= 0.25 * cm
             continue
 
-
         if ligne == "ORDONNANCE":
             continue
 
-        c.drawString(
-            x,
-            y,
-            ligne
+        if ligne.startswith("Indication :"):
+            ligne = ligne.replace(
+                "Indication :",
+                "<b>Indication :</b>",
+                1
+            )
+
+        elif ligne.startswith("Si énoxaparine avec adaptation pondérale :"):
+            ligne = ligne.replace(
+                "Si énoxaparine avec adaptation pondérale :",
+                "<b>Si énoxaparine avec adaptation pondérale :</b>",
+                1
+            )
+
+        p = Paragraph(
+            ligne,
+            style_pharmacie
+        )
+ 
+        largeur_p, hauteur_p = p.wrap(
+            largeur_texte,
+            h
         )
 
-        y -= 0.55 * cm
+        p.drawOn(
+            c,
+            x,
+            y - hauteur_p
+        )
+
+        y -= hauteur_p + 0.18 * cm
+
 
  
 
@@ -695,8 +730,6 @@ if os.path.exists(yaml_path):
         st.warning(f"Impossible de charger regles_sfar.yaml : {e}")
 
 MED_TO_ATC = {}
-
-
 
 
 st.set_page_config(page_title="IA CARE - Expert SFAR", layout="wide")
@@ -1152,9 +1185,6 @@ def nettoyer_nom_affichage_medicament(name):
     s = re.sub(r"\b(MG|G|MCG|UG|ML|UI|MUI|CP|COMPRIME|COMPRIMES|GELULE|GELULES|AMP|AMPOULE|SACHET|SACHETS)\b", " ", s)
     s = re.sub(r"\s+", " ", s).strip(" -,:;")
     return clean_medicament_name(s)
-
-
-
 
 # =========================================================
 # OCR / DETECTION MEDICAMENTS
