@@ -2485,20 +2485,75 @@ def moteur_expert_sfar(atc, ctx):
     # 1. SRAA (IEC / ARA II)
     # ----------------------------
     if atc.startswith(("C09AA", "C09CA")):
+
         if ind_sraa == "HTA":
-            return {
-                "action": "ARRET",
-                "jour": ">=12h",
-                "note": "Risque d'hypotension peropératoire."
-            }
+
+            choix_sraa_hta = ctx.get("choix_sraa_hta", "")
+
+            if choix_sraa_hta == "Arrêter":
+                return {
+                    "action": "ARRET",
+                    "jour": ">=12h",
+                    "note": (
+                        "Recommandation SFAR actuelle : arrêt préopératoire lorsque le "
+                        "traitement est prescrit pour une hypertension artérielle ; "
+                        "données récentes de la littérature n’ont pas montré de bénéfice "
+                        "clinique clair à l’arrêt systématique de ces médicaments avant "
+                        "une chirurgie non cardiaque chez les patients traités pour "
+                        "hypertension artérielle : la décision doit être adaptée au patient "
+                        "et au contexte opératoire."
+                    )
+                }
+
+            elif choix_sraa_hta == "Poursuivre":
+                return {
+                    "action": "POURSUITE",
+                    "jour": "J0",
+                    "note": (
+                        "Poursuite choisie par l’anesthésiste. "
+                        "La décision doit être adaptée au patient et au contexte opératoire."
+                    )
+                }
+
         return {
             "action": "POURSUITE",
             "jour": "J0",
             "note": "Indication Insuffisance Cardiaque : maintien recommandé."
         }
 
+
+
+        # Bipreterax / association IEC + diurétique
+        if atc == "C09BA04":
+
+            if ind_sraa == "HTA":
+
+                choix_sraa_hta = ctx.get("choix_sraa_hta", "")
+
+                if choix_sraa_hta == "Arrêter":
+                    return {
+                        "action": "ARRET",
+                        "jour": ">=12h",
+                        "note": "Arrêt préopératoire choisi par l’anesthésiste."
+                    }
+
+                elif choix_sraa_hta == "Poursuivre":
+                    return {
+                        "action": "POURSUITE",
+                        "jour": "J0",
+                        "note": "Poursuite préopératoire choisie par l’anesthésiste."
+                    }
+
+            return {
+                "action": "POURSUITE",
+                "jour": "J0",
+                "note": "Indication Insuffisance Cardiaque : maintien recommandé."
+            }
+
+
+
     # Entresto
-    if atc in ["C09DX04", "C09BA03"]:
+    if atc == "C09DX04":
         return {
             "action": "POURSUITE",
             "jour": "J-1",
@@ -3855,16 +3910,36 @@ diabete_detecte = contexte_famille_detecte(
 # =========================
 
 ind_sraa = None
+choix_sraa_hta = None
 
 if sraa_detecte:
     st.divider()
-    st.header("Système rénine-angiotensine (SRAA)")
+    st.header("Système rénine–angiotensine (SRAA)")
 
     ind_sraa = st.radio(
         "Indication du traitement (IEC / ARA II)",
         ["HTA", "Insuffisance Cardiaque"],
         index=0
     )
+
+    if ind_sraa == "HTA":
+
+        choix_sraa_hta = st.radio(
+            "Conduite préopératoire",
+            ["Arrêter", "Poursuivre"],
+            index=0,
+            key="choix_sraa_hta"
+        )
+
+        st.caption(
+            "Recommandation SFAR actuelle : arrêt préopératoire lorsque le traitement "
+            "est prescrit pour une hypertension artérielle ; données récentes de la "
+            "littérature n’ont pas montré de bénéfice clinique clair à l’arrêt "
+            "systématique de ces médicaments avant une chirurgie non cardiaque chez "
+            "les patients traités pour hypertension artérielle : la décision doit être "
+            "adaptée au patient et au contexte opératoire."
+        )
+
 
 
 type_traitement_aap = None
@@ -4810,6 +4885,7 @@ ctx = {
     "is_neuro": is_neuro,
     "alr": type_alr,
     "ind_sraa": ind_sraa if ind_sraa else "",
+    "choix_sraa_hta": choix_sraa_hta if choix_sraa_hta else "",
     "indication_aap": indication_aap,
     "aspirine_dose": dose_aspirine,
     "aspirine_sup_100": dose_aspirine > 100,
