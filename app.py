@@ -201,20 +201,41 @@ def generer_pdf_patient(
 
         tableau.setStyle(
             TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#D9EAF7")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+       
+                ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+
+      
+                ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+
+      
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+
+        
                 ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+
+        
                 ("FONTSIZE", (0, 0), (-1, -1), 8.5),
                 ("LEADING", (0, 0), (-1, -1), 10),
-                ("GRID", (0, 0), (-1, -1), 0.6, colors.black),
+
+     
+                ("BOX", (0, 0), (-1, -1), 1, colors.black),
+
+       
+                ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.black),
+
+        
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+
+  
                 ("LEFTPADDING", (0, 0), (-1, -1), 5),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 5),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
             ])
         )
+
+
+
 
         largeur_tableau, hauteur_tableau = tableau.wrap(
             13.5 * cm,
