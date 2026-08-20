@@ -25,7 +25,7 @@ from reportlab.lib import colors
 from datetime import date, timedelta
 from collections import defaultdict
 from reportlab.lib.utils import ImageReader
-from reportlab.platypus import Paragraph
+from reportlab.platypus import Paragraph, Table, TableStyle
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_LEFT
 
@@ -66,8 +66,10 @@ def generer_pdf_patient(
     bilan_texte="",
     scanner_texte="",
     allergies_texte="",
-    medecin=""
+    medecin="",
+    tableau_avk=None
 ):
+
     import tempfile, os
     import fitz
 
@@ -166,6 +168,81 @@ def generer_pdf_patient(
 
         c.setFillColorRGB(0, 0, 0)
         y -= 1.4 * cm
+
+
+
+
+# =====================================================
+# SCHÉMA AVK PRÉOPE
+# =====================================================
+
+    if tableau_avk:
+
+        y -= 0.35 * cm
+
+        c.setFillColorRGB(0, 0, 0)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawString(
+            x,
+            y,
+            "Schéma thérapeutique préopératoire"
+        )
+
+        y -= 0.55 * cm
+
+        data_tableau = [
+            ["Moment", "Instruction"]
+        ] + tableau_avk
+
+        tableau = Table(
+            data_tableau,
+            colWidths=[3.2 * cm, 10.3 * cm]
+        )
+
+        tableau.setStyle(
+            TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#D9EAF7")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+                ("LEADING", (0, 0), (-1, -1), 10),
+                ("GRID", (0, 0), (-1, -1), 0.6, colors.black),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 5),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            ])
+        )
+
+        largeur_tableau, hauteur_tableau = tableau.wrap(
+            13.5 * cm,
+            h
+        )
+
+        tableau.drawOn(
+            c,
+            x,
+            y - hauteur_tableau
+        )
+
+        y -= hauteur_tableau + 0.35 * cm
+
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(
+            x,
+            y,
+            "J0 = jour de l’intervention"
+        )
+
+        y -= 0.6 * cm
+
+
+
+
+
+
 
     if bilan_texte or scanner_texte or allergies_texte:
 
@@ -331,17 +408,6 @@ def generer_pdf_ordonnance_pharmacie(
 
 
 
-    c.setFont("Helvetica-Bold", 13)
-    c.drawString(
-        x,
-        y,
-        "Relais anticoagulant"
-    )
-
-    y -= 0.9 * cm
-
-
-
     style_pharmacie = ParagraphStyle(
         "style_pharmacie",
         fontName="Helvetica",
@@ -363,12 +429,21 @@ def generer_pdf_ordonnance_pharmacie(
         if ligne == "ORDONNANCE":
             continue
 
-        if ligne.startswith("Indication :"):
+
+
+        if ligne.startswith("ORDONNANCE – RELAIS PRÉOPÉRATOIRE"):
+            ligne = f"<b>{ligne}</b>"
+
+        elif ligne.startswith("À DESTINATION DE LA PHARMACIE"):
+            ligne = f"<b>{ligne}</b>"
+
+        elif ligne.startswith("Indication :"):
             ligne = ligne.replace(
                 "Indication :",
                 "<b>Indication :</b>",
                 1
             )
+
 
         elif ligne.startswith("Si énoxaparine avec adaptation pondérale :"):
             ligne = ligne.replace(
@@ -2165,8 +2240,34 @@ def moteur_yaml(atc, ctx):
 
 
 
+                dfg_relais = ctx.get("dfg_relais_avk")
 
-                # ===== ARRET HEPARINE DEJA PRESENT DANS REGLE SPECIFIQUE =====
+                if dfg_relais in ["15 ≤ DFG < 30", "DFG < 15"]:
+
+                    matchs = [
+                        m for m in matchs
+                        if not (
+                            m.get("action") == "RELAIS PREOPERATOIRE"
+                            and "Réaliser un relais pré-procédural par HBPM"
+                            in (m.get("precision") or m.get("note") or "")
+                        )
+                    ]
+
+
+
+                if dfg_relais in ["15 ≤ DFG < 30", "DFG < 15"]:
+
+                    relais_postop_renal_present = any(
+                        m.get("action") == "ADAPTATION RELAIS POSTOPERATOIRE"
+                        for m in matchs
+                    )
+
+                    if relais_postop_renal_present:
+                        matchs = [
+                            m for m in matchs
+                            if m.get("action") != "RELAIS POSTOPERATOIRE"
+                        ]
+
 
                 arret_heparine_deja_dans_specifique = any(
                     (m.get("if", {}) or {}).get("indication_avk") == indication
@@ -2213,6 +2314,54 @@ def moteur_yaml(atc, ctx):
 
                 if principale is None:
                     principale = matchs[0]
+
+
+            # ================================
+            # priorité chrono avk 
+            # ==========================================
+
+                priorite_action_avk = {
+                    "ARRET": 10,
+                    "ARRET + RELAI": 10,
+
+                    "RELAIS PREOPERATOIRE": 20,
+                    "RELAIS HBPM": 21,
+                    "HNF CALCIQUE SC": 21,
+                    "ADAPTATION RELAIS": 22,
+                    "ADAPTATION HNF IVSE": 22,
+                    "VALIDATION MEDICALE": 23,
+
+                    "CONTROLE INR": 30,
+                    "VITAMINE K": 31,
+
+                    "INFO": 40,
+                    "DIFFERER PROCEDURE": 40,
+                    "DISCUSSION MEDICALE": 40,
+                    "AVIS_SPECIALISE": 40,
+
+                    "REPRISE AVK": 50,
+                    "PAS DE RELAIS POSTOPERATOIRE": 60,
+
+                    "RELAIS POSTOPERATOIRE": 70,
+                    "ADAPTATION RELAIS POSTOPERATOIRE": 71,
+
+                    "ARRET HEPARINE": 80,
+                    "DECISION MEDICALE": 90,
+                    "THROMBOPROPHYLAXIE": 90,
+                }
+
+                matchs = sorted(
+                    matchs,
+                    key=lambda m: priorite_action_avk.get(
+                        str(m.get("action", "")).upper().strip(),
+                        50
+                    )
+                )
+
+
+
+
+
   
                 notes = []
 
@@ -3843,7 +3992,7 @@ hnf_ivse_choisie = False
 mode_prise_en_charge_relais = None
 type_heparine_relais = None
 schema_hbpm = None
-
+reprise_avk_24h_bool = False
 
 
 if avk_detecte:
@@ -3960,6 +4109,7 @@ if avk_detecte:
                 "LVAD",
                 "AUTRE"
             ],
+            format_func=lambda x: "VALVE MECANIQUE" if x == "VALVE_MECANIQUE" else x,
             key="indication_avk"
         )
 
@@ -3968,10 +4118,12 @@ if avk_detecte:
         acfa_atcd = False
         mtev_hr = False
         relais_avk = False
+      
 
-        # ====FA 
+        # ====FA= 
         if indication_avk == "FA":
 
+            st.markdown("**Complément**")
             acfa_atcd = st.checkbox(
                 "Antécédent d’AVC, AIT ou embolie systémique"
             )
@@ -3984,14 +4136,20 @@ if avk_detecte:
 
                 if fa_avc_moins_3_mois:
 
-                    procedure_differable = st.checkbox(
-                        "La procédure peut être différée sans risque vital ou fonctionnel"
-                    )
+                    col_vide, col_question = st.columns([0.06, 0.94])
+
+                    with col_question:
+                        procedure_differable = st.checkbox(
+                            " La procédure peut être différée sans risque vital ou fonctionnel",
+                            key="procedure_differable_fa"
+                     )
+
+
 
             relais_avk = acfa_atcd
 
 
-        # ==== VALVE ========
+        # ==== VALVE =====
 
         elif indication_avk == "VALVE_MECANIQUE":
 
@@ -4052,13 +4210,23 @@ Cas complexe si au moins un des éléments suivants est présent :
 
             if mtev_hr:
 
-                mtev_moins_1_mois = st.checkbox(
-                    "EP ou TVP proximale datant de moins de 1 mois"
-                )
+                col_vide1, col_question1 = st.columns([0.06, 0.94])
 
-                procedure_differable = st.checkbox(
-                    "La procédure peut être différée sans risque vital ou fonctionnel"
-                )
+                with col_question1:
+                    mtev_moins_1_mois = st.checkbox(
+                        " EP ou TVP proximale datant de moins de 1 mois",
+                        key="mtev_moins_1_mois"
+                    )
+   
+                col_vide2, col_question2 = st.columns([0.06, 0.94])
+
+                with col_question2:
+                    procedure_differable = st.checkbox(
+                        " La procédure peut être différée sans risque vital ou fonctionnel",
+                        key="procedure_differable_mtev"
+                    )
+
+
 
 
 
@@ -4112,24 +4280,38 @@ Cas complexe si au moins un des éléments suivants est présent :
             )
 
 
-
+            
             if dfg_relais_avk in ["15 ≤ DFG < 30", "DFG < 15"]:
 
                 mode_prise_en_charge_relais = st.radio(
                     "Prise en charge du relais",
                     [
+
                         "Hospitalisation prévue",
                         "Prise en charge extrahospitalière"
                     ],
                     key="mode_prise_en_charge_relais"
                 )
 
-                # ===== Hospitalisation prévue ==
+    
                 if mode_prise_en_charge_relais == "Hospitalisation prévue":
 
-                    type_heparine_relais = "HNF IVSE"
+                    st.info(
+                        "HNF IVSE recommandée en cas d’hospitalisation prévue."
+                    )
 
-                # ===== Prise en charge extra hospitalière =====
+                    type_heparine_relais = st.radio(
+                        "Choix du relais",
+                        [
+                            "HNF IVSE",
+                            "HNF calcique SC",
+                            "HBPM"
+                        ],
+                        key="type_heparine_relais_hospit"
+                    )
+
+
+   
                 elif mode_prise_en_charge_relais == "Prise en charge extrahospitalière":
 
                     type_heparine_relais = st.radio(
@@ -4138,8 +4320,38 @@ Cas complexe si au moins un des éléments suivants est présent :
                             "HNF calcique SC",
                             "HBPM"
                         ],
-                        key="type_heparine_relais"
+                        key="type_heparine_relais_extra"
                     )
+
+
+                if type_heparine_relais == "HBPM":
+
+                    if dfg_relais_avk == "15 ≤ DFG < 30":
+
+                        schema_hbpm = st.radio(
+                            "HBPM SC à dose curative",
+                            [
+                                "Tinzaparine 175 UI/kg x 1/j",
+                                "Enoxaparine 100 UI/kg x 1/j"
+                            ],
+                            key="schema_hbpm_dfg_15_30"
+                        )
+
+                    elif dfg_relais_avk == "DFG < 15":
+
+                        schema_hbpm = st.radio(
+                            "HBPM SC à dose curative",
+                            [
+                                "Tinzaparine 175 UI/kg x 1/j"
+                            ],
+                            key="schema_hbpm_dfg_inf_15"
+                        )
+
+
+
+
+
+
 
 
 
@@ -4159,8 +4371,6 @@ Cas complexe si au moins un des éléments suivants est présent :
 
 
 
-
-
         if relais_avk and poids_kg >= 100:
             hnf_ivse_choisie = st.checkbox(
                 "HNF IVSE curative choisie",
@@ -4169,66 +4379,237 @@ Cas complexe si au moins un des éléments suivants est présent :
 
 
 
-        # ==== POST-OP======
+        # ==== POST OP======
 
         st.subheader("Post-opératoire")
 
+        relais_postop_indique = False
+        inr_ge_2_postop = False
+        chevauchement_non_acceptable = False
+        thromboprophylaxie_indiquee = False
 
-        reprise_avk_24h = st.checkbox(
-            "Reprise de l'AVK possible dans les 24 premières heures",
-            key="reprise_avk_24h"
+        reprise_avk_24h = st.radio(
+            "Reprise de l'AVK possible dans les 24 premières heures ?",
+            ["Oui", "Non"],
+            key="reprise_avk_24h_radio"
         )
 
+        reprise_avk_24h_bool = reprise_avk_24h == "Oui"
 
 
 
-        relais_postop_indique = st.checkbox(
-            "Héparine curative postopératoire indiquée",
-            key="relais_postop_indique"
-        )
+        raison_relais_postop = ""
+
+
+        # ===== FA =====
+
+        if indication_avk == "FA" and not reprise_avk_24h_bool:
+
+            relais_postop_indique = True
+
+            raison_relais_postop = (
+                "FA avec impossibilité de reprendre les AVK dans les 24 premières heures."
+            )
+
+
+        # ===== VALVE MECANIQUE =====
+
+        elif indication_avk == "VALVE_MECANIQUE":
+
+            valve_exception_sans_relais = (
+                valve_aortique_double_ailette
+                and rythme_sinusal
+                and not atcd_thrombotique_valve
+                and reprise_avk_24h_bool
+            )
+
+            if not valve_exception_sans_relais:
+
+                relais_postop_indique = True
+
+                raison_relais_postop = (
+                    "Valve mécanique : relais postopératoire curatif indiqué, "
+                    "sauf valve aortique mécanique à double ailette + rythme sinusal "
+                    "+ absence d'antécédent thrombotique lié à la valve "
+                    "+ reprise AVK possible dans les 24 h."
+                )
+
+
+        # === MTEV < 3 MOIS =====
+
+        elif indication_avk == "MTEV" and mtev_hr:
+  
+            relais_postop_indique = True
+
+            raison_relais_postop = (
+                "MTEV avec EP ou TVP proximale datant de moins de 3 mois."
+            )
+
+
+         # === DEFICIT PROTEINE C/S =====
+
+        elif indication_avk == "MTEV" and deficit_proteine_c_s:
+
+            relais_postop_indique = True
+
+            raison_relais_postop = (
+                "MTEV avec déficit en protéine C ou S."
+            )
+
+ 
+        if relais_postop_indique:
+
+            st.success(
+                " Héparine curative postopératoire indiquée, "
+                "à débuter de préférence 48 à 72 h après l’intervention."
+            )
+
+            if raison_relais_postop:
+                st.caption(raison_relais_postop)
+
+
+        else:
+
+            st.info(
+                "Pas d'indication automatique d'héparine curative postopératoire "
+                "retrouvée dans les règles précédentes."
+            )
+
+
+
+
+            indication_postop_medicale = st.checkbox(
+                "Indication médicale d'héparine curative postopératoire",
+                key="indication_postop_medicale"
+            )
+
+            if indication_postop_medicale:
+
+                relais_postop_indique = True
+
+                st.caption("""
+        - Voie entérale non disponible.
+        - Gestion du risque hémorragique plus simple avec des anticoagulants de demi-vie courte (HBPM, voire HNF), par exemple en présence de drains ou d'un risque élevé de reprise chirurgicale.
+        - Risque thrombo-embolique considéré comme trop élevé pour attendre que les AVK permettent d'obtenir une anticoagulation curative.
+        """)
+
+
 
         if relais_postop_indique:
-            st.caption("""
-- Voie entérale non disponible.
-- Gestion du risque hémorragique plus simple avec des anticoagulants de demi-vie courte (HBPM, voire HNF), par exemple en présence de drains ou d’un risque élevé de reprise chirurgicale. Les AVK sont repris une fois passée la période à risque.
-- Risque thrombo-embolique considéré comme trop élevé pour attendre que les AVK permettent d’obtenir une anticoagulation curative avec INR > 2.
-            """)
 
-
-
-        if relais_postop_indique:
-
-            inr_ge_2_postop = st.checkbox(
-                "AVK repris et premier INR ≥ 2",
-                key="inr_ge_2_postop"
+            st.markdown(
+                "**En attendant la reprise de l’anticoagulation curative**"
             )
 
-            chevauchement_non_acceptable = st.checkbox(
-                "Chevauchement héparine curative + AVK jugé non acceptable pendant la première semaine",
-                key="chevauchement_non_acceptable"
-            )
+            col_fleche, col_question = st.columns([0.06, 0.94])
+
+            with col_fleche:
+                st.markdown(
+                    """
+                    <div style="
+                        width: 28px;
+                        height: 28px;
+                        border: 2px solid #16883a;
+                        border-radius: 50%;
+                        color: #16883a;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 20px;
+                        font-weight: bold;
+                         margin-top: 6px;
+                    ">
+                        →
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            with col_question:
+                thromboprophylaxie_indiquee = st.checkbox(
+                    "Thromboprophylaxie veineuse indiquée en attendant la reprise de l’anticoagulation curative",
+                    key="thromboprophylaxie_indiquee"
+                )
+
+
+            if reprise_avk_24h_bool:
+
+                st.markdown(
+                    "**Compléments si reprise de l’AVK possible dans les 24 premières heures**"
+                )
+
+                # ---- AVK repris et INR ≥ 2 --
+                col_fleche, col_question = st.columns([0.06, 0.94])
+
+                with col_fleche:
+                    st.markdown(
+                        """
+                        <div style="
+                            width: 28px;
+                            height: 28px;
+                            border: 2px solid #16883a;
+                            border-radius: 50%;
+                            color: #16883a;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 20px;
+                            font-weight: bold;
+                            margin-top: 6px;
+                        ">
+                            →
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                with col_question:
+                    inr_ge_2_postop = st.checkbox(
+                        "AVK repris et premier INR ≥ 2",
+                        key="inr_ge_2_postop"
+                    )
+
+
+                # ---- Chevauchement héparine + AVK ----
+                col_fleche, col_question = st.columns([0.06, 0.94])
+
+                with col_fleche:
+                    st.markdown(
+                        """
+                        <div style="
+                            width: 28px;
+                            height: 28px;
+                            border: 2px solid #16883a;
+                            border-radius: 50%;
+                            color: #16883a;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 20px;
+                            font-weight: bold;
+                            margin-top: 6px;
+                        ">
+                            →
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                with col_question:
+                    chevauchement_non_acceptable = st.checkbox(
+                        "Chevauchement héparine curative + AVK jugé non acceptable pendant la première semaine",
+                        key="chevauchement_non_acceptable"
+                    )
+  
+                    if chevauchement_non_acceptable:
+                        st.caption(
+                            "Situations possibles : PTH, chirurgie du rachis, "
+                            "cure d’éventration complexe..."
+                        )
 
 
 
-        if chevauchement_non_acceptable:
-            st.caption("""
-- Situations possibles : PTH, chirurgie du rachis, cure d’éventration complexe...
-            """)
 
-
-        anticoag_curative_non_reprise = st.checkbox(
-            "Anticoagulation curative non encore reprise",
-            key="anticoag_curative_non_reprise"
-        )
-
-        if anticoag_curative_non_reprise:
-
-            thromboprophylaxie_indiquee = st.checkbox(
-                "Thromboprophylaxie veineuse indiquée",
-                key="thromboprophylaxie_indiquee"
-            )
-
-    
 # =========================
 # CONTEXTE PATIENT / CHIRURGIE
 # =========================
@@ -4485,29 +4866,9 @@ ctx = {
         or bool(technique_neuraxiale)
     ),
 
-    "inr_sup_seuil_avk": (
-        inr_disponible == "Oui"
-        and inr_valeur is not None
-        and (
-            (
-                (
-                    val_upper(spe) in ["NEUROCHIRURGIE", "RACHIS"]
-                    or bool(technique_neuraxiale)
-                )
-                and inr_valeur > 1.2
-            )
-            or
-            (
-                not (
-                    val_upper(spe) in ["NEUROCHIRURGIE", "RACHIS"]
-                    or bool(technique_neuraxiale)
-                )
-                and inr_valeur > 1.5
-            )
-        )
-    ),
+    "inr_sup_seuil_avk": False,
 
-    "reprise_avk_24h": reprise_avk_24h,
+    "reprise_avk_24h": reprise_avk_24h_bool,
     "mtev_relais_postop": mtev_relais_postop,
     "relais_postop_indique": relais_postop_indique,
     "inr_ge_2_postop": inr_ge_2_postop,
@@ -4908,6 +5269,13 @@ for r in resultats:
         au_moins_un_arret = True
 
 
+#date intervention que pr avk
+if avk_detecte and date_op:
+    lignes_pdf.append(
+        f"Intervention prévue le {date_op.strftime('%d/%m/%Y')}"
+    )
+
+
 
 phrase_pdf = ""
 
@@ -5080,8 +5448,8 @@ if resultats:
         nom = st.text_input("Nom prénom")
 
         medecin = st.text_input(
-            "Nom du médecin",
-            placeholder="Ex : Martin"
+            "Nom du médecin"
+            
         )
 
         date_doc = st.date_input(
@@ -5131,102 +5499,213 @@ if resultats:
                         placeholder="Ex : iode, latex, héparine..."
                     )
 
-        if st.button("Générer PDF"):
 
-            path = None
-            path_pharmacie = None
-            path_ide = None
 
-            # =========================
-            # ORDONNANCE PATIENT
-            # =========================
+# ========================================
+# TABLEAU PATIENT AVK PRE OP
+# ======================================
 
-            if creer_ordonnance_patient:
-                path = generer_pdf_patient(
-                    ville,
-                    date_doc.strftime("%d/%m/%Y"),
-                    civilite,
-                    nom,
-                    lignes_pdf,
-                    phrase_pdf,
-                    bilan_texte,
-                    scanner_texte,
-                    allergies_texte,
-                    medecin
+tableau_avk = []
+
+if avk_detecte and schema_relais and schema_relais.get("indique"):
+
+
+    for r in resultats:
+
+        code_atc = str(r.get("Code ATC", "")).upper().strip()
+
+        if code_atc.startswith("B01AA"):
+
+            jour_arret = str(r.get("Date", "")).strip()
+            medicament_avk = str(r.get("Médicament", "AVK")).strip()
+
+            if jour_arret.startswith("J-"):
+
+                nb_jours = extraire_nb_jours(jour_arret)
+
+                if nb_jours is not None:
+                    tableau_avk.append([
+                        f"J-{nb_jours}",
+                        f"Dernière prise de {medicament_avk}"
+                    ])
+
+            break
+
+    # ---------------------------------
+    # Relais choisi
+    # -------------------------------------------
+
+    molecule_relais = schema_relais.get("molecule")
+
+    injections = calculer_injections_relais(
+        schema_relais,
+        date_op
+    )
+
+    if injections:
+
+        premiere = injections[0]
+        derniere = injections[-1]
+
+        if molecule_relais == "Enoxaparine":
+            type_instruction = "HBPM curative – Enoxaparine"
+
+        elif molecule_relais == "Tinzaparine":
+            type_instruction = "HBPM curative – Tinzaparine"
+
+        elif molecule_relais == "HNF calcique":
+            type_instruction = "HNF calcique curative"
+
+        else:
+            type_instruction = "Héparine curative"
+
+        tableau_avk.append([
+            premiere["moment"],
+            f"Première injection de {type_instruction}"
+        ])
+
+        tableau_avk.append([
+            derniere["moment"],
+            f"Dernière injection préopératoire de {type_instruction}"
+        ])
+
+    # HNF IVSE : pas d'injection ponctuelle
+    elif molecule_relais == "HNF":
+
+        tableau_avk.append([
+            schema_relais.get("debut", "J-3"),
+            "Début de l’HNF IVSE curative"
+        ])
+
+        tableau_avk.append([
+            "J0",
+            "Arrêt de l’HNF IVSE 6 heures avant la procédure"
+        ])
+
+    # -----------------------------------------
+    # INR 
+
+
+    tableau_avk.append([
+        "J-1",
+        "Contrôle INR"
+    ])
+
+    tableau_avk.append([
+        "J-1 si INR > seuil",
+        "Vitamine K PO 2 à 5 mg"
+    ])
+
+    tableau_avk.append([
+        "J0",
+        "Contrôle INR si vitamine K administrée ; procédure si seuil atteint"
+    ])
+
+
+if st.button("Générer PDF"):
+
+    path = None
+    path_pharmacie = None
+    path_ide = None
+
+    # =================
+    # ORDONNANCE PATIENT
+    # =================
+
+    if creer_ordonnance_patient:
+        path = generer_pdf_patient(
+            ville,
+            date_doc.strftime("%d/%m/%Y"),
+            civilite,
+            nom,
+            lignes_pdf,
+            phrase_pdf,
+            bilan_texte,
+            scanner_texte,
+            allergies_texte,
+            medecin,
+            tableau_avk
+        )
+
+    # =================
+    # ORDO PHARMACIE
+    # =================
+
+    if creer_ordonnance_pharmacie and ordonnance_pharmacie:
+        path_pharmacie = generer_pdf_ordonnance_pharmacie(
+            ville,
+            date_doc.strftime("%d/%m/%Y"),
+            civilite,
+            nom,
+            ordonnance_pharmacie,
+            medecin
+        )
+
+    # ===================
+    # PRESCRIPTION INFIRMIERE
+    # ===================
+
+    if creer_prescription_ide and prescription_ide:
+        path_ide = generer_pdf_prescription_ide(
+            ville,
+            date_doc.strftime("%d/%m/%Y"),
+            civilite,
+            nom,
+            prescription_ide,
+            medecin
+        )
+
+    # ===================
+    # TELECHARGEMENT PATIENT
+    # ===================
+
+    if creer_ordonnance_patient:
+        if path and os.path.exists(path):
+            with open(path, "rb") as f:
+                st.download_button(
+                    "Télécharger l'ordonnance patient",
+                    f,
+                    "ordonnance_patient.pdf"
                 )
+        else:
+            st.error("L'ordonnance patient n’a pas pu être générée.")
 
-            # =========================
-            # ORDO PHARMACIE
-            # =========================
+    # ======================
+    # TELECHARGEMENT PHARMACIE
+    # ======================
 
-            if creer_ordonnance_pharmacie and ordonnance_pharmacie:
-                path_pharmacie = generer_pdf_ordonnance_pharmacie(
-                    ville,
-                    date_doc.strftime("%d/%m/%Y"),
-                    civilite,
-                    nom,
-                    ordonnance_pharmacie,
-                    medecin
+    if creer_ordonnance_pharmacie:
+        if path_pharmacie and os.path.exists(path_pharmacie):
+            with open(path_pharmacie, "rb") as f:
+                st.download_button(
+                    "Télécharger l'ordonnance du relais",
+                    f,
+                    "ordonnance_relais.pdf"
                 )
+        else:
+            st.error("L'ordonnance du relais n’a pas pu être générée.")
 
-            # =========================
-            # PRESCRIPTION IDE
-            # =========================
+    # =========================
+    # TELECHARGEMENT INFIRMIER
+    # =========================
 
-            if creer_prescription_ide and prescription_ide:
-                path_ide = generer_pdf_prescription_ide(
-                    ville,
-                    date_doc.strftime("%d/%m/%Y"),
-                    civilite,
-                    nom,
-                    prescription_ide,
-                    medecin
+    if creer_prescription_ide:
+        if path_ide and os.path.exists(path_ide):
+            with open(path_ide, "rb") as f:
+                st.download_button(
+                    "Télécharger la prescription IDE",
+                    f,
+                    "prescription_ide.pdf"
                 )
+        else:
+            st.error("La prescription IDE n’a pas pu être générée.")
 
-            # =========================
-            # TELECHARGEMENT PATIENT
-            # =========================
 
-            if creer_ordonnance_patient:
-                if path and os.path.exists(path):
-                    with open(path, "rb") as f:
-                        st.download_button(
-                            "Télécharger l'ordonnance patient",
-                            f,
-                            "ordonnance_patient.pdf"
-                        )
-                else:
-                    st.error("L'ordonnance patient n’a pas pu être générée.")
 
-            # =========================
-            # TELECHARGEMENT PHARMACIE
-            # =========================
 
-            if creer_ordonnance_pharmacie:
-                if path_pharmacie and os.path.exists(path_pharmacie):
-                    with open(path_pharmacie, "rb") as f:
-                        st.download_button(
-                            "Télécharger l'ordonnance du relais",
-                            f,
-                            "ordonnance_relais.pdf"
-                        )
-                else:
-                    st.error("L'ordonnance du relais n’a pas pu être générée.")
 
-            # =========================
-            # TELECHARGEMENT IDE
-            # =========================
 
-            if creer_prescription_ide:
-                if path_ide and os.path.exists(path_ide):
-                    with open(path_ide, "rb") as f:
-                        st.download_button(
-                            "Télécharger la prescription IDE",
-                            f,
-                            "prescription_ide.pdf"
-                        )
-                else:
-                    st.error("La prescription IDE n’a pas pu être générée.")
+
 
 
 
@@ -5389,11 +5868,20 @@ if resultats:
                 "\n\n<div style='background-color:#e7f3ff; padding:10px; border-radius:8px; "
                 "border-left:4px solid #1f77b4; font-size:13px;'>"
                 "<b>Note AVK :</b><br>"
-                "Faire un dosage INR la veille de l’intervention.<br>"
-                "Si INR > au seuil, alors vitamine K 2 à 5 mg per os le soir,<br>"
-                "puis contrôle INR le lendemain matin."
+                "Faire un dosage INR à J-1, la veille de l’intervention.<br>"
+                "<b>Seul cet INR à J-1 doit être utilisé pour décider d’une correction par vitamine   K.</b><br>"
+                "Si l’INR à J-1 est supérieur au seuil hémostatique : vitamine K 2 à 5 mg per os le soir,<br>"
+                "puis contrôle de l’INR le lendemain matin."
                 "</div>"
             )
+
+
+
+
+
+
+
+
 
         c6.markdown(note_affichee, unsafe_allow_html=True)
 
