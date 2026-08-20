@@ -1375,7 +1375,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: "RELAIS PREOPERATOIRE"
       jour: "J-3"
       note: |
-        Réaliser un relais pré-procédural par HBPM à dose curative : première injection le soir de J-3 ; dernière injection au plus tard le matin de J-1 ; pas de contrôle systématique de l’activité anti-Xa le matin de la procédure.
+        Un relais héparinique pré-procédural à dose curative est indiqué.
 
     - if:
         indication_avk: "FA"
@@ -1392,7 +1392,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: "REPRISE AVK"
       jour: "J0 / J1"
       note: |
-        Reprendre l’AVK dans les 24 premières heures à la posologie habituelle, sans dose de charge et sans relais héparinique à dose curative, qu’il existe ou non un antécédent d’AVC.
+        Reprendre l’AVK dans les 24 premières heures à la posologie habituelle, sans dose de charge.
 
     - if:
         indication_avk: "FA"
@@ -1774,7 +1774,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       action: "RELAIS POSTOPERATOIRE"
       jour: "H48-H72"
       note: |
-        Débuter idéalement 48 à 72 h après la procédure.
+        Réaliser une anticoagulation postopératoire par héparine à dose curative, à débuter idéalement 48 à 72 h après la procédure.
 
     - if:
         relais_postop_indique: true
