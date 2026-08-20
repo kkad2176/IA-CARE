@@ -78,30 +78,62 @@ regles_medicaments:
 - categorie: SRAA (IEC / ARA II)
   source_ref: regle_1_sraa
   atc_prefix:
-  - C09AA
-  - C09CA
+    - C09AA
+    - C09CA
+
   conditions:
-  - if:
-      ind_sraa: HTA
-    action: ARRET
-    jour: '>=12h'
-    note: Risque d'hypotension peropératoire. Pour certaines équipes, poursuite possible sauf si chirurgie à haut risque d’hypotension artérielle ou patient à risque de mauvaise tolérance.
-  - default: true
-    action: POURSUITE
-    jour: J0
-    note: 'Indication Insuffisance Cardiaque : maintien recommandé.'
+
+    - if:
+        ind_sraa: HTA
+        choix_sraa_hta: "Arrêter"
+      action: ARRET
+      jour: ">=12h"
+      note: "Arrêt préopératoire choisi par l’anesthésiste."
+
+    - if:
+        ind_sraa: HTA
+        choix_sraa_hta: "Poursuivre"
+      action: POURSUITE
+      jour: J0
+      note: "Poursuite préopératoire choisie par l’anesthésiste."
+
+    - if:
+        ind_sraa: "Insuffisance Cardiaque"
+      action: POURSUITE
+      jour: J0
+      note: "Indication Insuffisance Cardiaque : maintien recommandé."
 
 
 
 - categorie: "SRAA (Inhibiteurs du système rénine-angiotensine)"
   source_ref: "regle_1_sraa"
   atc_codes:
-    - C09BA03
+    - C09BA04
+
   conditions:
-    - if: {atc_codes: [C09BA03]}
-      action: "ARRET"
-      jour: "J-1"
-      precision: "dernière prise la veille de l’intervention (J-1)."
+
+    - if:
+        ind_sraa: HTA
+        choix_sraa_hta: "Arrêter"
+      action: ARRET
+      jour: ">=12h"
+      precision: "Arrêt préopératoire choisi par l’anesthésiste."
+
+    - if:
+        ind_sraa: HTA
+        choix_sraa_hta: "Poursuivre"
+      action: POURSUITE
+      jour: J0
+      precision: "Poursuite préopératoire choisie par l’anesthésiste."
+
+    - if:
+        ind_sraa: "Insuffisance Cardiaque"
+      action: POURSUITE
+      jour: J0
+      precision: "Indication Insuffisance Cardiaque : maintien recommandé."
+
+
+
 
 
 
