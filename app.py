@@ -2168,65 +2168,366 @@ def generer_prescription_ide(schema_relais, poids_kg=None, date_op=None):
     return "\n".join(lignes)
 
 
-
 def moteur_yaml(atc, ctx):
     atc = str(atc).upper().strip()
     liste_regles = REGLES.get("regles_medicaments") or []
 
+
+    # ================= AOD =================
+ 
+
+    if atc.startswith(("B01AE", "B01AF")):
+
+        matchs_aod = []
+        sources_aod = []
+
+        for famille_aod in liste_regles:
+
+            match_atc_aod = False
+
+            if famille_aod.get("atc_prefix"):
+                match_atc_aod = any(
+                    atc.startswith(str(p).upper().strip())
+                    for p in famille_aod["atc_prefix"]
+                )
+
+            if famille_aod.get("atc_codes"):
+                match_atc_aod = atc in [
+                    str(c).upper().strip()
+                    for c in famille_aod["atc_codes"]
+                ]
+
+
+       
+
+            if (
+                famille_aod.get("conditions")
+                and not famille_aod.get("atc_prefix")
+                and not famille_aod.get("atc_codes")
+            ):
+
+                categorie_aod = str(
+                    famille_aod.get("categorie", "")
+                ).upper()
+
+                conditions_aod = famille_aod.get("conditions", [])
+
+                cles_aod = {
+                    "reprise_aod_differee",
+                    "aod_repris",
+                    "thromboprophylaxie_indiquee_aod",
+                    "heparine_curative_indiquee",
+                    "dfg_ge_30",
+                    "dfg_ge_50",
+                    "dfg_30_49",
+                    "dfg_15_29",
+                    "dfg_inf_15",
+                    "poids_ge_100",
+                    "poids_inf_50",
+                    "indication_aod",
+                }
+
+                contient_condition_aod = any(
+                    any(
+                        cle in cles_aod
+                        for cle in (cond.get("if", {}) or {}).keys()
+                    )
+                    for cond in conditions_aod
+                    if isinstance(cond, dict)
+                )
+
+                if "AOD" in categorie_aod or contient_condition_aod:
+                    match_atc_aod = True
+
+
+            if not match_atc_aod:
+                continue
+
+
+            for cond in famille_aod.get("conditions", []):
+
+                if "if" not in cond:
+                    continue
+
+                test_regle = {
+                    "conditions": [cond]
+                }
+
+                match = conditions_match(
+                    ctx,
+                    test_regle,
+                    atc=atc
+                )
+
+                if match:
+                    matchs_aod.append(match)
+
+
+            # ================================
+            # Sources AOD
+            # ================================
+
+            source_url = famille_aod.get("source_url")
+
+            if source_url:
+
+                if isinstance(source_url, list):
+
+                    sources_aod.extend([
+                        str(s).strip()
+                        for s in source_url
+                        if str(s).strip()
+                    ])
+
+                else:
+
+                    sources_aod.append(
+                        str(source_url).strip()
+                    )
+
+
+            elif famille_aod.get("sources"):
+
+                sources = famille_aod.get("sources", [])
+
+                if isinstance(sources, list):
+
+                    sources_aod.extend([
+                        str(s).strip()
+                        for s in sources
+                        if str(s).strip()
+                    ])
+
+
+            elif famille_aod.get("source_ref"):
+
+                ref = famille_aod.get("source_ref")
+
+                source_table = REGLES.get(
+                    "sources_regles",
+                    {}
+                )
+
+                if ref in source_table:
+
+                    sources = source_table[ref].get(
+                        "sources",
+                        []
+                    )
+
+                    if isinstance(sources, list):
+
+                        sources_aod.extend([
+                            str(s).strip()
+                            for s in sources
+                            if str(s).strip()
+                        ])
+
+
+        if matchs_aod:
+
+            principale = None
+
+
+            # ================================
+            # ARRET préop prioritaire
+            # ================================
+
+            for m in matchs_aod:
+
+                if (
+                    str(
+                        m.get("action", "")
+                    ).upper().strip()
+                    == "ARRET"
+                ):
+
+                    principale = m
+                    break
+
+
+            if principale is None:
+                principale = matchs_aod[0]
+
+
+
+            notes = []
+
+            for m in matchs_aod:
+
+                texte = (
+                    m.get("precision")
+                    or m.get("note")
+                    or ""
+                )
+
+                if texte and texte not in notes:
+                    notes.append(texte)
+
+
+            sources_aod = list(
+                dict.fromkeys(
+                    s
+                    for s in sources_aod
+                    if s
+                )
+            )
+
+
+            return {
+                "action": principale.get(
+                    "action",
+                    "INFO"
+                ),
+                "jour": principale.get(
+                    "jour",
+                    ""
+                ),
+                "note": "\n\n".join(notes),
+                "source": " | ".join(sources_aod),
+            }
+
+
+
+
     for famille in liste_regles:
+
         match_atc = False
 
         if famille.get("atc_prefix"):
-            match_atc = any(atc.startswith(str(p).upper().strip()) for p in famille["atc_prefix"])
+
+            match_atc = any(
+                atc.startswith(
+                    str(p).upper().strip()
+                )
+                for p in famille["atc_prefix"]
+            )
 
         if famille.get("atc_codes"):
-            match_atc = atc in [str(c).upper().strip() for c in famille["atc_codes"]]
 
-        if famille.get("conditions") and not famille.get("atc_prefix") and not famille.get("atc_codes"):
+            match_atc = atc in [
+                str(c).upper().strip()
+                for c in famille["atc_codes"]
+            ]
+
+        if (
+            famille.get("conditions")
+            and not famille.get("atc_prefix")
+            and not famille.get("atc_codes")
+        ):
             match_atc = True
 
         if not match_atc:
             continue
 
+
         lien_sfar = ""
+
         source_url = famille.get("source_url")
+
         if source_url:
+
             if isinstance(source_url, list):
-                lien_sfar = " | ".join([str(s).strip() for s in source_url if str(s).strip()])
+
+                lien_sfar = " | ".join([
+                    str(s).strip()
+                    for s in source_url
+                    if str(s).strip()
+                ])
+
             else:
-                lien_sfar = str(source_url).strip()
+
+                lien_sfar = str(
+                    source_url
+                ).strip()
+
+
         elif famille.get("sources"):
-            sources = famille.get("sources", [])
+
+            sources = famille.get(
+                "sources",
+                []
+            )
+
             if isinstance(sources, list):
-                lien_sfar = " | ".join([str(s).strip() for s in sources if str(s).strip()])
+
+                lien_sfar = " | ".join([
+                    str(s).strip()
+                    for s in sources
+                    if str(s).strip()
+                ])
+
+
         elif famille.get("source_ref"):
+
             ref = famille.get("source_ref")
-            source_table = REGLES.get("sources_regles", {})
+
+            source_table = REGLES.get(
+                "sources_regles",
+                {}
+            )
+
             if ref in source_table:
-                sources = source_table[ref].get("sources", [])
+
+                sources = source_table[
+                    ref
+                ].get(
+                    "sources",
+                    []
+                )
+
                 if isinstance(sources, list):
-                    lien_sfar = " | ".join([str(s).strip() for s in sources if str(s).strip()])
+
+                    lien_sfar = " | ".join([
+                        str(s).strip()
+                        for s in sources
+                        if str(s).strip()
+                    ])
+
 
         res = {
-            "action": famille.get("action", "POURSUITE"),
-            "jour": famille.get("jour", "J0"),
-            "note": famille.get("precision") or famille.get("note") or "-",
+            "action": famille.get(
+                "action",
+                "POURSUITE"
+            ),
+            "jour": famille.get(
+                "jour",
+                "J0"
+            ),
+            "note": (
+                famille.get("precision")
+                or famille.get("note")
+                or "-"
+            ),
             "source": lien_sfar,
         }
 
-        res_cond = conditions_match(ctx, famille, atc=atc)
-    
+
+        res_cond = conditions_match(
+            ctx,
+            famille,
+            atc=atc
+        )
+
+
+
         # ================= AVK =================
 
         if atc.startswith("B01AA"):
 
             matchs = []
 
-            for cond in famille.get("conditions", []):
+            for cond in famille.get(
+                "conditions",
+                []
+            ):
+
                 if "if" not in cond:
                     continue
 
-                test_regle = {"conditions": [cond]}
+                test_regle = {
+                    "conditions": [cond]
+                }
 
                 match = conditions_match(
                     ctx,
@@ -2242,68 +2543,126 @@ def moteur_yaml(atc, ctx):
 
                 # == PRIORITE REGLES SPE =====
 
-                indication = ctx.get("indication_avk")
+                indication = ctx.get(
+                    "indication_avk"
+                )
 
                 actions_specifiques = {
                     m.get("action")
                     for m in matchs
-                    if (m.get("if", {}) or {}).get("indication_avk") == indication
+                    if (
+                        (m.get("if", {}) or {})
+                        .get("indication_avk")
+                        == indication
+                    )
                 }
 
+
                 matchs = [
-                    m for m in matchs
+                    m
+                    for m in matchs
                     if not (
-                        (m.get("if", {}) or {}).get("indication_avk") is None
-                        and m.get("action") in actions_specifiques
-                        and m.get("action") in ["REPRISE AVK", "RELAIS POSTOPERATOIRE"]
+                        (m.get("if", {}) or {})
+                        .get("indication_avk") is None
+
+                        and m.get("action")
+                        in actions_specifiques
+
+                        and m.get("action")
+                        in [
+                            "REPRISE AVK",
+                            "RELAIS POSTOPERATOIRE"
+                        ]
                     )
                 ]
 
 
 
-                dfg_relais = ctx.get("dfg_relais_avk")
+                dfg_relais = ctx.get(
+                    "dfg_relais_avk"
+                )
 
-                if dfg_relais in ["15 ≤ DFG < 30", "DFG < 15"]:
+
+                if dfg_relais in [
+                    "15 ≤ DFG < 30",
+                    "DFG < 15"
+                ]:
 
                     matchs = [
-                        m for m in matchs
+                        m
+                        for m in matchs
                         if not (
-                            m.get("action") == "RELAIS PREOPERATOIRE"
-                            and "Réaliser un relais pré-procédural par HBPM"
-                            in (m.get("precision") or m.get("note") or "")
+                            m.get("action")
+                            == "RELAIS PREOPERATOIRE"
+
+                            and
+
+                            "Réaliser un relais pré-procédural par HBPM"
+                            in (
+                                m.get("precision")
+                                or m.get("note")
+                                or ""
+                            )
                         )
                     ]
 
 
 
-                if dfg_relais in ["15 ≤ DFG < 30", "DFG < 15"]:
+                if dfg_relais in [
+                    "15 ≤ DFG < 30",
+                    "DFG < 15"
+                ]:
 
                     relais_postop_renal_present = any(
-                        m.get("action") == "ADAPTATION RELAIS POSTOPERATOIRE"
+                        m.get("action")
+                        == "ADAPTATION RELAIS POSTOPERATOIRE"
                         for m in matchs
                     )
 
+
                     if relais_postop_renal_present:
+
                         matchs = [
-                            m for m in matchs
-                            if m.get("action") != "RELAIS POSTOPERATOIRE"
+                            m
+                            for m in matchs
+                            if m.get("action")
+                            != "RELAIS POSTOPERATOIRE"
                         ]
 
 
+
                 arret_heparine_deja_dans_specifique = any(
-                    (m.get("if", {}) or {}).get("indication_avk") == indication
-                    and "Arrêter l’héparine dès le premier INR ≥ 2" in (
-                        m.get("precision") or m.get("note") or ""
+
+                    (m.get("if", {}) or {})
+                    .get("indication_avk")
+                    == indication
+
+                    and
+
+                    "Arrêter l’héparine dès le premier INR ≥ 2"
+                    in (
+                        m.get("precision")
+                        or m.get("note")
+                        or ""
                     )
+
                     for m in matchs
                 )
 
+
                 if arret_heparine_deja_dans_specifique:
+
                     matchs = [
-                        m for m in matchs
+                        m
+                        for m in matchs
                         if not (
-                            (m.get("if", {}) or {}).get("indication_avk") is None
-                            and m.get("action") == "ARRET HEPARINE"
+                            (m.get("if", {}) or {})
+                            .get("indication_avk") is None
+
+                            and
+
+                            m.get("action")
+                            == "ARRET HEPARINE"
                         )
                     ]
 
@@ -2312,36 +2671,78 @@ def moteur_yaml(atc, ctx):
 
 
 
-
                 # LVAD prioritaire
-                if ctx.get("indication_avk") == "LVAD":
-                    for m in matchs:
-                        bloc_if = m.get("if", {}) or {}
 
-                        if bloc_if.get("indication_avk") == "LVAD":
+                if ctx.get(
+                    "indication_avk"
+                ) == "LVAD":
+
+                    for m in matchs:
+
+                        bloc_if = (
+                            m.get(
+                                "if",
+                                {}
+                            )
+                            or {}
+                        )
+
+                        if (
+                            bloc_if.get(
+                                "indication_avk"
+                            )
+                            == "LVAD"
+                        ):
+
                             principale = m
                             break
+
+
 
                 # Sinon : arrêt/poursuite AVK
-                if principale is None:
-                    for m in matchs:
-                        bloc_if = m.get("if", {}) or {}
 
-                        if "atc_codes" in bloc_if or (
-                            "r_hem" in bloc_if and len(bloc_if) == 1
+                if principale is None:
+
+                    for m in matchs:
+
+                        bloc_if = (
+                            m.get(
+                                "if",
+                                {}
+                            )
+                            or {}
+                        )
+
+                        if (
+                            "atc_codes"
+                            in bloc_if
+
+                            or
+
+                            (
+                                "r_hem"
+                                in bloc_if
+                                and len(
+                                    bloc_if
+                                ) == 1
+                            )
                         ):
+
                             principale = m
                             break
+
 
                 if principale is None:
                     principale = matchs[0]
 
 
-            # ================================
-            # priorité chrono avk 
-            # ==========================================
+
+                # ================================
+                # priorité chrono avk
+                # ==========================================
 
                 priorite_action_avk = {
+
                     "ARRET": 10,
                     "ARRET + RELAI": 10,
 
@@ -2371,57 +2772,97 @@ def moteur_yaml(atc, ctx):
                     "THROMBOPROPHYLAXIE": 90,
                 }
 
+
                 matchs = sorted(
                     matchs,
-                    key=lambda m: priorite_action_avk.get(
-                        str(m.get("action", "")).upper().strip(),
+                    key=lambda m:
+                    priorite_action_avk.get(
+                        str(
+                            m.get(
+                                "action",
+                                ""
+                            )
+                        ).upper().strip(),
                         50
                     )
                 )
 
 
 
-
-
-  
                 notes = []
 
                 for m in matchs:
-                    texte = m.get("precision") or m.get("note") or ""
-  
-                    if texte and texte not in notes:
+
+                    texte = (
+                        m.get("precision")
+                        or m.get("note")
+                        or ""
+                    )
+
+                    if (
+                        texte
+                        and texte not in notes
+                    ):
                         notes.append(texte)
 
+
                 return {
-                    "action": principale.get("action", res["action"]),
-                    "jour": principale.get("jour", res["jour"]),
-                    "note": "\n\n".join(notes),
+                    "action": principale.get(
+                        "action",
+                        res["action"]
+                    ),
+                    "jour": principale.get(
+                        "jour",
+                        res["jour"]
+                    ),
+                    "note": "\n\n".join(
+                        notes
+                    ),
                     "source": lien_sfar,
                 }
 
 
-         # ================= AUTRES MEDICAMENTS =================
 
-        res_cond = conditions_match(ctx, famille, atc=atc)
+
+        # ================= AUTRES MEDICAMENTS =================
+
+        res_cond = conditions_match(
+            ctx,
+            famille,
+            atc=atc
+        )
+
 
         if res_cond:
+
             return {
-                "action": res_cond.get("action", res["action"]),
-                "jour": res_cond.get("jour", res["jour"]),
-                "note": res_cond.get("precision") or res_cond.get("note") or res["note"],
+                "action": res_cond.get(
+                    "action",
+                    res["action"]
+                ),
+                "jour": res_cond.get(
+                    "jour",
+                    res["jour"]
+                ),
+                "note": (
+                    res_cond.get("precision")
+                    or res_cond.get("note")
+                    or res["note"]
+                ),
                 "source": lien_sfar,
             }
-
-
-
-
 
 
 
         if not famille.get("conditions"):
             return res
 
+
     return None
+
+
+
+
 
 def moteur_global(atc, ctx):
     atc_clean = str(atc or "").upper().strip()
@@ -4091,19 +4532,13 @@ schema_hbpm = None
 reprise_avk_24h_bool = False
 
 
+
+
 if avk_detecte:
     st.divider()
     st.header("Anti-vitamine K (AVK)")
 
-    st.subheader("Poids")
 
-    poids_kg = st.number_input(
-        "Poids du patient (kg) si connu",
-        min_value=0,
-        value=0,
-        step=1,
-        key="poids_kg"
-    )
 
     facteur_hemorragique_supplementaire = False
 
@@ -5055,28 +5490,527 @@ aod_detecte = any(
 # =========================
 
 dfg_aod = ""
+aod_repris = False
 
 if aod_detecte:
     st.divider()
     st.header("AOD - fonction rénale")
+
+
+    poids_aod_kg = st.number_input(
+        "Poids du patient (kg) si connu",
+        min_value=0,
+        value=0,
+        step=1,
+        key="poids_aod_kg"
+    )
+
+    with st.expander("Rappel posologie AOD selon DFGe"):
+
+        st.info(
+            "Vérifier que la posologie de l’AOD est adaptée au DFGe."
+        )
+
+        st.markdown("### Posologies des AOD dans la FA adaptées au DFG estimé")
+
+        tableau_aod_dfg = pd.DataFrame(
+            {
+                "": [
+                    "Élimination rénale",
+                    "DFGe > 50 ml/min/1,73 m²",
+                    "IRC modérée — DFGe = 30–50 ml/min/1,73 m²",
+                    "IRC sévère — DFGe = 15–29 ml/min/1,73 m²",
+                    "IRC terminale — DFGe < 15 ml/min/1,73 m²",
+                ],
+
+                "Apixaban": [
+                    "25 %",
+                    "5 mg x 2/j ¹",
+                    "5 mg x 2/j ¹",
+                    "2,5 mg x 2/j ³",
+                    "Hors AMM — 2,5 mg x 2/j ⁴",
+                ],
+
+                "Rivaroxaban": [
+                    "33 %",
+                    "20 mg x 1/j",
+                    "15 mg x 1/j",
+                    "15 mg x 1/j",
+                    "Hors AMM — 15 mg x 1/j ⁴",
+                ],
+
+                "Edoxaban": [
+                    "50 %",
+                    "60 mg x 1/j",
+                    "30 mg x 1/j",
+                    "30 mg x 1/j",
+                    "NR",
+                ],
+
+                "Dabigatran": [
+                    "> 85 %",
+                    "150 mg x 2/j ²",
+                    "110 mg x 2/j",
+                    "NR",
+                    "NR",
+                ],
+            }
+        )
+
+        st.dataframe(
+            tableau_aod_dfg,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.caption(
+            "¹ 2,5 mg x 2/j si 2 facteurs de risque parmi : âge > 80 ans ; "
+            "poids < 60 kg ; créatininémie > 133 µmol/L."
+        ) 
+
+        st.caption(
+            "² 110 mg x 2/j si âge > 80 ans ou inhibiteurs de la P-gp."
+        )
+
+        st.caption(
+            "³ ANSM et recommandations ESC / KDIGO."
+        )
+
+        st.caption(
+            "⁴ Utilisation hors AMM ; l’apixaban et le rivaroxaban sont autorisés "
+            "aux USA (FDA)."
+        )
+
+        st.caption("NR : non recommandé.")
+
+
+
+
+
+
 
     dfg_aod = st.radio(
         "DFG du patient",
         [
             "DFG > 50",
             "30 ≤ DFG ≤ 50",
-            "DFG < 30",
+            "15 ≤ DFG < 30",
+            "DFG < 15",
             "DFG inconnu"
         ],
         key="dfg_aod"
     )
 
-# Variables attendues par le YAML AOD
+
+
+    # =========================
+    # AOD reprise postop 
+    # =========================
+
+    reprise_aod_differee = st.checkbox(
+        "Reprise de l’AOD différée",
+        key="reprise_aod_differee"
+    )
+
+    aod_repris = st.checkbox(
+        "AOD repris",
+        key="aod_repris"
+    )
+
+    if reprise_aod_differee:
+        thromboprophylaxie_indiquee_aod = st.checkbox(
+            "Thromboprophylaxie indiquée",
+            key="thromboprophylaxie_indiquee_aod"
+        )
+
+        heparine_curative_indiquee = st.checkbox(
+            "Héparine curative indiquée",
+            key="heparine_curative_indiquee"
+        )
+
+
 ctx["dfg_connu"] = dfg_aod != "DFG inconnu" and dfg_aod != ""
 ctx["dfg_ge_30"] = dfg_aod in ["DFG > 50", "30 ≤ DFG ≤ 50"]
-ctx["dfg_inf_30"] = dfg_aod == "DFG < 30"
+
+ctx["dfg_inf_30"] = dfg_aod in [
+    "15 ≤ DFG < 30",
+    "DFG < 15"
+]
+
 ctx["dfg_ge_50"] = dfg_aod == "DFG > 50"
 ctx["dfg_30_49"] = dfg_aod == "30 ≤ DFG ≤ 50"
+ctx["dfg_15_29"] = dfg_aod == "15 ≤ DFG < 30"
+
+ctx["dfg_inf_15"] = dfg_aod == "DFG < 15"
+
+ctx["reprise_aod_differee"] = locals().get("reprise_aod_differee", False)
+
+ctx["aod_repris"] = locals().get("aod_repris", False)
+ctx["thromboprophylaxie_indiquee_aod"] = locals().get("thromboprophylaxie_indiquee_aod", False)
+ctx["heparine_curative_indiquee"] = locals().get("heparine_curative_indiquee", False)
+
+
+ctx["poids_ge_100"] = bool(aod_detecte and poids_aod_kg >= 100)
+ctx["poids_inf_50"] = bool(aod_detecte and 0 < poids_aod_kg < 50)
+
+
+# =========================
+# AOD 
+# ====================
+
+indication_aod = ""
+FA_ATCD_AVC_ischemique = False
+FA_delai_depuis_AVC_ischemique_mois = None
+procedure_differable_sans_risque_vital_fonctionnel = False
+FA_procedure_risque_eleve_terminee = False
+FA_coronaropathie = False
+MTEV_cas_complexe = False
+MTEV_type = ""
+MTEV_delai_mois = None
+MTEV_EP_TVP_proximale_moins_3_mois = False
+MTEV_EP_TVP_proximale_moins_1_mois = False
+MTEV_procedure_differable_sans_risque_vital_fonctionnel = False
+MTEV_procedure_risque_eleve_terminee = False
+MTEV_procedure_maintenue = False
+MTEV_filtre_cave_mis_en_place = False
+MTEV_anticoagulation_curative_reprise = False
+MTEV_nouvel_arret_non_prevu_court_terme = False
+
+MTEV_TVP_distale_symptomatique = False
+MTEV_TVP_distale_procedure_differable = False
+MTEV_risque_thromboembolique_veineux_tres_eleve = False
+
+
+if aod_detecte:
+    st.divider()
+    st.header("AOD - indication")
+
+    indication_aod = st.radio(
+        "Indication du traitement par AOD",
+        [
+            "FA",
+            "MTEV",
+            "Autre"
+        ],
+        key="indication_aod"
+    )
+
+    if indication_aod == "FA":
+        FA_ATCD_AVC_ischemique_ui = st.radio(
+            "Antécédent d'AVC ischémique ?",
+            ["Non", "Oui"],
+            key="FA_ATCD_AVC_ischemique"
+        )
+
+        FA_ATCD_AVC_ischemique = (
+            FA_ATCD_AVC_ischemique_ui == "Oui"
+        )
+
+        if FA_ATCD_AVC_ischemique:
+            FA_delai_depuis_AVC_ischemique_mois = st.number_input(
+                "Délai depuis l'AVC ischémique (mois)",
+                min_value=0.0,
+                step=0.5,
+                key="FA_delai_depuis_AVC_ischemique_mois"
+            )
+
+            if FA_delai_depuis_AVC_ischemique_mois < 3:
+                procedure_differable_ui = st.radio(
+                    "La procédure peut-elle être différée sans risque vital ou fonctionnel ?",
+                    ["Non", "Oui"],
+                    key="procedure_differable_sans_risque_vital_fonctionnel"
+                )
+
+                procedure_differable_sans_risque_vital_fonctionnel = (
+                    procedure_differable_ui == "Oui"
+                )
+
+        # =========================
+        # FA 3
+        # =========================
+        if normaliser_risque_yaml(risque_aod_avk) in [
+            "ELEVE",
+            "IMPORTANT",
+            "MAJEUR"
+        ]:
+            FA_procedure_risque_eleve_terminee = st.checkbox(
+                "Procédure à risque hémorragique élevé terminée",
+                key="FA_procedure_risque_eleve_terminee"
+            )
+
+        # =========================
+        # FA 4 coronaropathie
+        # =========================
+        FA_coronaropathie_ui = st.radio(
+            "Coronaropathie associée ?",
+            ["Non", "Oui"],
+            key="FA_coronaropathie"
+        )
+
+        FA_coronaropathie = (
+            FA_coronaropathie_ui == "Oui"
+        )
+
+
+    if indication_aod == "MTEV":
+
+           
+
+        MTEV_type = st.radio(
+            "Type de maladie thromboembolique veineuse",
+            [
+                "EP",
+                "TVP proximale",
+                "TVP distale",
+                "Autre"
+            ],
+            key="MTEV_type"
+        )
+
+        MTEV_delai_mois = st.number_input(
+            "Délai depuis l'EP ou la TVP (mois)",
+            min_value=0.0,
+            step=0.5,
+            key="MTEV_delai_mois"
+        )
+
+        MTEV_EP_TVP_proximale_moins_3_mois = (
+            MTEV_type in ["EP", "TVP proximale"]
+            and MTEV_delai_mois < 3
+        )
+
+        MTEV_EP_TVP_proximale_moins_1_mois = (
+            MTEV_type in ["EP", "TVP proximale"]
+            and MTEV_delai_mois < 1
+        )
+
+        MTEV_risque_thromboembolique_veineux_tres_eleve = (
+            MTEV_EP_TVP_proximale_moins_1_mois
+        )
+
+       
+        # =========================
+        # MTEV 6
+        # ====================
+
+        if (
+            MTEV_EP_TVP_proximale_moins_1_mois
+            and normaliser_risque_yaml(risque_aod_avk) in [
+                "ELEVE",
+                "IMPORTANT",
+                "MAJEUR"
+            ]
+        ):
+            MTEV_procedure_maintenue_ui = st.radio(
+                "La procédure est-elle maintenue ?",
+                ["Non", "Oui"],
+                key="MTEV_procedure_maintenue"
+            )
+
+            MTEV_procedure_maintenue = (
+                MTEV_procedure_maintenue_ui == "Oui"
+            )
+
+
+
+        # =========================
+        # MTEV 2 procédure différable
+        # =========================
+
+        if MTEV_EP_TVP_proximale_moins_3_mois:
+            MTEV_procedure_differable_ui = st.radio(
+                "La procédure peut-elle être différée sans risque vital ou fonctionnel ?",
+                ["Non", "Oui"],
+                key="MTEV_procedure_differable_sans_risque_vital_fonctionnel"
+            )
+
+            MTEV_procedure_differable_sans_risque_vital_fonctionnel = (
+                MTEV_procedure_differable_ui == "Oui"
+            )
+
+
+
+
+        # =========================
+        # MTEV 8 TVP distale symptomatique
+        # =========================
+
+        if MTEV_type == "TVP distale":
+            MTEV_TVP_distale_symptomatique_ui = st.radio(
+                "TVP distale symptomatique ?",
+                ["Non", "Oui"],
+                key="MTEV_TVP_distale_symptomatique"
+            )
+
+            MTEV_TVP_distale_symptomatique = (
+                MTEV_TVP_distale_symptomatique_ui == "Oui"
+            )
+
+            if (
+                MTEV_TVP_distale_symptomatique
+                and normaliser_risque_yaml(risque_aod_avk) in [
+                    "ELEVE",
+                    "IMPORTANT",
+                    "MAJEUR"
+                ]
+            ):
+                MTEV_TVP_distale_procedure_differable_ui = st.radio(
+                    "La procédure peut-elle être différée sans risque vital ou fonctionnel ?",
+                    ["Non", "Oui"],
+                    key="MTEV_TVP_distale_procedure_differable"
+                )
+
+                MTEV_TVP_distale_procedure_differable = (
+                    MTEV_TVP_distale_procedure_differable_ui == "Oui"
+                )
+
+
+
+
+
+            st.markdown("**Recherche d'une situation MTEV complexe**")
+
+            MTEV_SAPL = st.checkbox(
+                "Syndrome des anticorps antiphospholipides (SAPL)",
+                key="MTEV_SAPL"
+            )
+
+            MTEV_HTP_TEC = st.checkbox(
+                "Hypertension pulmonaire thromboembolique chronique (HTP-TEC)",
+                key="MTEV_HTP_TEC"
+            )
+
+            MTEV_histoire_inhabituelle = st.checkbox(
+                "Histoire clinique ou familiale inhabituelle évoquant un risque thromboembolique élevé",
+                key="MTEV_histoire_inhabituelle"
+            )
+
+            MTEV_TIH = st.checkbox(
+                "TIH en cours de traitement anticoagulant",
+                key="MTEV_TIH"
+            )
+
+            MTEV_recidive = st.checkbox(
+                "Récidive d'EP ou de TVP sous traitement anticoagulant ou précocement après son arrêt",
+                key="MTEV_recidive"
+            )
+
+            MTEV_cas_complexe = (
+                MTEV_SAPL
+                or MTEV_HTP_TEC
+                or MTEV_histoire_inhabituelle
+                or MTEV_TIH
+                or MTEV_recidive
+            )
+
+            # =========================
+            # MTEV 5
+            # =========================
+
+            if (
+                not MTEV_cas_complexe
+                and normaliser_risque_yaml(risque_aod_avk) in [
+                    "ELEVE",
+                    "IMPORTANT",
+                    "MAJEUR"
+                ]
+            ):
+                MTEV_procedure_risque_eleve_terminee = st.checkbox(
+                    "Procédure à risque hémorragique élevé terminée",
+                    key="MTEV_procedure_risque_eleve_terminee"
+                )
+
+
+
+            # =================
+            # MTEV 7 retrait filtre cave
+            # =========================
+
+            MTEV_filtre_cave_mis_en_place = st.checkbox(
+                "Filtre cave optionnel mis en place",
+                key="MTEV_filtre_cave_mis_en_place"
+            )
+ 
+            if MTEV_filtre_cave_mis_en_place:
+                MTEV_anticoagulation_curative_reprise = st.checkbox(
+                    "Anticoagulation curative reprise",
+                    key="MTEV_anticoagulation_curative_reprise"
+                )
+
+                if MTEV_anticoagulation_curative_reprise:
+                    MTEV_nouvel_arret_non_prevu_court_terme = st.checkbox(
+                        "Nouvel arrêt de l’anticoagulation non prévu à court terme",
+                        key="MTEV_nouvel_arret_non_prevu_court_terme"
+                    )
+
+
+ctx["indication_aod"] = indication_aod
+
+ctx["FA_ATCD_AVC_ischemique"] = FA_ATCD_AVC_ischemique
+
+ctx["FA_AVC_moins_3_mois"] = (
+    FA_ATCD_AVC_ischemique
+    and FA_delai_depuis_AVC_ischemique_mois is not None
+    and FA_delai_depuis_AVC_ischemique_mois < 3
+)
+
+ctx["procedure_differable_sans_risque_vital_fonctionnel"] = (
+    procedure_differable_sans_risque_vital_fonctionnel
+)
+
+ctx["FA_procedure_risque_eleve_terminee"] = FA_procedure_risque_eleve_terminee
+ctx["FA_coronaropathie"] = FA_coronaropathie
+ctx["aap_detecte"] = aap_detecte
+ctx["MTEV_cas_complexe"] = MTEV_cas_complexe
+
+ctx["MTEV_type"] = MTEV_type
+ctx["MTEV_delai_mois"] = MTEV_delai_mois
+ctx["MTEV_EP_TVP_proximale_moins_3_mois"] = MTEV_EP_TVP_proximale_moins_3_mois
+ctx["MTEV_EP_TVP_proximale_moins_1_mois"] = MTEV_EP_TVP_proximale_moins_1_mois
+ctx["MTEV_procedure_differable_sans_risque_vital_fonctionnel"] = (
+    MTEV_procedure_differable_sans_risque_vital_fonctionnel
+)
+ctx["MTEV_procedure_risque_eleve_terminee"] = MTEV_procedure_risque_eleve_terminee
+
+ctx["MTEV_procedure_maintenue"] = MTEV_procedure_maintenue
+ctx["MTEV_filtre_cave_mis_en_place"] = MTEV_filtre_cave_mis_en_place
+
+ctx["MTEV_anticoagulation_curative_reprise"] = MTEV_anticoagulation_curative_reprise
+
+ctx["MTEV_nouvel_arret_non_prevu_court_terme"] = (
+    MTEV_nouvel_arret_non_prevu_court_terme
+)
+ctx["MTEV_TVP_distale_symptomatique"] = MTEV_TVP_distale_symptomatique
+
+ctx["MTEV_TVP_distale_procedure_differable"] = (
+    MTEV_TVP_distale_procedure_differable
+)
+ctx["MTEV_risque_thromboembolique_veineux_tres_eleve"] = (
+    MTEV_risque_thromboembolique_veineux_tres_eleve
+)
+
+
+ctx["reprise_aod_differee"] = st.session_state.get(
+    "reprise_aod_differee",
+    False
+)
+
+ctx["aod_repris"] = st.session_state.get(
+    "aod_repris",
+    False
+)
+
+ctx["thromboprophylaxie_indiquee_aod"] = st.session_state.get(
+    "thromboprophylaxie_indiquee_aod",
+    False
+)
+
+ctx["heparine_curative_indiquee"] = st.session_state.get(
+    "heparine_curative_indiquee",
+    False
+)
+
+
 
 resultats, vus, candidats_retenus = detecter_medicaments_depuis_texte(
     txt=txt_final,
