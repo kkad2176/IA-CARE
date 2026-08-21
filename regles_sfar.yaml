@@ -874,7 +874,379 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
   atc_prefix: ["B01AE", "B01AF"]
   conditions:
 
-    # ===== PROCÉDURE À RISQUE HÉMORRAGIQUE TRÈS ÉLEVÉ =====
+
+
+
+
+
+
+    # ==========================================
+    # MTEV 1
+    # ==========================================
+
+    - if:
+        indication_aod: "MTEV"
+        MTEV_cas_complexe: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: INFO
+      note: |
+        Contacter le médecin référent pour estimer le risque thromboembolique et établir une stratégie personnalisée, incluant relais pré/post-procédural ou absence de relais.
+
+
+
+    # ==========================================
+    # MTEV 2
+    # ==========================================
+
+    - if:
+        indication_aod: "MTEV"
+        MTEV_EP_TVP_proximale_moins_3_mois: true
+        MTEV_procedure_differable_sans_risque_vital_fonctionnel: true
+      action: INFO
+      note: |
+        Proposer de différer la procédure au minimum au-delà du 1er mois et, de préférence, au-delà du 3e mois.
+
+
+
+    # ==========================================
+    # MTEV 3
+    # ==========================================
+
+    - if:
+        indication_aod: "MTEV"
+        MTEV_EP_TVP_proximale_moins_1_mois: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: INFO
+      note: |
+        Établir une stratégie personnalisée de façon multidisciplinaire.
+
+    # ==========================================
+    # MTEV 4
+    # ==========================================
+
+    - if:
+        indication_aod: "MTEV"
+        MTEV_cas_complexe: false
+        MTEV_EP_TVP_proximale_moins_1_mois: false
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: INFO
+      note: |
+        Interrompre l’AOD sans relais héparinique pré-procédural.
+
+
+
+
+    # ==========================================
+    # MTEV 5
+    # ==========================================
+
+    - if:
+        indication_aod: "MTEV"
+        MTEV_cas_complexe: false
+        MTEV_procedure_risque_eleve_terminee: true
+      action: INFO
+      note: |
+        Reprendre l’AOD selon son schéma habituel, idéalement entre 48 et 72 h après la procédure, sans relais par héparines à dose curative.
+
+
+    # ==========================================
+    # MTEV 6
+    # ==========================================
+
+    - if:
+        indication_aod: "MTEV"
+        MTEV_EP_TVP_proximale_moins_1_mois: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        MTEV_procedure_maintenue: true
+      action: INFO
+      note: |
+        Discuter la mise en place pré-procédurale d’un filtre cave optionnel.
+
+
+
+    # ==========================================
+    # MTEV 7
+    # ==========================================
+
+    - if:
+        indication_aod: "MTEV"
+        MTEV_filtre_cave_mis_en_place: true
+        MTEV_anticoagulation_curative_reprise: true
+        MTEV_nouvel_arret_non_prevu_court_terme: true
+      action: INFO
+      note: |
+        Programmer le retrait du filtre cave, idéalement dans les 3 mois.
+
+
+
+
+    # ==========================================
+    # MTEV 8
+    # ==========================================
+
+    - if:
+        indication_aod: "MTEV"
+        MTEV_TVP_distale_symptomatique: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        MTEV_TVP_distale_procedure_differable: true
+      action: INFO
+      note: |
+        Proposer de différer la procédure au-delà du 1er mois suivant la thrombose.
+
+
+    # ==========================================
+    # MTEV 9
+    # ==========================================
+
+    - if:
+        indication_aod: "MTEV"
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        MTEV_risque_thromboembolique_veineux_tres_eleve: true
+      action: INFO
+      note: |
+        Associer une compression pneumatique intermittente en per- et postopératoire à la thromboprophylaxie pharmacologique.
+
+
+    # ==========================================
+    # MTEV 10
+    # ==========================================
+
+    - if:
+        indication_aod: "MTEV"
+      action: INFO
+      note: |
+        Ne pas utiliser de contentions élastiques graduées pour la thromboprophylaxie péri-procédurale.
+
+
+    # ==========================================
+    # RENAL 3
+    # ==========================================
+
+    - if:
+        atc_prefix: ["B01AF"]
+        dfg_30_49: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: ARRET
+      jour: J-3
+      note: |
+        Dernière prise à J-3, sans relais et sans dosage.
+
+
+    # ==========================================
+    # RENAL 4
+    # ==========================================
+
+    - if:
+        atc_codes: ["B01AE07"]
+        dfg_30_49: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: ARRET
+      jour: J-5
+      note: |
+        Dernière prise à J-5, sans relais et sans dosage.
+
+
+    # ==========================================
+    # RENAL 5
+    # ==========================================
+
+    - if:
+        atc_prefix: ["B01AF"]
+        dfg_inf_30: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: ARRET
+      jour: J-5
+      note: |
+        Dernière prise à J-5, sans relais et sans dosage.
+
+
+    # ==========================================
+    # RENAL 6
+    # ==========================================
+
+    - if:
+        atc_codes: ["B01AE07"]
+        dfg_inf_30: true
+      action: INFO
+      note: |
+        Dabigatran non recommandé pour ce niveau de fonction rénale.
+
+
+
+    # ================================
+    # RENAL 8
+    # ======================================
+
+    - if:
+        reprise_aod_differee: true
+        thromboprophylaxie_indiquee_aod: true
+        dfg_15_29: true
+      action: INFO
+      note: |
+        Options : tinzaparine 4500 UI x1/j ou enoxaparine 2000 UI x1/j ; HNF calcique 5000 UI x2/j.
+        Si HBPM prolongée, contrôle anti-Xa 4 à 6 h après la 3e injection pour vérifier anti-Xa < 1,5 UI/ml.
+
+
+    # ==========================================
+    # RENAL  9
+    # ==========================================
+
+    - if:
+        reprise_aod_differee: true
+        thromboprophylaxie_indiquee_aod: true
+        dfg_inf_15: true
+      action: INFO
+      note: |
+        HNF calcique 5000 UI x2/j ; tinzaparine 4500 UI x1/j possible en alternative selon avis d’experts.
+        Si HBPM prolongée, contrôle anti-Xa 4 à 6 h après la 3e injection pour vérifier anti-Xa < 1,5 UI/ml.
+
+
+    # ==========================================
+    # RENAL 10
+    # ==========================================
+
+    - if:
+        reprise_aod_differee: true
+        heparine_curative_indiquee: true
+        dfg_15_29: true
+      action: INFO
+      note: |
+        Débuter idéalement 48 à 72 h après la procédure : HNF curative IVSE, ou en alternative tinzaparine 175 UI/kg x1/j ou enoxaparine 100 UI/kg x1/j.
+        Si HBPM prolongée, contrôle anti-Xa 4 à 6 h après la 3e injection pour vérifier anti-Xa < 1,5 UI/ml.
+
+
+    # ==========================================
+    # RENAL 11
+    # ==========================================
+
+    - if:
+        reprise_aod_differee: true
+        heparine_curative_indiquee: true
+        dfg_inf_15: true
+      action: INFO
+      note: |
+        Débuter idéalement 48 à 72 h après la procédure : HNF curative IVSE ; tinzaparine 175 UI/kg x1/j possible en alternative.
+        Si HBPM prolongée, contrôle anti-Xa 4 à 6 h après la 3e injection pour vérifier anti-Xa < 1,5 UI/ml.
+
+
+    # ==========================================
+    # RENA 06B  neurochirurgie intracrânienne
+    # ==========================================
+
+    - if:
+        type_chir_neuro: "NEUROCHIR_INTRACRANIENNE"
+        dfg_inf_30: true
+      action: ARRET
+      jour: J-5
+      note: |
+        Dernière prise à J-5 et réaliser un dosage préopératoire de la concentration d’AOD afin de confirmer son élimination.
+
+
+    # ==========================================
+    # RENAL 06B  neuraxiale
+    # ==========================================
+
+    - if:
+        alr: "NEURAXIAL"
+        dfg_inf_30: true
+      action: ARRET
+      jour: J-5
+      note: |
+        Dernière prise à J-5 et réaliser un dosage préopératoire de la concentration d’AOD afin de confirmer son élimination.
+
+
+    # ==========================================
+    # Weight 1
+    # ==========================================
+
+    - if:
+        poids_ge_100: true
+      action: INFO
+      note: |
+        Appliquer les mêmes modalités péri-procédurales de l’AOD que dans la population générale, sans ajouter de dosage systématique du seul fait du poids.
+
+
+    # ============================
+    # WEIGHT 2
+    # ==================================
+
+    - if:
+        poids_inf_50: true
+      action: INFO
+      note: |
+        Prescrire l’AOD selon les posologies du RCP et appliquer les mêmes règles péri-procédurales que dans la population générale.
+
+
+    # ==========================================
+    # WEIGHT 3
+    # ======================================
+
+    - if:
+        poids_ge_100: true
+        heparine_curative_indiquee: true
+      action: INFO
+      note: |
+        Privilégier une HBPM curative en première intention.
+        Ne pas augmenter la dose au-delà de celle recommandée pour 100 kg : par exemple enoxaparine 10 000 UI x2/j ; tinzaparine/daltéparine/nadroparine 18 000 UI x1/j.
+
+
+    #=============================================
+    # WEIGHT 4
+    # ==========================================
+
+    - if:
+        poids_inf_50: true
+        heparine_curative_indiquee: true
+      action: INFO
+      note: |
+        Privilégier une HBPM curative en première intention, ajustée au poids corporel selon le RCP.
+        HNF en seconde intention.
+
+
+    # ==========================================
+    # POST OP 2
+    # ==========================================
+
+    - if:
+        reprise_aod_differee: true
+        heparine_curative_indiquee: true
+        dfg_15_29: false
+        dfg_inf_15: false
+      action: INFO
+      note: |
+        Initier une anticoagulation par héparines à dose curative, HBPM de préférence à l’HNF, idéalement entre 48 et 72 h après la procédure.
+
+    # ==========================================
+    # POST OP 3
+    # ==========================================
+
+    - if:
+        heparine_curative_indiquee: true
+        aod_repris: true
+      action: INFO
+      note: |
+        Arrêter l’héparine.
+        Si HBPM : prendre l’AOD à la place de l’injection, sans chevauchement.
+        Si HNF IVSE : prendre l’AOD 3 h après l’arrêt de la perfusion.
+
+
+       # ==========================================
+       # POST OP 4
+       # ==========================================
+
+    - if:
+        aod_repris: false
+        thromboprophylaxie_indiquee_aod: true
+        dfg_15_29: false
+        dfg_inf_15: false
+      action: INFO
+      note: |
+        Réaliser la thromboprophylaxie postopératoire selon les indications et modalités habituelles.
+        L’interrompre dès que le patient est anticoagulé à dose curative.
+
+
+
+    # == PROCEDURE À RISQUE HÉMORRAGIQUE TRÈS ÉLEVÉ =====
     # Neurochirurgie / ALR neuraxiale
 
     - if:
@@ -943,6 +1315,123 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
         <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
 
+    #=================FA 1 ===============
+    # ======================================
+
+    - if:
+        indication_aod: "FA"
+        FA_ATCD_AVC_ischemique: true
+        FA_AVC_moins_3_mois: true
+        procedure_differable_sans_risque_vital_fonctionnel: true
+      action: INFO
+      note: |
+        Proposer de différer la procédure au minimum au-delà du 3e mois suivant l’AVC.
+
+
+
+
+
+    #  =================FA 2 ===============
+    # ======================================
+
+    - if:
+        indication_aod: "FA"
+        atc_prefix: ["B01AF"]
+        dfg_ge_30: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: ARRET
+      jour: J-3
+      note: |
+        Arrêter l’AOD selon les règles communes et ne pas réaliser de relais héparinique pré-procédural.
+
+        Si très rare situation associée à un risque thromboembolique très élevé alors évaluation individualisée et multidisciplinaire.
+
+    - if:
+        indication_aod: "FA"
+        atc_prefix: ["B01AF"]
+        dfg_inf_30: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: ARRET
+      jour: J-5
+      note: |
+        Arrêter l’AOD selon les règles communes et ne pas réaliser de relais héparinique pré-procédural.
+
+        Si très rare situation associée à un risque thromboembolique très élevé alors évaluation individualisée et multidisciplinaire.
+
+
+
+
+    ##### FA 2  Dabigatran, DFG >= 50
+
+    - if:
+        indication_aod: "FA"
+        atc_codes: ["B01AE07"]
+        dfg_ge_50: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: ARRET
+      jour: J-3
+      note: |
+        Arrêter l’AOD selon les règles communes et ne pas réaliser de relais héparinique pré-procédural.
+
+        Si très rare situation associée à un risque thromboembolique très élevé alors évaluation individualisée et multidisciplinaire.
+
+
+    ###### FA 2 Dabigatran, DFG 30-49
+
+    - if:
+        indication_aod: "FA"
+        atc_codes: ["B01AE07"]
+        dfg_30_49: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: ARRET
+      jour: J-5
+      note: |
+        Arrêter l’AOD selon les règles communes et ne pas réaliser de relais héparinique pré-procédural.
+
+        Si très rare situation associée à un risque thromboembolique très élevé alors évaluation individualisée et multidisciplinaire.
+
+
+
+
+    # ==========================================
+    # FA 4
+    # ==========================================
+
+    - if:
+        indication_aod: "FA"
+        FA_coronaropathie: true
+        aap_detecte: true
+      action: INFO
+      note: |
+        Évaluer les traitements antithrombotiques associés.
+
+        En cas d’association anticoagulant + agent(s) antiplaquettaire(s), en particulier bithérapie antiplaquettaire, discussion multidisciplinaire avec le cardiologue référent pour définir une  stratégie personnalisée.
+
+        Les données sont en défaveur d’un relais péri-procédural par aspirine si l’anticoagulation à dose curative peut être reprise dans les 72 heures.
+
+    - if:
+        indication_aod: "FA"
+        FA_coronaropathie: true
+      action: INFO
+      note: |
+        Évaluer les traitements antithrombotiques associés.
+
+
+
+
+    # ==========================================
+    # FA 3
+    # ==========================================
+
+    - if:
+        indication_aod: "FA"
+        FA_procedure_risque_eleve_terminee: true
+      action: INFO
+      note: |
+        Reprendre l’AOD à la posologie habituelle idéalement entre 48 et 72 h après la procédure, sans relais héparinique à dose curative.
+
+
+
 
 
     # ===== PROCÉDURE À RISQUE HÉMORRAGIQUE ÉLEVÉ ===
@@ -999,9 +1488,17 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
         <i>Si EP ou TVP proximale < 1 mois ou ayant récidivée sous traitement ou précocement à l’arrêt de celui-ci, si SAPL, si hypertension pulmonaire thrombo-embolique chronique, si histoire clinique / familiale inhabituelle (déficit AT, sd paranéoplasique thrombogène), TIH en cours de traitement alors discussion multidisciplinaire pour stratégie personnalisée</i>
 
+    - if:
+        atc_codes: ["B01AE07"]
+        dfg_inf_30: true
+      action: INFO
+      note: |
+        Dabigatran non recommandé si DFG < 30.
 
 
-    # ===== DFG NON CONNU ========+
+  
+
+    # ===== DFG NON CONNU =======
 
     - if:
         dfg_connu: false
