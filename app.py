@@ -1069,7 +1069,7 @@ def extraire_medicaments_depuis_transcription_vocale(texte, ref):
                     meilleur_nom = nom_match
                     meilleur_score = score_match
 
-        if meilleur_nom and meilleur_score >= 86:
+        if meilleur_nom and meilleur_score >= 80:
             nom_norm = normalize_text(meilleur_nom)
             if nom_norm not in vus:
                 vus.add(nom_norm)
@@ -2801,6 +2801,24 @@ def moteur_yaml(atc, ctx):
 
                     if texte and texte not in notes:
                         notes.append(texte)
+
+
+
+
+
+                if (
+                    ctx.get("reprise_avk_24h", False)
+                    and not ctx.get("relais_postop_indique", False)
+                ):
+
+                    texte_pas_relais_postop = (
+                        "Ne pas réaliser de relais héparinique curatif postopératoire."
+                    )
+  
+                    if texte_pas_relais_postop not in notes:
+                        notes.append(texte_pas_relais_postop)
+
+
 
 
                 if ctx.get("thromboprophylaxie_indiquee", False):
