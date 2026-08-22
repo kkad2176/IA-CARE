@@ -4539,6 +4539,18 @@ if avk_detecte:
     st.header("Anti-vitamine K (AVK)")
 
 
+    st.subheader("Poids")
+
+    poids_kg = st.number_input(
+        "Poids du patient (kg) si connu",
+        min_value=0,
+        value=0,
+        step=1,
+        key="poids_kg"
+    )
+
+
+
 
     facteur_hemorragique_supplementaire = False
 
@@ -4716,6 +4728,25 @@ if avk_detecte:
             relais_avk = mtev_hr
 
 
+            if mtev_hr:
+
+                col_vide1, col_question1 = st.columns([0.06, 0.94])
+
+                with col_question1:
+                    mtev_moins_1_mois = st.checkbox(
+                        " EP ou TVP proximale datant de moins de 1 mois",
+                        key="mtev_moins_1_mois"
+                    )
+   
+                col_vide2, col_question2 = st.columns([0.06, 0.94])
+
+                with col_question2:
+                    procedure_differable = st.checkbox(
+                        " La procédure peut être différée sans risque vital ou fonctionnel",
+                        key="procedure_differable_mtev"
+                    )
+
+
             mtev_complexe = st.checkbox(
                 "Cas complexe de MTEV"
             )
@@ -4736,27 +4767,6 @@ Cas complexe si au moins un des éléments suivants est présent :
                 "Déficit en protéine C ou S",
                 key="deficit_proteine_c_s"
             )
-
-
-
-            if mtev_hr:
-
-                col_vide1, col_question1 = st.columns([0.06, 0.94])
-
-                with col_question1:
-                    mtev_moins_1_mois = st.checkbox(
-                        " EP ou TVP proximale datant de moins de 1 mois",
-                        key="mtev_moins_1_mois"
-                    )
-   
-                col_vide2, col_question2 = st.columns([0.06, 0.94])
-
-                with col_question2:
-                    procedure_differable = st.checkbox(
-                        " La procédure peut être différée sans risque vital ou fonctionnel",
-                        key="procedure_differable_mtev"
-                    )
-
 
 
 
@@ -5650,9 +5660,15 @@ ctx["thromboprophylaxie_indiquee_aod"] = locals().get("thromboprophylaxie_indiqu
 ctx["heparine_curative_indiquee"] = locals().get("heparine_curative_indiquee", False)
 
 
-ctx["poids_ge_100"] = bool(aod_detecte and poids_aod_kg >= 100)
-ctx["poids_inf_50"] = bool(aod_detecte and 0 < poids_aod_kg < 50)
+ctx["poids_ge_100"] = bool(
+    ctx.get("poids_ge_100", False)
+    or (aod_detecte and poids_aod_kg >= 100)
+)
 
+ctx["poids_inf_50"] = bool(
+    ctx.get("poids_inf_50", False)
+    or (aod_detecte and 0 < poids_aod_kg < 50)
+)
 
 # =========================
 # AOD 
