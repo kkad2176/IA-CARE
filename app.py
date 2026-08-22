@@ -2799,11 +2799,21 @@ def moteur_yaml(atc, ctx):
                         or ""
                     )
 
-                    if (
-                        texte
-                        and texte not in notes
-                    ):
+                    if texte and texte not in notes:
                         notes.append(texte)
+
+
+                if ctx.get("thromboprophylaxie_indiquee", False):
+
+                    texte_thromboprophylaxie = (
+                        "Réaliser une thromboprophylaxie veineuse postopératoire "
+                        "selon les indications et modalités habituelles, en attendant "
+                        "l’anticoagulation curative. L’interrompre dès que le patient "
+                        "est anticoagulé à dose curative."
+                    )
+
+                    if texte_thromboprophylaxie not in notes:
+                        notes.append(texte_thromboprophylaxie)
 
 
                 return {
@@ -2820,6 +2830,7 @@ def moteur_yaml(atc, ctx):
                     ),
                     "source": lien_sfar,
                 }
+
 
 
 
