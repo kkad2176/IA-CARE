@@ -4976,10 +4976,10 @@ Cas complexe si au moins un des éléments suivants est présent :
                 )
 
 
-        # === MTEV < 3 MOIS =====
+        # === MTEV < 3 MOIS == =
 
         elif indication_avk == "MTEV" and mtev_hr:
-  
+
             relais_postop_indique = True
 
             raison_relais_postop = (
@@ -4987,7 +4987,7 @@ Cas complexe si au moins un des éléments suivants est présent :
             )
 
 
-         # === DEFICIT PROTEINE C/S =====
+        #=DEFICIT PROTEINE C/S ===
 
         elif indication_avk == "MTEV" and deficit_proteine_c_s:
 
@@ -4998,6 +4998,23 @@ Cas complexe si au moins un des éléments suivants est présent :
             )
 
  
+        elif (
+            indication_avk == "MTEV"
+            and not mtev_hr
+            and not mtev_complexe
+            and not deficit_proteine_c_s
+            and not reprise_avk_24h_bool
+        ):
+
+            relais_postop_indique = True
+
+            raison_relais_postop = (
+                "MTEV sans indication de relais curatif postopératoire systématique, "
+                "mais reprise de l’AVK impossible dans les 24 premières heures."
+            )
+
+
+
         if relais_postop_indique:
 
             st.success(
@@ -5015,8 +5032,6 @@ Cas complexe si au moins un des éléments suivants est présent :
                 "Pas d'indication automatique d'héparine curative postopératoire "
                 "retrouvée dans les règles précédentes."
             )
-
-
 
 
             indication_postop_medicale = st.checkbox(
