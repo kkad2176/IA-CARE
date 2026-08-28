@@ -2809,12 +2809,12 @@ def moteur_yaml(atc, ctx):
                 if (
                     ctx.get("reprise_avk_24h", False)
                     and not ctx.get("relais_postop_indique", False)
+                    and ctx.get("indication_avk") != "MTEV"
                 ):
-
                     texte_pas_relais_postop = (
                         "Ne pas réaliser de relais héparinique curatif postopératoire."
                     )
-  
+
                     if texte_pas_relais_postop not in notes:
                         notes.append(texte_pas_relais_postop)
 
@@ -3920,6 +3920,8 @@ with st.sidebar:
 
         type_alr = mapping_alr[type_alr_affichage]
 
+        placeholder_catheter_perinerveux = st.empty()
+
 
         technique_neuraxiale = ""
 
@@ -4356,6 +4358,24 @@ aap_detecte = contexte_famille_detecte(
         "TICAGRELOR", "BRILIQUE", "PRASUGREL", "EFIENT"
     ]
 )
+
+# ==============================================
+# CATHETER PERINERVEUX AAP ET   ALR
+
+catheter_perinerveux = False
+
+if aap_detecte and type_alr != "":
+    with placeholder_catheter_perinerveux.container():
+        catheter_perinerveux_choix = st.radio(
+            "Mise en place d'un cathéter périnerveux ?",
+            ["Non", "Oui"],
+             horizontal=True,
+             key="catheter_perinerveux"
+        )
+
+        catheter_perinerveux = catheter_perinerveux_choix == "Oui"
+
+
 
 
 aspirine_seule_detectee = contexte_famille_detecte(
@@ -5473,6 +5493,7 @@ ctx = {
     "prev_secondaire": type_traitement_aap == "Prévention secondaire",
     "prev_primaire": type_traitement_aap == "Prévention primaire",
     "aspirine_inf_75": dose_aspirine < 75,
+    "catheter_perinerveux": catheter_perinerveux,
     "stent_1m": contexte_stent == "Stent ≤ 1 mois",
     "stent_6m_haut_risque": contexte_stent == "Stent ≤ 6 mois à haut risque thrombotique",
     "idm_6m": contexte_stent == "IDM < 6 mois",
