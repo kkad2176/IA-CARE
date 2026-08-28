@@ -735,46 +735,6 @@ def generer_pdf_prescription_ide(
             continue
 
 
-        prefixes_soulignes = [
-            "Dose :",
-            "Rythme :",
-            "Première injection :",
-            "Injection(s) suivante(s) :",
-            "Dernière injection préopératoire :"
-        ]
-
-        prefixe_trouve = None
-
-        for prefixe in prefixes_soulignes:
-            if ligne.startswith(prefixe):
-                prefixe_trouve = prefixe
-                break
-
-        if prefixe_trouve:
-
-            reste = ligne[len(prefixe_trouve):]
-
-            texte = (
-                f"<u>{prefixe_trouve}</u>"
-                f"{reste}"
-            )
-
-            y = ajouter_paragraphe(
-                texte,
-                style_normal,
-                y
-            )
-            continue
-
-
-        if ligne.startswith("- "):
-            y = ajouter_paragraphe(
-                ligne,
-                style_normal,
-                y
-            )
-            continue
-
       
         y = ajouter_paragraphe(
             ligne,
@@ -802,8 +762,6 @@ def generer_pdf_prescription_ide(
     c.save()
 
     return path
-
-
 
 
 
@@ -1931,7 +1889,7 @@ def generer_ordonnance_pharmacie(schema_relais, poids_kg=None, date_op=None):
 
         frequence = "selon protocole sélectionné"
 
-    elif molecule == "HNF":
+    elif molecule in ["HNF", "HNF IVSE"]:
 
         # HNF IVSE = pas d'ordonnance pharmacie ambulatoire standard
         return None
@@ -2023,7 +1981,7 @@ def generer_prescription_ide(schema_relais, poids_kg=None, date_op=None):
 
     molecule = schema_relais.get("molecule")
 
-    if molecule == "HNF":
+    if molecule in ["HNF", "HNF IVSE"]:
         return None
 
     injections = calculer_injections_relais(
@@ -4747,6 +4705,7 @@ if avk_detecte:
 
             valves = True
             relais_avk = True
+            st.markdown("**Complément**")
 
             valve_aortique_double_ailette = st.checkbox(
                 "Valve aortique mécanique à double ailette"
@@ -4769,6 +4728,8 @@ if avk_detecte:
         # == MTEV ===========
 
         elif indication_avk == "MTEV":
+
+            st.markdown("**Complément**")
 
             mtev_hr = st.checkbox(
                 "EP ou TVP proximale datant de moins de 3 mois"
@@ -4799,16 +4760,23 @@ if avk_detecte:
             mtev_complexe = st.checkbox(
                 "Cas complexe de MTEV"
             )
-            if mtev_complexe:
-                st.caption("""
-Cas complexe si au moins un des éléments suivants est présent :
 
-- Syndrome des antiphospholipides (SAPL)
-- Hypertension pulmonaire thromboembolique chronique (HTP-TEC)
-- Histoire clinique ou familiale inhabituelle faisant évoquer un risque thromboembolique élevé (ex. déficit en antithrombine, syndrome paranéoplasique thrombogène)
-- Thrombopénie induite par l’héparine (TIH) en cours de traitement anticoagulant
-- Récidive d’EP ou de TVP sous traitement anticoagulant ou précocement après son arrêt
-                """)
+            if mtev_complexe:
+               
+                with st.expander("Rappel – Cas complexe de MTEV"):
+                    st.markdown(
+                        """
+                        Cas complexe si au moins un des éléments suivants est présent :
+
+                        - Syndrome des antiphospholipides (SAPL)
+                        - Hypertension pulmonaire thromboembolique chronique (HTP-TEC)
+                        - Histoire clinique ou familiale inhabituelle faisant évoquer un risque thromboembolique élevé (ex. déficit en antithrombine, syndrome paranéoplasique thrombogène)
+                        - Thrombopénie induite par l’héparine (TIH) en cours de traitement anticoagulant
+                        - Récidive d’EP ou de TVP sous traitement anticoagulant ou précocement après son arrêt 
+                        """
+                    )
+
+
 
 
 
@@ -4841,22 +4809,15 @@ Cas complexe si au moins un des éléments suivants est présent :
 
         elif indication_avk == "LVAD":
 
-            lvad_reprise_24_48h = st.checkbox(
-                "Reprise d’une anticoagulation curative possible dans les 24 à 48 h"
-            )
+            relais_avk = True
 
-            relais_avk = not lvad_reprise_24_48h  
-
-        lvad_sans_arret_avk = (
-            indication_avk == "LVAD"
-            and lvad_reprise_24_48h
-        )
+        lvad_sans_arret_avk = False
 
 
 
         if relais_avk:
 
-            st.subheader("Relai AVK - fonction rénale")
+            st.subheader("Pré-opératoire - Relai AVK - fonction rénale")
 
             dfg_relais_avk = st.radio(
                 "DFG du patient",
@@ -4887,7 +4848,8 @@ Cas complexe si au moins un des éléments suivants est présent :
                 if mode_prise_en_charge_relais == "Hospitalisation prévue":
 
                     st.info(
-                        "HNF IVSE recommandée en cas d’hospitalisation prévue."
+                        "HNF IVSE recommandée en cas d’hospitalisation prévue. "
+                        "Les autres options d’héparine sont également possibles."
                     )
 
                     type_heparine_relais = st.radio(
@@ -5168,12 +5130,13 @@ Cas complexe si au moins un des éléments suivants est présent :
                         unsafe_allow_html=True
                     )
 
+            if reprise_avk_24h_bool and relais_postop_indique:
+
                 with col_question:
                     inr_ge_2_postop = st.checkbox(
-                        "AVK repris et premier INR ≥ 2",
+                        "Si AVK repris et héparine curative et premier INR ≥ 2, alors arrêter héparine",
                         key="inr_ge_2_postop"
                     )
-
 
                 # ---- Chevauchement héparine + AVK ----
                 col_fleche, col_question = st.columns([0.06, 0.94])
@@ -5205,15 +5168,16 @@ Cas complexe si au moins un des éléments suivants est présent :
                         "Chevauchement héparine curative + AVK jugé non acceptable pendant la première semaine",
                         key="chevauchement_non_acceptable"
                     )
-  
+
                     if chevauchement_non_acceptable:
                         st.caption(
                             "Situations possibles : PTH, chirurgie du rachis, "
                             "cure d’éventration complexe..."
                         )
 
-
-
+            else:
+                inr_ge_2_postop = False
+ 
 
 # =========================
 # CONTEXTE PATIENT / CHIRURGIE
@@ -5525,6 +5489,8 @@ ctx = {
     }
 
 schema_relais = construire_schema_relais(ctx)
+
+
 
 ordonnance_pharmacie = generer_ordonnance_pharmacie(
     schema_relais,
@@ -6320,6 +6286,11 @@ if texte_detecte.strip():
 au_moins_un_arret = False
 lignes_pdf = []
 
+if avk_detecte and date_op:
+    lignes_pdf.append(
+        f"Intervention prévue le {date_op.strftime('%d/%m/%Y')}"
+    )
+
 for r in resultats:
     action = str(r["Action"]).upper().strip()
     date_txt = str(r["Date"]).upper().strip()
@@ -6380,12 +6351,6 @@ for r in resultats:
         )
         au_moins_un_arret = True
 
-
-#date intervention que pr avk
-if avk_detecte and date_op:
-    lignes_pdf.append(
-        f"Intervention prévue le {date_op.strftime('%d/%m/%Y')}"
-    )
 
 
 
@@ -6491,7 +6456,8 @@ if resultats:
 
         creer_ordonnance_pharmacie = False
         creer_prescription_ide = False
- 
+
+      
         if avk_detecte and ordonnance_pharmacie:
 
             creer_ordonnance_pharmacie = st.checkbox(
