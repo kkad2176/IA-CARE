@@ -427,7 +427,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
   conditions:
     # =========================================================
-    # --- INCOHERENCES ---
+    #  INCOHERENCES 
     # =========================================================
     - if: {prev_primaire: true, atc_codes: [B01AC04, B01AC24, B01AC22]}
       action: INFO
@@ -505,33 +505,33 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC30]}
       action: ARRET
       jour: J-5
-      precision: "Duoplavin = aspirine + clopidogrel. Stent ≤ 1 mois : différer la procédure. Si impossibilité : poursuivre l’aspirine et dernière prise du clopidogrel à J-5."
+      precision: "Duoplavin = aspirine + clopidogrel. Stent ≤ 1 mois : différer la procédure. Si impossibilité : poursuivre l’aspirine et dernière prise du clopidogrel à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC30]}
       action: ARRET
       jour: J-5
-      precision: "Duoplavin = aspirine + clopidogrel. Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité : poursuivre l’aspirine et dernière prise du clopidogrel à J-5."
+      precision: "Duoplavin = aspirine + clopidogrel. Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité : poursuivre l’aspirine et dernière prise du clopidogrel à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC30]}
       action: ARRET
       jour: J-5
-      precision: "Duoplavin = aspirine + clopidogrel. IDM < 6 mois : différer la procédure. Si impossibilité : poursuivre l’aspirine et dernière prise du clopidogrel à J-5."
+      precision: "Duoplavin = aspirine + clopidogrel. IDM < 6 mois : différer la procédure. Si impossibilité : poursuivre l’aspirine et dernière prise du clopidogrel à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
 
     # ELEVE / IMPORTANT / MAJEUR
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC30]}
       action: ARRET
       jour: J-5
-      precision: "Duoplavin = aspirine + clopidogrel. Stent ≤ 1 mois : différer la procédure. Si   impossibilité : dernière prise des 2 AAP à J-5 et discussion d’un relais."
+      precision: "Duoplavin = aspirine + clopidogrel. Stent ≤ 1 mois : différer la procédure. Si   impossibilité : dernière prise des 2 AAP à J-5 et discussion d’un relais. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. Reprendre l’aspirine aussi précocement que possible après la procédure invasive, au mieux le jour même, en fonction du risque de saignement postopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC30]}
       action: ARRET
       jour: J-5
-      precision: "Duoplavin = aspirine + clopidogrel. Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité : dernière prise des 2 AAP à J-5."
+      precision: "Duoplavin = aspirine + clopidogrel. Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité : dernière prise des 2 AAP à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. Reprendre l’aspirine aussi précocement que possible après la procédure invasive, au mieux le jour même, en fonction du risque de saignement postopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC30]}
       action: ARRET
       jour: J-5
-      precision: "Duoplavin = aspirine + clopidogrel. IDM < 6 mois : différer la procédure. Si impossibilité : dernière prise des 2 AAP à J-5."
+      precision: "Duoplavin = aspirine + clopidogrel. IDM < 6 mois : différer la procédure. Si impossibilité : dernière prise des 2 AAP à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. Reprendre l’aspirine aussi précocement que possible après la procédure invasive, au mieux le jour même, en fonction du risque de saignement postopératoire."
 
 
     # ---------- SANS CRITERE DE HAUT RISQUE ----------
@@ -546,13 +546,14 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes:[B01AC30]}
       action: ARRET
       jour: J-5
-      precision: "Duoplavin = aspirine + clopidogrel. Poursuivre l’aspirine et dernière prise du clopidogrel à J-5."
+      precision: "Duoplavin = aspirine + clopidogrel. Poursuivre l’aspirine et dernière prise du clopidogrel à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
+
 
     # ELEVE / IMPORTANT / MAJEUR
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR],          atc_codes: [B01AC30]}
       action: ARRET
       jour: J-5
-      precision: "Duoplavin = aspirine + clopidogrel. Dernière prise des 2 AAP à J-5."
+      precision: "Duoplavin = aspirine + clopidogrel. Dernière prise des 2 AAP à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. Reprendre l’aspirine aussi précocement que possible après la procédure invasive, au mieux le jour même, en fonction du risque de saignement postopératoire."
 
     # =========================================================
     # BITHERAPIE HAUT RISQUE + ALR
@@ -621,12 +622,13 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC01, B01AC06]}
       action: POURSUITE
       jour: J0
-      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12"
+      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
+
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC01, B01AC06]}
       action: POURSUITE
       jour: J0
-      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12"
+      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Interrompre l'anti-P2Y12. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC01, B01AC06]}
       action: POURSUITE
@@ -637,97 +639,109 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
       jour: J-5
-      precision: "Stent ≤ 1 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12  J-5."
+      precision: "Stent ≤ 1 mois : différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
+
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
       jour: J-5
-      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5."
+      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
       jour: J-5
-      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5."
+      precision: "IDM < 6 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
 
     # INTERMEDIAIRE – TICAGRELOR
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5."
+      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
+
+
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "Stent < 6 mois à haut risque thrombotique :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5."
+      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5."
+      precision: "IDM < 6 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
+
 
     # INTERMEDIAIRE – PRASUGREL
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-7."
+      precision: "Stent ≤ 1 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-7. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "Stent < 6 mois à haut risque thrombotique :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-7."
+      precision: "Stent < 6 mois à haut risque thrombotique : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-7. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "IDM < 6 mois :  Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-7."
+      precision: "IDM < 6 mois : Différer la procédure, si impossibilité de différer, poursuivre l’aspirine. Dernière prise de l’anti-P2Y12 à J-7. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
+
+
 
     # ELEVE / IMPORTANT / MAJEUR – ASPIRINE
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
       action: ARRET
       jour: J-3
-      precision: "Stent ≤ 1 mois :différer la procédure. Si impossibilité, arrêter les 2 AAP et discuter un relais par AAP injectable."
+      precision: "Stent ≤ 1 mois :différer la procédure. Si impossibilité, arrêter les 2 AAP et discuter un relais par AAP injectable. Reprendre l’aspirine aussi précocement que possible après la procédure invasive, au mieux le jour même, en fonction du risque de saignement postopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
+
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
       action: ARRET
       jour: J-3
-      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP. Reprendre l’aspirine aussi précocement que possible après la procédure invasive, au mieux le jour même, en fonction du risque de saignement postopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
       action: ARRET
       jour: J-3
-      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP. Reprendre l’aspirine aussi précocement que possible après la procédure invasive, au mieux le jour même, en fonction du risque de saignement postopératoire."
 
     # ELEVE / IMPORTANT / MAJEUR – CLOPIDOGREL / TICAGRELOR
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP et discuter un relais par AAP injectable."
+      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP et discuter un relais par AAP injectable. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
+
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
+
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
+
 
     # ELEVE / IMPORTANT / MAJEUR – PRASUGREL
     - if: {bitherapie_aap: true, stent_1m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP et discuter un relais par AAP injectable"
+      precision: "Stent ≤ 1 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP et discuter un relais par AAP injectable. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
+
 
     - if: {bitherapie_aap: true, stent_6m_haut_risque: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+      precision: "Stent < 6 mois à haut risque thrombotique : différer la procédure. Si impossibilité, arrêter les 2 AAP. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. La gestion préopératoire des AAP et leur reprise postopératoire doivent être discutées avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
+
 
     - if: {bitherapie_aap: true, idm_6m: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP."
+      precision: "IDM < 6 mois : différer la procédure. Si impossibilité, arrêter les 2 AAP. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
 
 
 
@@ -751,37 +765,60 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC04]}
       action: ARRET
       jour: J-5
-      precision: "Poursuivre l’aspirine et dernière prise de l’anti-P2Y12 J-5."
+      precision: "Poursuivre l’aspirine et dernière prise de l’anti-P2Y12 J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
+
 
     # INTERMEDIAIRE – TICAGRELOR
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "Poursuivre l’aspirine et dernière prise de l’anti-P2Y12 à J-5."
+      precision: "Poursuivre l’aspirine et dernière prise de l’anti-P2Y12 à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
+
 
     # INTERMEDIAIRE – PRASUGREL
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "Poursuivre l’aspirine et dernière prise de l’anti-P2Y12 à J-7."
+      precision: "Poursuivre l’aspirine et dernière prise de l’anti-P2Y12 à J-7. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
+
 
     # ELEVE / IMPORTANT / MAJEUR – ASPIRINE
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC01, B01AC06]}
       action: ARRET
       jour: J-3
-      precision: "Dernière prise J-3 "
+      precision: "Dernière prise J-3. Reprendre l’aspirine aussi précocement que possible après la procédure invasive, au mieux le jour même, en fonction du risque de saignement postopératoire."
 
     # ELEVE / IMPORTANT / MAJEUR – CLOPIDOGREL / TICAGRELOR
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC04, B01AC24]}
       action: ARRET
       jour: J-5
-      precision: "dernière prise J-5."
+      precision: "Dernière prise J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
+
+
 
     # ELEVE / IMPORTANT / MAJEUR – PRASUGREL
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC22]}
       action: ARRET
       jour: J-7
-      precision: "dernière prise J-7."
+      precision: "Dernière prise J-7. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
+
+
+    # ======Cathéter péridural=========
+    - if: {technique_neuraxiale: "Péridurale"}
+      action: INFO
+      jour: J0
+      precision: "Le recours au cathéter péridural ne doit pas compromettre la reprise postopératoire des AAP, en particulier des anti-P2Y12. Le retrait du cathéter suit les mêmes règles que la pose."
+
+
+
+    # ==== post op cathéter================
+ 
+
+    - if: {catheter_perinerveux: true}
+      action: INFO
+      jour: J0
+      precision: "La mise en place du cathéter périnerveux ne doit pas compromettre la reprise postopératoire des AAP, en particulier des anti-P2Y12. Son retrait suit les mêmes règles que la pose."
+
 
 
     # =========================================================
@@ -825,11 +862,11 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {prev_primaire: true, atc_codes: [B01AC01, B01AC06]}
       action: ARRET
       jour: J-3
-      precision: "Aspirine en prévention primaire : dernière prise J-3."
+      precision: "Aspirine en prévention primaire : dernière prise J-3. Reprendre l’AAP aussi précocement que possible, en fonction du risque de saignement postopératoire."
 
-    # =========================================================
+    # =====================================================
     #  PREVENTION SECONDAIRE
-    # =========================================================
+    # ========================================================
 
     # ASPIRINE
     - if: {prev_secondaire: true, atc_codes: [B01AC01, B01AC06], r_hem: [FAIBLE, INTERMEDIAIRE]}
@@ -846,7 +883,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {prev_secondaire: true, atc_codes: [B01AC01, B01AC06], r_hem: [ELEVE, IMPORTANT, MAJEUR]}
       action: ARRET
       jour: J-3
-      precision: "Aspirine en prévention secondaire : Dernière prise J-3."
+      precision: "Aspirine en prévention secondaire : Dernière prise J-3. Reprendre l’AAP aussi précocement que possible, en fonction du risque de saignement postopératoire."
 
     # CLOPIDOGREL
     - if: {prev_secondaire: true, atc_codes: [B01AC04], r_hem: FAIBLE}
@@ -857,14 +894,15 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if: {prev_secondaire: true, atc_codes: [B01AC04], r_hem: INTERMEDIAIRE}
       action: ARRET
       jour: J-5
-      precision: "Dernière prise du clopidogrel entre 5 et 7 jours avant la chirurgie, avec un relais par aspirine 75 à 100mg le lendemain de l'arrêt."
+      precision: "Dernière prise du clopidogrel entre 5 et 7 jours avant la chirurgie, avec un relais par aspirine 75 à 100mg le lendemain de l'arrêt. Reprendre l’AAP aussi précocement que possible, en fonction du risque de saignement postopératoire."
 
     - if: {prev_secondaire: true, atc_codes: [B01AC04], r_hem: [ELEVE, IMPORTANT, MAJEUR]}
       action: ARRET
       jour: J-5
-      precision: "Clopidogrel, Dernière prise J-5"
+      precision: "Clopidogrel, Dernière prise J-5. Reprendre l’AAP aussi précocement que possible, en fonction du risque de saignement postopératoire."
 
- 
+
+
 
 
 
@@ -1885,8 +1923,10 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Administrer 2 à 5 mg de vitamine K par voie orale à J-1 et contrôler l’INR le lendemain.
 
 
-    #######################
-    #########FA#####################
+    # =======================
+    # FA
+    # ================================
+
 
     - if:
         indication_avk: "FA"
@@ -2089,9 +2129,6 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Réaliser un relais postopératoire par héparine à dose curative, HBPM de préférence à HNF, débuté idéalement 48 à 72 h après la procédure. Arrêter l’héparine dès le premier INR ≥ 2.
 
 
-
-
-
     - if:
         indication_avk: "MTEV"
         mtev_complexe: false
@@ -2102,7 +2139,6 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: ""
       note: |
         Ne pas réaliser de relais héparinique curatif postopératoire.
-
 
 
     # ===================================
@@ -2212,10 +2248,6 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       note: |
         Débuter idéalement 48 à 72 h après la procédure. HNF curative = choix recommandé.
         La tinzaparine 175 UI/kg x1/j peut être utilisée en alternative avec contrôle anti-Xa 4 à 6 h  après la 3e injection ; si anti-Xa > 1,5 UI/ml, demander un avis spécialisé.
-
-
-
-
 
 
 
