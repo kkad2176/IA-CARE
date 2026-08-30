@@ -2287,6 +2287,21 @@ def moteur_yaml(atc, ctx):
             principale = None
 
 
+            mtev_01_ou_03 = (
+                ctx.get("indication_aod") == "MTEV"
+                and normaliser_risque_yaml(ctx.get("r_hem")) in [
+                    "ELEVE",
+                    "IMPORTANT",
+                    "MAJEUR"
+                ]
+                and (
+                    ctx.get("MTEV_cas_complexe") is True
+                    or ctx.get("MTEV_EP_TVP_proximale_moins_1_mois") is True
+                )
+            )
+
+
+
             # ================================
             # ARRET préop prioritaire
             # ================================
@@ -2311,7 +2326,41 @@ def moteur_yaml(atc, ctx):
 
             notes = []
 
+                     
+            if ctx.get("indication_aod") == "MTEV":
+
+                for m in matchs_aod:
+
+                    texte = (
+                        m.get("precision")
+                        or m.get("note")
+                        or ""
+                    )
+
+                    if (
+                        texte
+                        and (
+                            "Risque de récidive de MTEV à évaluer individuellement" in texte
+                            or "Risque de récidive de MTEV très élevé" in texte
+                            or "Proposer de différer la procédure au-delà du 1er mois suivant la thrombose" in texte
+                        )
+                        and texte not in notes
+                    ):
+                        notes.append(texte)
+
+
+           
             for m in matchs_aod:
+
+                # MTEV-01 / MTEV-03 :
+                # ne pas afficher l'arrêt standard automatique
+                if (
+                    mtev_01_ou_03
+                    and str(
+                        m.get("action", "")
+                    ).upper().strip() == "ARRET"
+                ):
+                    continue
 
                 texte = (
                     m.get("precision")
@@ -2333,13 +2382,21 @@ def moteur_yaml(atc, ctx):
 
 
             return {
-                "action": principale.get(
-                    "action",
+                "action": (
                     "INFO"
+                    if mtev_01_ou_03
+                    else principale.get(
+                        "action",
+                        "INFO"
+                    )
                 ),
-                "jour": principale.get(
-                    "jour",
+                "jour": (
                     ""
+                    if mtev_01_ou_03
+                    else principale.get(
+                        "jour",
+                        ""
+                    )
                 ),
                 "note": "\n\n".join(notes),
                 "source": " | ".join(sources_aod),
@@ -5642,32 +5699,48 @@ if aod_detecte:
         key="dfg_aod"
     )
 
-
-
     # =========================
-    # AOD reprise postop 
+    # AOD postopératoire
     # =========================
 
-    reprise_aod_differee = st.checkbox(
-        "Reprise de l’AOD différée",
-        key="reprise_aod_differee"
+    st.subheader("Post-opératoire")
+
+    thromboprophylaxie_indiquee_aod = False
+    heparine_curative_indiquee = False
+
+    reprise_aod_postop = st.radio(
+        "Est-ce que l’AOD peut être repris après la procédure (idéalement entre 48 et 72 h postopératoires) ?",
+        ["Oui", "Non"],
+        key="reprise_aod_postop"
     )
 
-    aod_repris = st.checkbox(
-        "AOD repris",
-        key="aod_repris"
-    )
+    if reprise_aod_postop == "Non":
 
-    if reprise_aod_differee:
-        thromboprophylaxie_indiquee_aod = st.checkbox(
-            "Thromboprophylaxie indiquée",
-            key="thromboprophylaxie_indiquee_aod"
+        st.markdown(
+            """
+            <div style="color:gray; font-style:italic; margin-left:20px;">
+            (exemple : voie entérale non disponible, gestion du risque hémorragique
+            plus simple avec des héparines : drains ou redons, risque de reprise chirurgicale)
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
-        heparine_curative_indiquee = st.checkbox(
-            "Héparine curative indiquée",
-            key="heparine_curative_indiquee"
-        )
+      
+        col_vide, col_postop_aod = st.columns([0.06, 0.94])
+
+        with col_postop_aod:
+            thromboprophylaxie_indiquee_aod = st.checkbox(
+                "Thromboprophylaxie veineuse indiquée en attendant la reprise de l’anticoagulation curative",
+                key="thromboprophylaxie_indiquee_aod"
+            )
+
+            heparine_curative_indiquee = st.checkbox(
+                "Héparine curative indiquée",
+                key="heparine_curative_indiquee"
+            ) 
+
+
 
 
 ctx["dfg_connu"] = dfg_aod != "DFG inconnu" and dfg_aod != ""
@@ -5684,9 +5757,14 @@ ctx["dfg_15_29"] = dfg_aod == "15 ≤ DFG < 30"
 
 ctx["dfg_inf_15"] = dfg_aod == "DFG < 15"
 
-ctx["reprise_aod_differee"] = locals().get("reprise_aod_differee", False)
+ctx["reprise_aod_differee"] = (
+    locals().get("reprise_aod_postop") == "Non"
+)
 
-ctx["aod_repris"] = locals().get("aod_repris", False)
+ctx["aod_repris"] = (
+    locals().get("reprise_aod_postop") == "Oui"
+)
+
 ctx["thromboprophylaxie_indiquee_aod"] = locals().get("thromboprophylaxie_indiquee_aod", False)
 ctx["heparine_curative_indiquee"] = locals().get("heparine_curative_indiquee", False)
 
@@ -5709,21 +5787,16 @@ indication_aod = ""
 FA_ATCD_AVC_ischemique = False
 FA_delai_depuis_AVC_ischemique_mois = None
 procedure_differable_sans_risque_vital_fonctionnel = False
-FA_procedure_risque_eleve_terminee = False
 FA_coronaropathie = False
 MTEV_cas_complexe = False
-MTEV_type = ""
-MTEV_delai_mois = None
+MTEV_critere_complexe = []
+MTEV_situation = ""
+MTEV_TVP_distale_symptomatique_moins_1_mois = False
 MTEV_EP_TVP_proximale_moins_3_mois = False
 MTEV_EP_TVP_proximale_moins_1_mois = False
 MTEV_procedure_differable_sans_risque_vital_fonctionnel = False
-MTEV_procedure_risque_eleve_terminee = False
-MTEV_procedure_maintenue = False
-MTEV_filtre_cave_mis_en_place = False
-MTEV_anticoagulation_curative_reprise = False
-MTEV_nouvel_arret_non_prevu_court_terme = False
 
-MTEV_TVP_distale_symptomatique = False
+MTEV_TVP_distale_symptomatique_moins_1_mois = False
 MTEV_TVP_distale_procedure_differable = False
 MTEV_risque_thromboembolique_veineux_tres_eleve = False
 
@@ -5753,15 +5826,20 @@ if aod_detecte:
             FA_ATCD_AVC_ischemique_ui == "Oui"
         )
 
+                
+
         if FA_ATCD_AVC_ischemique:
-            FA_delai_depuis_AVC_ischemique_mois = st.number_input(
-                "Délai depuis l'AVC ischémique (mois)",
-                min_value=0.0,
-                step=0.5,
-                key="FA_delai_depuis_AVC_ischemique_mois"
+            FA_delai_AVC_ui = st.radio(
+                "Délai depuis l'AVC ischémique",
+                ["< 3 mois", "≥ 3 mois"],
+                key="FA_delai_AVC"
             )
 
-            if FA_delai_depuis_AVC_ischemique_mois < 3:
+            FA_AVC_moins_3_mois = (
+                FA_delai_AVC_ui == "< 3 mois"
+            )
+
+            if FA_AVC_moins_3_mois:
                 procedure_differable_ui = st.radio(
                     "La procédure peut-elle être différée sans risque vital ou fonctionnel ?",
                     ["Non", "Oui"],
@@ -5772,19 +5850,7 @@ if aod_detecte:
                     procedure_differable_ui == "Oui"
                 )
 
-        # =========================
-        # FA 3
-        # =========================
-        if normaliser_risque_yaml(risque_aod_avk) in [
-            "ELEVE",
-            "IMPORTANT",
-            "MAJEUR"
-        ]:
-            FA_procedure_risque_eleve_terminee = st.checkbox(
-                "Procédure à risque hémorragique élevé terminée",
-                key="FA_procedure_risque_eleve_terminee"
-            )
-
+   
         # =========================
         # FA 4 coronaropathie
         # =========================
@@ -5801,65 +5867,114 @@ if aod_detecte:
 
     if indication_aod == "MTEV":
 
-           
-
-        MTEV_type = st.radio(
-            "Type de maladie thromboembolique veineuse",
+        MTEV_situation = st.radio(
+            "Situation de la MTEV",
             [
-                "EP",
-                "TVP proximale",
-                "TVP distale",
-                "Autre"
+                "EP ou TVP proximale < 1 mois",
+                "EP ou TVP proximale de 1 à 3 mois",
+                "Cas complexe de MTEV",
+                "Tous les autres cas"
             ],
-            key="MTEV_type"
-        )
-
-        MTEV_delai_mois = st.number_input(
-            "Délai depuis l'EP ou la TVP (mois)",
-            min_value=0.0,
-            step=0.5,
-            key="MTEV_delai_mois"
-        )
-
-        MTEV_EP_TVP_proximale_moins_3_mois = (
-            MTEV_type in ["EP", "TVP proximale"]
-            and MTEV_delai_mois < 3
+            key="MTEV_situation"
         )
 
         MTEV_EP_TVP_proximale_moins_1_mois = (
-            MTEV_type in ["EP", "TVP proximale"]
-            and MTEV_delai_mois < 1
+            MTEV_situation == "EP ou TVP proximale < 1 mois"
         )
+
+        MTEV_EP_TVP_proximale_moins_3_mois = (
+            MTEV_situation in [
+                "EP ou TVP proximale < 1 mois",
+                "EP ou TVP proximale de 1 à 3 mois"
+            ]
+        )
+
+        MTEV_cas_complexe = (
+            MTEV_situation == "Cas complexe de MTEV"
+        )
+
+        if MTEV_cas_complexe:
+
+            MTEV_critere_complexe = []
+
+            with st.popover("Critère(s) de MTEV complexe"):
+
+                if st.checkbox("SAPL", key="MTEV_SAPL"):
+                    MTEV_critere_complexe.append("SAPL")
+
+                if st.checkbox("HTP-TEC", key="MTEV_HTP_TEC"):
+                    MTEV_critere_complexe.append("HTP-TEC")
+
+                if st.checkbox(
+                    "Histoire clinique ou familiale inhabituelle suggérant un risque thromboembolique élevé",
+                    key="MTEV_histoire_inhabituelle"
+                ):
+                    MTEV_critere_complexe.append(
+                        "Histoire clinique ou familiale inhabituelle suggérant un risque thromboembolique élevé"
+                    )
+
+                if st.checkbox(
+                    "TIH sous traitement anticoagulant",
+                    key="MTEV_TIH"
+                ):
+                    MTEV_critere_complexe.append(
+                        "TIH sous traitement anticoagulant"
+                    )
+
+                if st.checkbox(
+                    "Récidive sous traitement ou peu après son arrêt",
+                    key="MTEV_recidive"
+                ):
+                    MTEV_critere_complexe.append(
+                        "Récidive sous traitement ou peu après son arrêt"
+                    )
+
 
         MTEV_risque_thromboembolique_veineux_tres_eleve = (
             MTEV_EP_TVP_proximale_moins_1_mois
         )
 
-       
+
+
+
+        MTEV_TVP_distale_symptomatique_moins_1_mois = False
+
+        if MTEV_situation == "Tous les autres cas":
+            MTEV_TVP_distale_symptomatique_moins_1_mois_ui = st.radio(
+                "TVP distale symptomatique datant de moins de 1 mois ?",
+                ["Non", "Oui"],
+                key="MTEV_TVP_distale_symptomatique_moins_1_mois"
+            )
+
+            MTEV_TVP_distale_symptomatique_moins_1_mois = (
+                MTEV_TVP_distale_symptomatique_moins_1_mois_ui == "Oui"
+            )
+
+
         # =========================
-        # MTEV 6
-        # ====================
+        # MTEV 8 TVP distale symptomatique
+        # ===========================
 
         if (
-            MTEV_EP_TVP_proximale_moins_1_mois
+            MTEV_TVP_distale_symptomatique_moins_1_mois
             and normaliser_risque_yaml(risque_aod_avk) in [
                 "ELEVE",
                 "IMPORTANT",
                 "MAJEUR"
             ]
         ):
-            MTEV_procedure_maintenue_ui = st.radio(
-                "La procédure est-elle maintenue ?",
+            MTEV_TVP_distale_procedure_differable_ui = st.radio(
+                "La procédure peut-elle être différée sans risque vital ou fonctionnel ?",
                 ["Non", "Oui"],
-                key="MTEV_procedure_maintenue"
+                key="MTEV_TVP_distale_procedure_differable"
             )
 
-            MTEV_procedure_maintenue = (
-                MTEV_procedure_maintenue_ui == "Oui"
+            MTEV_TVP_distale_procedure_differable = (
+                MTEV_TVP_distale_procedure_differable_ui == "Oui"
             )
 
 
-
+     
         # =========================
         # MTEV 2 procédure différable
         # =========================
@@ -5877,118 +5992,60 @@ if aod_detecte:
 
 
 
+        st.markdown("### Posologies des AOD dans le cadre de la MTEV")
 
-        # =========================
-        # MTEV 8 TVP distale symptomatique
-        # =========================
+        tableau_aod_mtev = pd.DataFrame(
+            {
+                "AOD": [
+                    "Apixaban",
+                    "Rivaroxaban",
+                    "Dabigatran",
+                ],
 
-        if MTEV_type == "TVP distale":
-            MTEV_TVP_distale_symptomatique_ui = st.radio(
-                "TVP distale symptomatique ?",
-                ["Non", "Oui"],
-                key="MTEV_TVP_distale_symptomatique"
-            )
+                "Phase initiale – MTEV aiguë": [
+                    "10 mg x 2/j pendant 7 jours",
+                    "15 mg x 2/j pendant 21 jours",
+                    "Anticoagulant parentéral pendant ≥ 5 jours",
+                ],
 
-            MTEV_TVP_distale_symptomatique = (
-                MTEV_TVP_distale_symptomatique_ui == "Oui"
-            )
+                "Traitement après phase initiale": [
+                    "5 mg x 2/j",
+                    "20 mg x 1/j",
+                    "150 mg x 2/j",
+                ],
 
-            if (
-                MTEV_TVP_distale_symptomatique
-                and normaliser_risque_yaml(risque_aod_avk) in [
-                    "ELEVE",
-                    "IMPORTANT",
-                    "MAJEUR"
-                ]
-            ):
-                MTEV_TVP_distale_procedure_differable_ui = st.radio(
-                    "La procédure peut-elle être différée sans risque vital ou fonctionnel ?",
-                    ["Non", "Oui"],
-                    key="MTEV_TVP_distale_procedure_differable"
-                )
+                "Prévention prolongée après ≥ 6 mois": [
+                    "2,5 mg x 2/j",
+                    "10 mg x 1/j ou 20 mg x 1/j si risque élevé de récidive",
+                    "150 mg x 2/j*",
+                ],
+            }
+        )
 
-                MTEV_TVP_distale_procedure_differable = (
-                    MTEV_TVP_distale_procedure_differable_ui == "Oui"
-                )
+        st.dataframe(
+            tableau_aod_mtev,
+            use_container_width=True,
+            hide_index=True
+        )
 
+        st.caption(
+            "* Dabigatran : 150 mg x 2/j après au moins 5 jours d’anticoagulation "
+            "parentérale. Une réduction à 110 mg x 2/j est recommandée ou peut être "
+            "envisagée dans certaines situations prévues par le RCP (notamment âge, "
+            "vérapamil, insuffisance rénale modérée ou risque hémorragique). "
+            "ClCr < 30 mL/min : contre-indiqué."
+        )
 
-
-
-
-            st.markdown("**Recherche d'une situation MTEV complexe**")
-
-            MTEV_SAPL = st.checkbox(
-                "Syndrome des anticorps antiphospholipides (SAPL)",
-                key="MTEV_SAPL"
-            )
-
-            MTEV_HTP_TEC = st.checkbox(
-                "Hypertension pulmonaire thromboembolique chronique (HTP-TEC)",
-                key="MTEV_HTP_TEC"
-            )
-
-            MTEV_histoire_inhabituelle = st.checkbox(
-                "Histoire clinique ou familiale inhabituelle évoquant un risque thromboembolique élevé",
-                key="MTEV_histoire_inhabituelle"
-            )
-
-            MTEV_TIH = st.checkbox(
-                "TIH en cours de traitement anticoagulant",
-                key="MTEV_TIH"
-            )
-
-            MTEV_recidive = st.checkbox(
-                "Récidive d'EP ou de TVP sous traitement anticoagulant ou précocement après son arrêt",
-                key="MTEV_recidive"
-            )
-
-            MTEV_cas_complexe = (
-                MTEV_SAPL
-                or MTEV_HTP_TEC
-                or MTEV_histoire_inhabituelle
-                or MTEV_TIH
-                or MTEV_recidive
-            )
-
-            # =========================
-            # MTEV 5
-            # =========================
-
-            if (
-                not MTEV_cas_complexe
-                and normaliser_risque_yaml(risque_aod_avk) in [
-                    "ELEVE",
-                    "IMPORTANT",
-                    "MAJEUR"
-                ]
-            ):
-                MTEV_procedure_risque_eleve_terminee = st.checkbox(
-                    "Procédure à risque hémorragique élevé terminée",
-                    key="MTEV_procedure_risque_eleve_terminee"
-                )
+        st.caption(
+            "Remarque : les adaptations liées à la fonction rénale et aux "
+            "caractéristiques du patient doivent être considérées séparément "
+            "des phases de traitement."
+        )
 
 
 
-            # =================
-            # MTEV 7 retrait filtre cave
-            # =========================
 
-            MTEV_filtre_cave_mis_en_place = st.checkbox(
-                "Filtre cave optionnel mis en place",
-                key="MTEV_filtre_cave_mis_en_place"
-            )
- 
-            if MTEV_filtre_cave_mis_en_place:
-                MTEV_anticoagulation_curative_reprise = st.checkbox(
-                    "Anticoagulation curative reprise",
-                    key="MTEV_anticoagulation_curative_reprise"
-                )
 
-                if MTEV_anticoagulation_curative_reprise:
-                    MTEV_nouvel_arret_non_prevu_court_terme = st.checkbox(
-                        "Nouvel arrêt de l’anticoagulation non prévu à court terme",
-                        key="MTEV_nouvel_arret_non_prevu_court_terme"
-                    )
 
 
 ctx["indication_aod"] = indication_aod
@@ -5997,37 +6054,35 @@ ctx["FA_ATCD_AVC_ischemique"] = FA_ATCD_AVC_ischemique
 
 ctx["FA_AVC_moins_3_mois"] = (
     FA_ATCD_AVC_ischemique
-    and FA_delai_depuis_AVC_ischemique_mois is not None
-    and FA_delai_depuis_AVC_ischemique_mois < 3
+    and FA_AVC_moins_3_mois
 )
+
 
 ctx["procedure_differable_sans_risque_vital_fonctionnel"] = (
     procedure_differable_sans_risque_vital_fonctionnel
 )
 
-ctx["FA_procedure_risque_eleve_terminee"] = FA_procedure_risque_eleve_terminee
+
 ctx["FA_coronaropathie"] = FA_coronaropathie
 ctx["aap_detecte"] = aap_detecte
 ctx["MTEV_cas_complexe"] = MTEV_cas_complexe
+ctx["MTEV_critere_complexe"] = MTEV_critere_complexe
 
-ctx["MTEV_type"] = MTEV_type
-ctx["MTEV_delai_mois"] = MTEV_delai_mois
+ctx["MTEV_situation"] = MTEV_situation
 ctx["MTEV_EP_TVP_proximale_moins_3_mois"] = MTEV_EP_TVP_proximale_moins_3_mois
 ctx["MTEV_EP_TVP_proximale_moins_1_mois"] = MTEV_EP_TVP_proximale_moins_1_mois
+ctx["MTEV_TVP_distale_symptomatique_moins_1_mois"] = (
+    MTEV_TVP_distale_symptomatique_moins_1_mois
+)
+
 ctx["MTEV_procedure_differable_sans_risque_vital_fonctionnel"] = (
     MTEV_procedure_differable_sans_risque_vital_fonctionnel
 )
-ctx["MTEV_procedure_risque_eleve_terminee"] = MTEV_procedure_risque_eleve_terminee
 
-ctx["MTEV_procedure_maintenue"] = MTEV_procedure_maintenue
-ctx["MTEV_filtre_cave_mis_en_place"] = MTEV_filtre_cave_mis_en_place
 
-ctx["MTEV_anticoagulation_curative_reprise"] = MTEV_anticoagulation_curative_reprise
-
-ctx["MTEV_nouvel_arret_non_prevu_court_terme"] = (
-    MTEV_nouvel_arret_non_prevu_court_terme
+ctx["MTEV_TVP_distale_symptomatique_moins_1_mois"] = (
+    MTEV_TVP_distale_symptomatique_moins_1_mois
 )
-ctx["MTEV_TVP_distale_symptomatique"] = MTEV_TVP_distale_symptomatique
 
 ctx["MTEV_TVP_distale_procedure_differable"] = (
     MTEV_TVP_distale_procedure_differable
@@ -6038,14 +6093,15 @@ ctx["MTEV_risque_thromboembolique_veineux_tres_eleve"] = (
 
 
 ctx["reprise_aod_differee"] = st.session_state.get(
-    "reprise_aod_differee",
-    False
-)
+    "reprise_aod_postop",
+    "Oui"
+) == "Non"
 
 ctx["aod_repris"] = st.session_state.get(
-    "aod_repris",
-    False
-)
+    "reprise_aod_postop",
+    "Oui"
+) == "Oui"
+
 
 ctx["thromboprophylaxie_indiquee_aod"] = st.session_state.get(
     "thromboprophylaxie_indiquee_aod",
