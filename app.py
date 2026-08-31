@@ -2526,6 +2526,196 @@ def moteur_yaml(atc, ctx):
 
 
 
+        if atc.startswith("B01AC") and res_cond:
+
+            notes_catheters_aap = []
+
+            for cond in famille.get("conditions", []):
+
+                bloc_if = cond.get("if", {}) or {}
+
+          
+                est_regle_catheter = (
+                    bloc_if.get("catheter_perinerveux") is True
+                    or bloc_if.get("technique_neuraxiale") == "Péridurale"
+                )
+
+                if not est_regle_catheter:
+                    continue
+
+                test_regle = {
+                    "conditions": [cond]
+                }
+
+                match = conditions_match(
+                    ctx,
+                    test_regle,
+                    atc=atc
+                )
+
+                if not match:
+                    continue
+
+                texte = (
+                    match.get("precision")
+                    or match.get("note")
+                    or ""
+                )
+
+                if texte and texte not in notes_catheters_aap:
+                    notes_catheters_aap.append(texte)
+
+
+            if notes_catheters_aap:
+
+                
+                res_cond = dict(res_cond)
+
+                texte_principal = (
+                    res_cond.get("precision")
+                    or res_cond.get("note")
+                    or ""
+                )
+
+                textes = []
+
+                if texte_principal:
+                    textes.append(texte_principal)
+
+                for texte in notes_catheters_aap:
+                    if texte not in textes and texte not in texte_principal:
+                        textes.append(texte)
+
+                if res_cond.get("precision") is not None:
+                    res_cond["precision"] = " ".join(textes)
+                else:
+                    res_cond["note"] = " ".join(textes)
+
+
+    
+
+        # =====================================================
+        # AAP + NEUROCHIRURGIE
+       
+        if (
+            atc.startswith("B01AC")
+            and ctx.get("type_chir_neuro") == "NEUROCHIR_INTRACRANIENNE"
+            and res_cond
+        ):
+
+            matchs_aap_neuro = []
+
+            for cond in famille.get("conditions", []):
+
+                if "if" not in cond:
+                    continue
+
+                test_regle = {
+                    "conditions": [cond]
+                }
+
+                match = conditions_match(
+                    ctx,
+                    test_regle,
+                    atc=atc
+                )
+
+                if match:
+                    matchs_aap_neuro.append(match)
+
+            if matchs_aap_neuro:
+
+                principale_aap_neuro = None
+
+              
+
+                for m in matchs_aap_neuro:
+
+                    bloc_if = (
+                        m.get("if", {})
+                        or {}
+                    )
+
+                    if (
+                        bloc_if.get("type_chir_neuro")
+                        == "NEUROCHIR_INTRACRANIENNE"
+                    ):
+                        principale_aap_neuro = m
+                        break
+
+
+                if principale_aap_neuro is not None:
+
+                    notes_aap_neuro = []
+
+                    texte_neuro = (
+                        principale_aap_neuro.get("precision")
+                        or principale_aap_neuro.get("note")
+                        or ""
+                    )
+
+                    if texte_neuro:
+                        notes_aap_neuro.append(texte_neuro)
+
+
+                   
+                    for m in matchs_aap_neuro:
+
+                        if m is principale_aap_neuro:
+                            continue
+
+                        texte = (
+                            m.get("precision")
+                            or m.get("note")
+                            or ""
+                        )
+
+                        if not texte:
+                            continue
+
+                        phrases = re.split(
+                            r'(?<=[.!?])\s+',
+                            texte
+                        )
+
+                        for phrase in phrases:
+
+                            phrase = phrase.strip()
+
+                            if (
+                                phrase
+                                and (
+                                    phrase.startswith("Reprendre")
+                                    or "reprise postopératoire" in phrase
+                                )
+                                and phrase not in notes_aap_neuro
+                            ):
+                                notes_aap_neuro.append(phrase)
+
+
+                    for texte in notes_catheters_aap:
+                        if texte and texte not in notes_aap_neuro:
+                            notes_aap_neuro.append(texte)
+
+
+
+                    return {
+                        "action": principale_aap_neuro.get(
+                            "action",
+                            "INFO"
+                        ),
+                        "jour": principale_aap_neuro.get(
+                            "jour",
+                            ""
+                        ),
+                        "note": "\n\n".join(notes_aap_neuro),
+                        "source": lien_sfar,
+                    }
+
+
+
+
+
         # ================= AVK =================
 
         if atc.startswith("B01AA"):
@@ -2875,6 +3065,56 @@ def moteur_yaml(atc, ctx):
             famille,
             atc=atc
         )
+
+
+        if atc.startswith("B01AC") and res_cond:
+
+            notes_catheters_aap = []
+
+            for cond in famille.get("conditions", []):
+                bloc_if = cond.get("if", {}) or {}
+
+                est_regle_catheter = (
+                    bloc_if.get("catheter_perinerveux") is True
+                    or bloc_if.get("technique_neuraxiale") == "Péridurale"
+                )
+
+                if not est_regle_catheter:
+                    continue
+
+                match = conditions_match(
+                    ctx,
+                    {"conditions": [cond]},
+                    atc=atc
+                )
+
+                if match:
+                    texte = (
+                        match.get("precision")
+                        or match.get("note")
+                        or ""
+                    )
+
+                    if texte and texte not in notes_catheters_aap:
+                        notes_catheters_aap.append(texte)
+
+            if notes_catheters_aap:
+                res_cond = dict(res_cond)
+
+                texte_principal = (
+                    res_cond.get("precision")
+                    or res_cond.get("note")
+                    or ""
+                )
+
+                textes = [texte_principal] if texte_principal else []
+
+                for texte in notes_catheters_aap:
+                    if texte not in textes:
+                        textes.append(texte)
+
+                res_cond["precision"] = " ".join(textes)
+
 
 
         if res_cond:
@@ -4379,7 +4619,7 @@ aap_detecte = contexte_famille_detecte(
 
 catheter_perinerveux = False
 
-if aap_detecte and type_alr != "":
+if aap_detecte and type_alr in ["SUPERFICIEL", "PROFOND"]:
     with placeholder_catheter_perinerveux.container():
         catheter_perinerveux_choix = st.radio(
             "Mise en place d'un cathéter périnerveux ?",
@@ -4472,6 +4712,7 @@ type_traitement_aap = None
 contexte_stent = "Aucun critère"
 dose_aspirine = 75
 indication_aap = None
+bitherapie_coronaropathie = False
 nb_aap_detectes = compter_aap_dans_texte(txt_final, ref, atc_map)
 bitherapie_auto = nb_aap_detectes >= 2
 
@@ -4484,7 +4725,7 @@ if aap_detecte:
         st.info("Deux AAP détectés : bithérapie présumée.")
         type_traitement_aap = "Bithérapie"
 
-    ## kardegic / aspirine seule
+ 
     elif aspirine_seule_detectee:
         type_traitement_aap = st.radio(
             "Type de traitement",
@@ -4492,27 +4733,37 @@ if aap_detecte:
             index=0
         )
 
-    ## plavix / brilique / efient / autre AAP seul
+
     else:
         type_traitement_aap = "Prévention secondaire"
 
 
-
-
-
     if type_traitement_aap == "Bithérapie":
-        contexte_stent = st.selectbox(
-            "Contexte thrombotique",
-            [
-                "Aucun critère",
-                "Stent ≤ 1 mois",
-                "Stent ≤ 6 mois à haut risque thrombotique",
-                "IDM < 6 mois"
-            ]
+
+        bitherapie_coronaropathie_ui = st.radio(
+            "Bithérapie antiagrégante plaquettaire prescrite dans un contexte de coronaropathie (SCA et/ou stent coronaire) ?",
+            ["Oui", "Non"],
+            key="bitherapie_coronaropathie"
         )
 
-        with st.expander("Définition haut risque thrombotique"):
-            st.markdown("""
+        bitherapie_coronaropathie = (
+            bitherapie_coronaropathie_ui == "Oui"
+        )
+
+        if bitherapie_coronaropathie:
+
+            contexte_stent = st.selectbox(
+                "Contexte thrombotique",
+                [
+                    "Aucun critère",
+                    "Stent ≤ 1 mois",
+                    "Stent ≤ 6 mois à haut risque thrombotique",
+                    "IDM < 6 mois"
+                ]
+            )
+
+            with st.expander("Définition haut risque thrombotique"):
+                st.markdown("""
 - Antécédent de thrombose de stent sous bithérapie AAP
 - Coronaropathie diffuse (surtout chez les diabétiques)
 - Insuffisance rénale chronique (DFG < 60 mL/min)
@@ -4522,7 +4773,18 @@ if aap_detecte:
 - Au moins 3 lésions traitées
 - Bifurcation avec 2 stents implantés
 - Longueur totale des stents > 60 mm
-            """)
+                """)
+
+        else:
+
+            contexte_stent = "Aucun critère"
+
+            st.info(
+                "Rechercher l’indication de la bithérapie antiagrégante plaquettaire et, "
+                "selon le contexte, envisager un avis auprès du spécialiste référent afin "
+                "de préciser la stratégie de gestion périopératoire."
+            )
+
 
     dose_aspirine = st.number_input(
         "Dose aspirine (mg)",
@@ -5516,6 +5778,7 @@ ctx = {
     "aspirine_inf_75": dose_aspirine < 75,
     "catheter_perinerveux": catheter_perinerveux,
     "stent_1m": contexte_stent == "Stent ≤ 1 mois",
+    "bitherapie_coronaropathie": bitherapie_coronaropathie,
     "stent_6m_haut_risque": contexte_stent == "Stent ≤ 6 mois à haut risque thrombotique",
     "idm_6m": contexte_stent == "IDM < 6 mois",
     "aucun_critere_stent": contexte_stent == "Aucun critère",
@@ -5698,49 +5961,6 @@ if aod_detecte:
         ],
         key="dfg_aod"
     )
-
-    # =========================
-    # AOD postopératoire
-    # =========================
-
-    st.subheader("Post-opératoire")
-
-    thromboprophylaxie_indiquee_aod = False
-    heparine_curative_indiquee = False
-
-    reprise_aod_postop = st.radio(
-        "Est-ce que l’AOD peut être repris après la procédure (idéalement entre 48 et 72 h postopératoires) ?",
-        ["Oui", "Non"],
-        key="reprise_aod_postop"
-    )
-
-    if reprise_aod_postop == "Non":
-
-        st.markdown(
-            """
-            <div style="color:gray; font-style:italic; margin-left:20px;">
-            (exemple : voie entérale non disponible, gestion du risque hémorragique
-            plus simple avec des héparines : drains ou redons, risque de reprise chirurgicale)
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-      
-        col_vide, col_postop_aod = st.columns([0.06, 0.94])
-
-        with col_postop_aod:
-            thromboprophylaxie_indiquee_aod = st.checkbox(
-                "Thromboprophylaxie veineuse indiquée en attendant la reprise de l’anticoagulation curative",
-                key="thromboprophylaxie_indiquee_aod"
-            )
-
-            heparine_curative_indiquee = st.checkbox(
-                "Héparine curative indiquée",
-                key="heparine_curative_indiquee"
-            ) 
-
-
 
 
 ctx["dfg_connu"] = dfg_aod != "DFG inconnu" and dfg_aod != ""
@@ -6044,6 +6264,46 @@ if aod_detecte:
 
 
 
+  # =========================
+  # AOD postopératoire
+  # =========================
+
+    st.subheader("Post-opératoire")
+
+    thromboprophylaxie_indiquee_aod = False
+    heparine_curative_indiquee = False
+
+    reprise_aod_postop = st.radio(
+        "Est-ce que l’AOD peut être repris après la procédure (idéalement entre 48 et 72 h postopératoires) ?",
+        ["Oui", "Non"],
+        key="reprise_aod_postop"
+    )
+
+    if reprise_aod_postop == "Non":
+
+        st.markdown(
+            """
+            <div style="color:gray; font-style:italic; margin-left:20px;">
+            (exemple : voie entérale non disponible, gestion du risque hémorragique
+            plus simple avec des héparines : drains ou redons, risque de reprise chirurgicale)
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+      
+        col_vide, col_postop_aod = st.columns([0.06, 0.94])
+
+        with col_postop_aod:
+            thromboprophylaxie_indiquee_aod = st.checkbox(
+                "Thromboprophylaxie veineuse indiquée en attendant la reprise de l’anticoagulation curative",
+                key="thromboprophylaxie_indiquee_aod"
+            )
+
+            heparine_curative_indiquee = st.checkbox(
+                "Héparine curative indiquée",
+                key="heparine_curative_indiquee"
+            ) 
 
 
 
