@@ -440,8 +440,9 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J0
       precision: "Dose d’aspirine < 75 mg/j : posologie atypique, vérifier la prescription."
 
+
     # =========================================================
-    # --- NEUROCHIRURGIE ---
+    # NEUROCHIRURGIE
     # =========================================================
     - if: {type_chir_neuro: NEUROCHIR_INTRACRANIENNE, atc_codes: [B01AC01, B01AC06]}
       action: ARRET
@@ -535,6 +536,16 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
 
     # ---------- SANS CRITERE DE HAUT RISQUE ----------
+    - if:
+        bitherapie_aap: true
+        bitherapie_coronaropathie: false
+        aucun_critere_stent: true
+        r_hem: FAIBLE
+        atc_codes: [B01AC30]
+      action: POURSUITE
+      jour: J0
+      precision: "Duoplavin = aspirine + clopidogrel. Poursuivre les 2 AAP. Rechercher l’indication de la bithérapie antiagrégante plaquettaire et, selon le contexte, envisager un avis auprès du spécialiste référent afin de préciser la stratégie de gestion périopératoire."
+
 
     # FAIBLE
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: FAIBLE, atc_codes: [B01AC30]}
@@ -542,18 +553,46 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J0
       precision: "Duoplavin = aspirine + clopidogrel. Poursuivre les 2 AAP."
 
+
+    - if:
+        bitherapie_aap: true
+        bitherapie_coronaropathie: false
+        aucun_critere_stent: true
+        r_hem: INTERMEDIAIRE
+        atc_codes: [B01AC30]
+      action: ARRET
+      jour: J-5
+      precision: "Duoplavin = aspirine + clopidogrel. Poursuivre l’aspirine et dernière prise du clopidogrel à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. Rechercher l’indication de la bithérapie antiagrégante plaquettaire et, selon le contexte, envisager un avis auprès du spécialiste référent afin de préciser la stratégie de gestion périopératoire."
+
+
+
+
+
     # INTERMEDIAIRE
     - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: INTERMEDIAIRE, atc_codes:[B01AC30]}
       action: ARRET
       jour: J-5
       precision: "Duoplavin = aspirine + clopidogrel. Poursuivre l’aspirine et dernière prise du clopidogrel à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire."
 
-
     # ELEVE / IMPORTANT / MAJEUR
-    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR],          atc_codes: [B01AC30]}
+    - if:
+        bitherapie_aap: true
+        bitherapie_coronaropathie: false
+        aucun_critere_stent: true
+        r_hem: [ELEVE, IMPORTANT, MAJEUR]
+        atc_codes: [B01AC30]
+      action: ARRET
+      jour: J-5
+      precision: "Duoplavin = aspirine + clopidogrel. Dernière prise des 2 AAP à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. Reprendre l’aspirine aussi précocement que possible après la procédure invasive, au mieux le jour même, en fonction du risque de saignement postopératoire. Rechercher l’indication de la bithérapie antiagrégante plaquettaire et, selon le contexte, envisager un avis auprès du spécialiste référent afin de préciser la stratégie de gestion périopératoire."
+
+    - if: {bitherapie_aap: true, aucun_critere_stent: true, r_hem: [ELEVE, IMPORTANT, MAJEUR], atc_codes: [B01AC30]}
       action: ARRET
       jour: J-5
       precision: "Duoplavin = aspirine + clopidogrel. Dernière prise des 2 AAP à J-5. Reprendre précocement l’anti-P2Y12, au mieux dans les 24 à 72 heures après la chirurgie, compte tenu de l’augmentation du risque thrombotique. Reprendre le même anti-P2Y12 qu’en préopératoire. Reprendre l’aspirine aussi précocement que possible après la procédure invasive, au mieux le jour même, en fonction du risque de saignement postopératoire."
+
+
+
+
 
     # =========================================================
     # BITHERAPIE HAUT RISQUE + ALR
