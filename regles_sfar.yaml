@@ -7,7 +7,10 @@ sources_regles:
   regle_1_sraa:
     categorie: SYSTEME RENINE-ANGIOTENSINE (SRAA)
     sources:
-    - https://sfar.org/gestion-perioperatoire-des-traitements-chroniques-et-dispositifs-medicaux-anti-infectieux-immunosuppresseurs/
+      - https://sfar.org/gestion-perioperatoire-des-traitements-chroniques-et-dispositifs-medicaux-anti-infectieux-immunosuppresseurs/
+      - http://www.ncbi.nlm.nih.gov/pubmed/37935833
+      - http://www.ncbi.nlm.nih.gov/pubmed/39212270
+
   regle_2_diuretique:
     categorie: DIURETIQUES
     sources:
@@ -19,21 +22,70 @@ sources_regles:
   regle_4_antidiabetique_insuline:
     categorie: ANTIDIABETIQUES ET INSULINES
     sources:
-    - https://sfar.org/wp-content/uploads/2025/09/Fiches-simplifieges-DiabeGte-2025-V4.pdf
+      - https://sfar.org/download/prise-en-charge-du-patient-diabetique-en-peri-operatoire/?wpdmdl=122568&refresh=6a23f3ec98db11780741100
+
+
   regle_5_aap:
     categorie: ANTIAGREGANTS (AAP)
-    sources:
-    - https://sfar.org/gestion-agents-antiplaquettaires-procedure-invasive-programmee/
-    - https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx
-    - https://sfar.org/anesthesie-loco-regionale-perinerveuse/
-    - https://www.has-sante.fr/upload/docs/application/pdf/2012-10/fiche_de_synthese__antiagregant_plaquettaire_pneumologie.pdf
-    - https://www.fmcgastro.org/texte-postu/postu-2022/gestion-des-antiagregants-et-anticoagulants-en-endoscopie-recommandations-esge-2/
-    - https://societechirorale.com/wp-content/uploads/2023/06/recommandations_festion_peri_operatoire_2015_court.pdf
+
+    sources_generales:
+      - https://sfar.org/gestion-agents-antiplaquettaires-procedure-invasive-programmee/
+
+    sources_contextuelles:
+      ENDOSCOPIE DIGESTIVE:
+        - https://www.sfed.org/wp-content/uploads/2023/05/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf
+        - https://www.has-sante.fr/upload/docs/application/pdf/2012-10/fiche_de_synthese__antiagregant_plaquettaire_gastrologie.pdf
+
+
+      UROLOGIE:
+        - https://www.has-sante.fr/upload/docs/application/pdf/2012-10/fiche_de_synthese__antiagregant_plaquettaire__urologie.pdf
+
+
+      PROCTOLOGIE:
+        - https://www.has-sante.fr/upload/docs/application/pdf/2012-10/fiche_de_synthese__antiagregant_plaquettaire_proctologie.pdf
+
+
+      RHUMATOLOGIE:
+        - https://www.has-sante.fr/upload/docs/application/pdf/2013-12/fiche_de_synthese_antiagregants_plaquettaires_-_gestes_percutanes.pdf
+
+
+
+      ORALE:
+        - https://societechirorale.com/wp-content/uploads/2023/06/recommandations_festion_peri_operatoire_2015_court.pdf
+
+
+
+      OPHTALMO:
+        - https://pubmed.ncbi.nlm.nih.gov/35964704/
+        - https://pubmed.ncbi.nlm.nih.gov/30850731/
+        - https://pubmed.ncbi.nlm.nih.gov/24692748/
+        - https://pubmed.ncbi.nlm.nih.gov/23698703/
+
+
+      THORACIQUE_ENDOSCOPIE:
+        - https://www.has-sante.fr/upload/docs/application/pdf/2012-10/fiche_de_synthese__antiagregant_plaquettaire_pneumologie.pdf
+
+    sources_alr:
+      - https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf
+      - https://sfar.org/anesthesie-loco-regionale-perinerveuse/
+      - https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx
+
+
+
   regle_6_aod:
     categorie: ANTICOAGULANTS (AOD)
+
     sources:
       - https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf
-      - https://sfar.org/download/gestion-perioperatoire-des-patients-sous-aod-pour-un-acte-programme/?wpdmdl=33608&refresh=69ee5f1f03df61777229599
+
+    sources_alr:
+      - https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf
+      - https://sfar.org/anesthesie-loco-regionale-perinerveuse/
+      - https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx
+
+
+
+
 
   regle_7_ains:
     categorie: AINS
@@ -53,11 +105,18 @@ sources_regles:
 
     sources:
       - "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
-      - "https://www.has-sante.fr/upload/docs/application/pdf/2008-09/surdosage_en_avk_situations_a_risque_et_accidents_hemorragiques_-_synthese_des_recommandations_v2.pdf"
-      - "https://sfar.org/wp-content/uploads/2015/10/2_HAS_Prise-en-charge-des-surdosages-en-antivitamines-K.pdf"
-      - "https://www.sfed.org/wp-content/uploads/2023/05/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf"
-      - "https://inavalverhd.inaheart.org/wp-content/uploads/2025/09/2025-ESC-EACTS-Guidelines-for-the-Management-of-Valvular-Heart-Disease.pdf"
+      - "https://academic.oup.com/eurheartj/advance-article-pdf/doi/10.1093/eurheartj/ehaf194/64141080/ehaf194.pdf"
       - "https://pure.eur.nl/ws/portalfiles/portal/182889750/2024_ESC_Guidelines_for_the_management_of_atrial_fibrillation_developed_in_collaboration_with_the_European_Association_for_Cardio-Thoracic_Surgery_EACTS_.pdf"
+
+
+
+
+    sources_alr:
+      - "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
+      - "https://sfar.org/anesthesie-loco-regionale-perinerveuse/"
+      - "https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx"
+
+
 
   atc_prefix:
     - "B01AA"
@@ -66,12 +125,12 @@ sources_regles:
   regle_11_heparines:
     categorie: HEPARINES
     sources:
-      - "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
-
       - "https://sfar.org/wp-content/uploads/2017/10/Bonhomme-Gestion-preoperatoire-du-risque-hemorragique.pdf"
 
-
-
+    sources_alr:
+      - "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
+      - "https://sfar.org/anesthesie-loco-regionale-perinerveuse/"
+      - "https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx"
 
 
 regles_medicaments:
@@ -340,10 +399,11 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 - categorie: "GLP-1 (Analogues : Ozempic, Saxenda...)"
   source_ref: "regle_4_antidiabetique_insuline"
   source_url:
+    - "https://sfar.org/download/prise-en-charge-du-patient-diabetique-en-peri-operatoire/?wpdmdl=122568&refresh=6a23f3ec98db11780741100"
     - "https://sfar.org/mise-au-point-traitement-du-diabete-agonistes-recepteurs-glp1-et-anesthesie/"
-    - "https://sfar.org/wp-content/uploads/2025/09/Fiches-simplifieges-DiabeGte-2025-V4.pdf"
-    - "https://pubmed.ncbi.nlm.nih.gov/39781571/"
+    - "http://www.ncbi.nlm.nih.gov/pubmed/39781571"
     - "https://pmc.ncbi.nlm.nih.gov/articles/PMC11666732/"
+
   atc_prefix:
     - "A10BJ"
     - "A10BX"
@@ -898,7 +958,13 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       jour: J0
       precision: "Aspirine en prévention primaire : arrêt ou poursuite selon balance bénéfice-risque."
 
-    - if: {prev_primaire: true, atc_codes: [B01AC01, B01AC06]}
+    - if: {prev_primaire: true, atc_codes: [B01AC01, B01AC06], FA_coronaropathie_aap: true}
+      action: INFO
+      jour: ""
+      precision: "Association de plusieurs traitements antithrombotiques : leur gestion périopératoire nécessite une stratégie personnalisée avec le cardiologue référent."
+
+
+    - if: {prev_primaire: true, atc_codes: [B01AC01, B01AC06], FA_coronaropathie_aap: false}
       action: ARRET
       jour: J-3
       precision: "Aspirine en prévention primaire : dernière prise J-3. Reprendre l’AAP aussi précocement que possible, en fonction du risque de saignement postopératoire."
@@ -967,7 +1033,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: INFO
       note: |
-        Risque de récidive de MTEV à évaluer individuellement : contacter le médecin référent pour estimer le risque thromboembolique et établir une stratégie personnalisée, incluant relais pré/post-procédural ou absence de relais.
+        Situation thromboembolique complexe : la gestion périopératoire de l’AOD nécessite une stratégie personnalisée avec le médecin référent.
 
     # ==========================================
     # MTEV 2
@@ -993,8 +1059,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: INFO
       note: |
-        Risque de récidive de MTEV très élevé : établir une stratégie personnalisée de façon multidisciplinaire.
-
+        Risque très élevé de récidive de MTEV : la gestion périopératoire de l’AOD nécessite une stratégie personnalisée et multidisciplinaire.
 
     # ==========================================
     # MTEV 4
@@ -1084,6 +1149,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if:
         atc_prefix: ["B01AF"]
         dfg_30_49: true
+        FA_tres_haut_risque_thromboembolique: false
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: ARRET
       jour: J-3
@@ -1112,6 +1178,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if:
         atc_prefix: ["B01AF"]
         dfg_inf_30: true
+        FA_tres_haut_risque_thromboembolique: false
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: ARRET
       jour: J-5
@@ -1366,6 +1433,20 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         Procédure à faible risque hémorragique alors pas de prise la veille au soir ni le matin de l’intervention (quelque soit le DFG).
 
 
+    # =========================
+    # FA situation exceptionnelle à très haut risque thromboembolique
+    # =========================
+
+    - if:
+        indication_aod: "FA"
+        FA_tres_haut_risque_thromboembolique: true
+        r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+      action: INFO
+      note: |
+        La gestion périopératoire de l’AOD nécessite une évaluation individualisée et multidisciplinaire.
+
+
+
     #=================FA 1 ===============
     # ======================================
 
@@ -1389,6 +1470,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         indication_aod: "FA"
         atc_prefix: ["B01AF"]
         dfg_ge_30: true
+        FA_tres_haut_risque_thromboembolique: false
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: ARRET
       jour: J-3
@@ -1401,6 +1483,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         indication_aod: "FA"
         atc_prefix: ["B01AF"]
         dfg_inf_30: true
+        FA_tres_haut_risque_thromboembolique: false
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: ARRET
       jour: J-5
@@ -1454,11 +1537,10 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         aap_detecte: true
       action: INFO
       note: |
-        Évaluer les traitements antithrombotiques associés.
-
-        En cas d’association anticoagulant + agent(s) antiplaquettaire(s), en particulier bithérapie antiplaquettaire, discussion multidisciplinaire avec le cardiologue référent pour définir une  stratégie personnalisée.
-
+        Association de plusieurs traitements antithrombotiques : leur gestion périopératoire nécessite une stratégie personnalisée avec le cardiologue référent.
         Les données sont en défaveur d’un relais péri-procédural par aspirine si l’anticoagulation à dose curative peut être reprise dans les 72 heures.
+
+
 
     - if:
         indication_aod: "FA"
@@ -1492,6 +1574,8 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
         atc_prefix: ["B01AF"]
         dfg_ge_30: true
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
+        neuro_ou_neuraxial: false
+        FA_tres_haut_risque_thromboembolique: false
       action: ARRET
       jour: J-3
       note: |
@@ -1501,6 +1585,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - if:
         atc_prefix: ["B01AF"]
         dfg_inf_30: true
+        FA_tres_haut_risque_thromboembolique: false
         r_hem: ["ELEVE", "IMPORTANT", "MAJEUR"]
       action: ARRET
       jour: J-5
@@ -1619,7 +1704,6 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     - "https://pmc.ncbi.nlm.nih.gov/articles/PMC11180513/"
     - "https://pubmed.ncbi.nlm.nih.gov/40522647/"
     - "https://pubmed.ncbi.nlm.nih.gov/32017012/"
-    - "https://pmc.ncbi.nlm.nih.gov/articles/PMC7861897/"
 
   conditions:
 
@@ -1804,15 +1888,6 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
 - categorie: "Anti-Vitamine K (AVK)"
   source_ref: "regle_10_avk"
-  source_url:
-    - "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf"
-    - "https://www.has-sante.fr/upload/docs/application/pdf/2008-09/surdosage_en_avk_situations_a_risque_et_accidents_hemorragiques_-_synthese_des_recommandations_v2.pdf"
-    - "https://sfar.org/wp-content/uploads/2015/10/2_HAS_Prise-en-charge-des-surdosages-en-antivitamines-K.pdf"
-    - "https://www.sfed.org/wp-content/uploads/2023/05/hpg-330477-61316-gestion_des_antiagregants_et_anticoagulants_en_endoscopie_document_sfed_2023_a_partir_des_recommandations_bsg_esge_2021_-318879-u-e1d.pdf"
-    - "https://inavalverhd.inaheart.org/wp-content/uploads/2025/09/2025-ESC-EACTS-Guidelines-for-the-Management-of-Valvular-Heart-Disease.pdf"
-    - "https://pure.eur.nl/ws/portalfiles/portal/182889750/2024_ESC_Guidelines_for_the_management_of_atrial_fibrillation_developed_in_collaboration_with_the_European_Association_for_Cardio-Thoracic_Surgery_EACTS_.pdf"
-
-
 
   atc_prefix:
     - "B01AA"
@@ -2154,10 +2229,10 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     # ========================================
 
 
-    # DFG > 30
+    # DFG ≥ 30
     - if:
         relais_avk: true
-        dfg_relais_avk: "DFG > 30"
+        dfg_relais_avk: "DFG ≥ 30"
         schema_hbpm: "2 injections par jour (Enoxaparine 100 UI/kg toutes les 12h)"
       action: "RELAIS HBPM"
       jour: "J-3"
@@ -2167,7 +2242,7 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
 
     - if:
         relais_avk: true
-        dfg_relais_avk: "DFG > 30"
+        dfg_relais_avk: "DFG ≥ 30"
         schema_hbpm: "1 injection par jour (Tinzaparine 175 UI/kg x 1/j)"
       action: "RELAIS HBPM"
       jour: "J-3"
@@ -2264,11 +2339,11 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
     # =========================================================
     # ADAPTATION DU RELAIS EN FCT DU POIDS
     # =========================================================
-    # SI POIDS >= 100 KG + DFG > 30
+    # SI POIDS >= 100 KG + DFG ≥ 30
     - if:
         relais_avk: true
         poids_ge_100: true
-        dfg_relais_avk: "DFG > 30"
+        dfg_relais_avk: "DFG ≥ 30"
       action: "ADAPTATION RELAIS"
       jour: ""
       note: |
