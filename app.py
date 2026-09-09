@@ -1479,7 +1479,6 @@ def meilleur_match_medicament(candidate, ref):
         if match:
             nom_match, score_match, _ = match
 
-            # n'accepte que si quasi identique
             if score_match >= 85:
                 return nom_match, score_match
 
@@ -1617,10 +1616,10 @@ def construire_schema_relais(ctx):
     schema_hbpm = ctx.get("schema_hbpm")
 
     # =====================================================
-    # DFG > 30
+    # DFG ≥ 30
     # =====================================================
 
-    if dfg == "DFG > 30":
+    if dfg == "DFG ≥ 30":
 
         if schema_hbpm == "2 injections par jour (Enoxaparine 100 UI/kg toutes les 12h)":
             schema.update({
@@ -2129,6 +2128,8 @@ def generer_prescription_ide(schema_relais, poids_kg=None, date_op=None):
 def moteur_yaml(atc, ctx):
     atc = str(atc).upper().strip()
     liste_regles = REGLES.get("regles_medicaments") or []
+    rappel_contextuel = ""
+    
 
 
     # ================= AOD =================
@@ -2268,10 +2269,14 @@ def moteur_yaml(atc, ctx):
 
                 if ref in source_table:
 
-                    sources = source_table[ref].get(
-                        "sources",
-                        []
-                    )
+                    source_ref_data = source_table[ref]
+
+                    if isinstance(source_ref_data, dict):
+                        sources = source_ref_data.get("sources", [])
+                    elif isinstance(source_ref_data, list):
+                        sources = source_ref_data
+                    else:
+                        sources = []
 
                     if isinstance(sources, list):
 
@@ -2280,6 +2285,8 @@ def moteur_yaml(atc, ctx):
                             for s in sources
                             if str(s).strip()
                         ])
+
+
 
 
         if matchs_aod:
@@ -2300,27 +2307,97 @@ def moteur_yaml(atc, ctx):
                 )
             )
 
+            fa_coronaropathie_aap = (
+                ctx.get("indication_aod") == "FA"
+                and ctx.get("FA_coronaropathie") is True
+                and ctx.get("aap_detecte") is True
+            )
+           
+            strategie_habituelle_aod = None
 
+            if mtev_01_ou_03 or fa_coronaropathie_aap:
 
-            # ================================
-            # ARRET préop prioritaire
-            # ================================
+                for m in matchs_aod:
 
-            for m in matchs_aod:
+                    if str(m.get("action", "")).upper().strip() == "ARRET":
+
+                        strategie_habituelle_aod = {
+                            "action": m.get("action", ""),
+                            "jour": m.get("jour", ""),
+                            "note": m.get("precision") or m.get("note") or "",
+                        }
+
+                        break
+
+      
+            if (
+                ctx.get("indication_aod") == "FA"
+                and ctx.get("FA_tres_haut_risque_thromboembolique") is True
+            ):
+
+                ctx_habituel = ctx.copy()
+                ctx_habituel["FA_tres_haut_risque_thromboembolique"] = False
+
+                strategie_standard = moteur_yaml(
+                    atc,
+                    ctx_habituel
+                )
 
                 if (
-                    str(
-                        m.get("action", "")
-                    ).upper().strip()
-                    == "ARRET"
+                    strategie_standard
+                    and str(
+                        strategie_standard.get("action", "")
+                    ).upper().strip() == "ARRET"
                 ):
+                    strategie_habituelle_aod = {
+                        "action": strategie_standard.get("action", ""),
+                        "jour": strategie_standard.get("jour", ""),
+                        "note": strategie_standard.get("note", ""),
+                    }
 
-                    principale = m
-                    break
+          
+            # ================================
+            # FA + coronaropathie + AOD/AAP
+
+
+
+            if fa_coronaropathie_aap:
+
+                for m in matchs_aod:
+
+                    bloc_if = m.get("if", {}) or {}
+
+                    if (
+                        bloc_if.get("indication_aod") == "FA"
+                        and bloc_if.get("FA_coronaropathie") is True
+                        and bloc_if.get("aap_detecte") is True
+                    ): 
+                        principale = m
+                        break
+
+            if principale is None:
+
+                for m in matchs_aod:
+
+                    if (
+                        str(
+                            m.get("action", "")
+                        ).upper().strip()
+                        == "ARRET"
+                    ):
+
+                        principale = m
+                        break
 
 
             if principale is None:
                 principale = matchs_aod[0]
+
+
+
+
+
+
 
 
 
@@ -2349,27 +2426,49 @@ def moteur_yaml(atc, ctx):
                         notes.append(texte)
 
 
-           
             for m in matchs_aod:
 
-                # MTEV-01 / MTEV-03 :
-                # ne pas afficher l'arrêt standard automatique
+ 
                 if (
-                    mtev_01_ou_03
-                    and str(
-                        m.get("action", "")
-                    ).upper().strip() == "ARRET"
+                    (mtev_01_ou_03 or fa_coronaropathie_aap)
+                    and str(m.get("action", "")).upper().strip() == "ARRET"
                 ):
                     continue
 
-                texte = (
-                    m.get("precision")
-                    or m.get("note")
-                    or ""
-                )
+                texte = m.get("precision") or m.get("note") or ""
 
                 if texte and texte not in notes:
                     notes.append(texte)
+
+
+
+                alr_selectionnee = str(
+                    ctx.get("type_alr_affichage", "") or ""
+                ).strip()
+
+                if alr_selectionnee and alr_selectionnee != "Aucune ALR":
+
+                    source_table = REGLES.get(
+                        "sources_regles",
+                        {}
+                    )
+
+                    source_ref_data = source_table.get(
+                        "regle_6_aod",
+                        {}
+                    )
+
+                    sources_alr = source_ref_data.get(
+                        "sources_alr",
+                        []
+                    )
+
+                    if isinstance(sources_alr, list):
+                        sources_aod.extend(sources_alr)
+
+
+
+
 
 
             sources_aod = list(
@@ -2400,6 +2499,7 @@ def moteur_yaml(atc, ctx):
                 ),
                 "note": "\n\n".join(notes),
                 "source": " | ".join(sources_aod),
+                "strategie_habituelle": strategie_habituelle_aod,
             }
 
 
@@ -2472,7 +2572,6 @@ def moteur_yaml(atc, ctx):
                     if str(s).strip()
                 ])
 
-
         elif famille.get("source_ref"):
 
             ref = famille.get("source_ref")
@@ -2483,21 +2582,125 @@ def moteur_yaml(atc, ctx):
             )
 
             if ref in source_table:
+  
+                source_ref_data = source_table[ref]
 
-                sources = source_table[
-                    ref
-                ].get(
-                    "sources",
-                    []
+       
+                sources = source_ref_data.get("sources", [])
+
+     
+                if not sources:
+                    sources = source_ref_data.get(
+                        "sources_generales",
+                        []
+                    )
+
+                sources_finales = list(sources) if isinstance(sources, list) else []
+
+        
+                sources_contextuelles = source_ref_data.get(
+                    "sources_contextuelles",
+                    {}
                 )
 
-                if isinstance(sources, list):
 
-                    lien_sfar = " | ".join([
-                        str(s).strip()
-                        for s in sources
-                        if str(s).strip()
-                    ])
+
+
+                rappels_contextuels = source_ref_data.get(
+                    "rappels_contextuels",
+                    {}
+                )
+
+                rappel_contextuel = ""
+
+                specialite_source = str(
+                    ctx.get("specialite_chir", "")
+                ).strip().upper()
+
+                specialite_rappel = specialite_source
+
+                if specialite_rappel.startswith("CHIR "):
+                    specialite_rappel = specialite_rappel[5:].strip()
+
+                for cle_rappel in [
+                    specialite_source,
+                    specialite_rappel,
+                    f"CHIR {specialite_rappel}"
+                ]:
+                    if cle_rappel in rappels_contextuels:
+                        rappel_contextuel = str(
+                            rappels_contextuels.get(cle_rappel, "")
+                        ).strip()
+                        break
+
+
+
+
+
+
+                specialite_source = str(
+                    ctx.get("specialite_chir", "")
+                ).strip().upper()
+
+                specialite_sans_chir = specialite_source
+                if specialite_sans_chir.startswith("CHIR "):
+                    specialite_sans_chir = specialite_sans_chir[5:].strip()
+
+
+                if (
+                    specialite_source == "THORACIQUE"
+                    and str(ctx.get("groupe_chir", "")).strip() == "Endoscopie thoracique / radio interv."
+                ):
+                   specialite_source = "THORACIQUE_ENDOSCOPIE"
+                   specialite_sans_chir = "THORACIQUE_ENDOSCOPIE"
+
+
+                cles_specialite = [
+                    specialite_source,
+                    specialite_sans_chir,
+                    f"CHIR {specialite_sans_chir}"
+                ]
+
+                for cle_specialite in cles_specialite:
+                    if cle_specialite in sources_contextuelles:
+
+                        sources_spe = sources_contextuelles.get(
+                            cle_specialite,
+                            []
+                        )
+ 
+                        if isinstance(sources_spe, list):
+                            sources_finales.extend(sources_spe)
+
+
+
+                alr_selectionnee = str(
+                    ctx.get("type_alr_affichage", "") or ""
+                ).strip()
+
+                if alr_selectionnee and alr_selectionnee != "Aucune ALR":
+
+                    sources_alr = source_ref_data.get(
+                        "sources_alr",
+                        []
+                    )
+
+                    if isinstance(sources_alr, list):
+                        sources_finales.extend(sources_alr)
+
+        
+                sources_finales = list(dict.fromkeys(
+                    str(s).strip()
+                    for s in sources_finales
+                    if str(s).strip()
+                ))
+
+                lien_sfar = " | ".join(sources_finales)
+
+
+
+
+
 
 
         res = {
@@ -2515,6 +2718,7 @@ def moteur_yaml(atc, ctx):
                 or "-"
             ),
             "source": lien_sfar,
+            "rappel_contextuel": rappel_contextuel,
         }
 
 
@@ -2522,9 +2726,11 @@ def moteur_yaml(atc, ctx):
             ctx,
             famille,
             atc=atc
+
         )
 
-
+        if res_cond:
+            res_cond["rappel_contextuel"] = rappel_contextuel
 
         if atc.startswith("B01AC") and res_cond:
 
@@ -2872,7 +3078,97 @@ def moteur_yaml(atc, ctx):
                     ]
 
 
+
+
+                strategie_habituelle_avk = None
+
+                if (
+                    ctx.get("indication_avk") == "MTEV"
+                    and ctx.get("mtev_complexe") is True
+                    and ctx.get("r_hem") in ["ELEVE", "IMPORTANT", "MAJEUR"]
+                ):
+
+                    for m in matchs:
+
+                        bloc_if = m.get("if", {}) or {}
+
+                        if (
+                            str(m.get("action", "")).upper().strip() == "ARRET"
+                            and "atc_codes" in bloc_if
+                            and bloc_if.get("indication_avk") is None
+                         ):
+                            strategie_habituelle_avk = {
+                                "action": m.get("action", ""),
+                                "jour": m.get("jour", ""),
+                                "note": m.get("precision") or m.get("note") or "",
+                            }
+                            break
+
+
+
+                if (
+                    ctx.get("indication_avk") == "MTEV"
+                    and ctx.get("mtev_complexe") is True
+                    and ctx.get("r_hem") in ["ELEVE", "IMPORTANT", "MAJEUR"]
+                ):
+
+                    matchs = [
+                        m
+                        for m in matchs
+                        if not (
+                            m.get("action") == "ARRET"
+                            and "atc_codes" in (m.get("if", {}) or {})
+                            and (m.get("if", {}) or {}).get("indication_avk") is None
+                        )
+                    ]
+
+
                 principale = None
+
+
+                # AUTRE : avis spécialisé prioritaire
+
+                if ctx.get("indication_avk") == "AUTRE":
+
+                    for m in matchs:
+
+                        bloc_if = (
+                            m.get("if", {})
+                            or {}
+                        )
+
+                        if (
+                            m.get("action") == "AVIS_SPECIALISE"
+                            and bloc_if.get("indication_avk") == "AUTRE"
+                        ):
+                            principale = m
+                            break
+
+
+                
+                if (
+                    ctx.get("indication_avk") == "MTEV"
+                    and ctx.get("mtev_complexe") is True
+                    and ctx.get("r_hem") in ["ELEVE", "IMPORTANT", "MAJEUR"]
+                ):
+
+                    for m in matchs:
+
+                        bloc_if = (
+                            m.get("if", {})
+                            or {}
+                        )
+
+                        if (
+                            m.get("action") == "AVIS_SPECIALISE"
+                            and bloc_if.get("indication_avk") == "MTEV"
+                            and bloc_if.get("mtev_complexe") is True
+                        ):
+                            principale = m
+                            break
+
+
+
 
 
 
@@ -2904,7 +3200,7 @@ def moteur_yaml(atc, ctx):
 
 
 
-                # Sinon : arrêt/poursuite AVK
+    
 
                 if principale is None:
 
@@ -2994,6 +3290,24 @@ def moteur_yaml(atc, ctx):
 
 
 
+            
+
+                if ctx.get("indication_avk") == "AUTRE":
+
+                    matchs = [
+                        m
+                        for m in matchs
+                        if not (
+                            m.get("action") == "ARRET"
+                            or "Dernière prise de warfarine" in (m.get("note") or "")
+                            or "Dernière prise de fluindione" in (m.get("note") or "")
+                            or "Dernière prise d’acénocoumarol" in (m.get("note") or "")
+                        )
+                    ]
+
+
+   
+
                 notes = []
 
                 for m in matchs:
@@ -3020,9 +3334,8 @@ def moteur_yaml(atc, ctx):
                         "Ne pas réaliser de relais héparinique curatif postopératoire."
                     )
 
-                    if texte_pas_relais_postop not in notes:
+                    if not any(texte_pas_relais_postop in note for note in notes):
                         notes.append(texte_pas_relais_postop)
-
 
 
 
@@ -3039,6 +3352,7 @@ def moteur_yaml(atc, ctx):
                         notes.append(texte_thromboprophylaxie)
 
 
+
                 return {
                     "action": principale.get(
                         "action",
@@ -3052,6 +3366,7 @@ def moteur_yaml(atc, ctx):
                         notes
                     ),
                     "source": lien_sfar,
+                    "strategie_habituelle": strategie_habituelle_avk,
                 }
 
 
@@ -3065,6 +3380,11 @@ def moteur_yaml(atc, ctx):
             famille,
             atc=atc
         )
+
+
+
+        if res_cond:
+            res_cond["rappel_contextuel"] = rappel_contextuel 
 
 
         if atc.startswith("B01AC") and res_cond:
@@ -3116,9 +3436,47 @@ def moteur_yaml(atc, ctx):
                 res_cond["precision"] = " ".join(textes)
 
 
-
         if res_cond:
 
+            
+            if (
+                atc.startswith("B01AC")
+                and ctx.get("stent_aap_strategie_personnalisee") is True
+                and ctx.get("neuro_ou_neuraxial") is not True
+            ):
+
+                strategie_habituelle_aap = None
+
+                
+                if (
+                    str(res_cond.get("action", "")).upper().strip() == "ARRET"
+                    and res_cond.get("jour")
+                ):
+                    strategie_habituelle_aap = {
+                        "action": res_cond.get("action", ""),
+                        "jour": res_cond.get("jour", ""),
+                        "note": (
+                            res_cond.get("precision")
+                            or res_cond.get("note")
+                            or ""
+                        ),
+                    }
+
+                return {
+                    "action": "INFO",
+                    "jour": "",
+                    "note": (
+                        "En raison de la présence d’un stent coronaire, la gestion périopératoire "
+                        "des traitements antiplaquettaires doit être définie avec le cardiologue référent. "
+                        "La stratégie préopératoire et la reprise postopératoire doivent être discutées "
+                        "avec le cardiologue du patient ou un cardiologue référent et tracées dans le dossier."
+                    ),
+                    "source": lien_sfar,
+                    "strategie_habituelle": strategie_habituelle_aap,
+                }
+
+
+            
             return {
                 "action": res_cond.get(
                     "action",
@@ -3134,7 +3492,12 @@ def moteur_yaml(atc, ctx):
                     or res["note"]
                 ),
                 "source": lien_sfar,
+                "rappel_contextuel": rappel_contextuel,
             }
+
+
+
+
 
 
 
@@ -3708,8 +4071,6 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
             deja.add(key)
 
     for brute, nettoyee, mode in tous_candidats:
-    # extrait seulement le nom du médicament au début de la ligne
-    # Exemple : "Metformine 850 mg : 1 comprimé matin et soir" -> "Metformine"
         nom_court = extraire_nom_propre(brute)
 
         meilleur_nom, meilleur_score = meilleur_match_medicament(nom_court, ref)
@@ -3844,7 +4205,9 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
             "Action": ans.get("action", "POURSUITE"),
             "Date": ans.get("jour", "J0"),
             "Note": ans.get("note") or ans.get("precision") or "-",
-            "Lien": str(ans.get("source", "")).strip()
+            "Strategie_habituelle": ans.get("strategie_habituelle"),
+            "Lien": str(ans.get("source", "")).strip(),
+            "Rappel_contextuel": str(ans.get("rappel_contextuel", "")).strip()
         })
 
     debug_candidates = [(b, n, m) for b, n, m in tous_candidats]
@@ -4970,7 +5333,8 @@ if avk_detecte:
         st.subheader("Indication de l'AVK")
 
         indication_avk = st.radio(
-            "Indication",
+            "Indication de l'AVK",
+            
             [
                 "FA",
                 "VALVE_MECANIQUE",
@@ -4979,7 +5343,8 @@ if avk_detecte:
                 "AUTRE"
             ],
             format_func=lambda x: "VALVE MECANIQUE" if x == "VALVE_MECANIQUE" else x,
-            key="indication_avk"
+            key="indication_avk",
+            label_visibility="collapsed",
         )
 
         
@@ -4992,7 +5357,7 @@ if avk_detecte:
         # ====FA= 
         if indication_avk == "FA":
 
-            st.markdown("**Complément**")
+            st.markdown("**Préciser le risque thromboembolique**")
             acfa_atcd = st.checkbox(
                 "Antécédent d’AVC, AIT ou embolie systémique"
             )
@@ -5024,7 +5389,7 @@ if avk_detecte:
 
             valves = True
             relais_avk = True
-            st.markdown("**Complément**")
+            st.markdown("**Préciser la situation valvulaire**")
 
             valve_aortique_double_ailette = st.checkbox(
                 "Valve aortique mécanique à double ailette"
@@ -5048,7 +5413,7 @@ if avk_detecte:
 
         elif indication_avk == "MTEV":
 
-            st.markdown("**Complément**")
+            st.markdown("**Préciser la situation thromboembolique**")
 
             mtev_hr = st.checkbox(
                 "EP ou TVP proximale datant de moins de 3 mois"
@@ -5141,7 +5506,7 @@ if avk_detecte:
             dfg_relais_avk = st.radio(
                 "DFG du patient",
                 [
-                    "DFG > 30",
+                    "DFG ≥ 30",
                     "15 ≤ DFG < 30",
                     "DFG < 15",
                     "DFG inconnu"
@@ -5226,7 +5591,7 @@ if avk_detecte:
 
 
 
-            elif dfg_relais_avk == "DFG > 30":
+            elif dfg_relais_avk == "DFG ≥ 30":
 
                 type_heparine_relais = "HBPM"
 
@@ -5267,6 +5632,10 @@ if avk_detecte:
 
         reprise_avk_24h_bool = reprise_avk_24h == "Oui"
 
+        st.caption(
+            "La reprise précoce est la stratégie habituelle après une procédure à risque "
+            "hémorragique élevé : AVK à posologie habituelle, sans dose de charge."
+        )
 
 
         raison_relais_postop = ""
@@ -5345,27 +5714,72 @@ if avk_detecte:
 
 
 
+        # =====================================================
+        # CONDUITE POSTOPERATOIRE AVK
+        # =====================================================
+
+        if reprise_avk_24h_bool:
+
+            st.success(
+                "Reprendre l'AVK dans les 24 premières heures, "
+                "à la posologie habituelle, sans dose de charge."
+            )
+
+        else:
+
+            st.error(
+                "AVK non repris dans les 24 premières heures."
+            )
+
+            st.markdown(
+                "**Pourquoi la reprise précoce de l'AVK n'est-elle pas possible ?**"
+            )
+
+            raison_voie_enterale = st.checkbox(
+                "Voie entérale indisponible",
+                key="raison_avk_voie_enterale"
+            )
+
+            raison_risque_hemorragique = st.checkbox(
+                "Risque hémorragique postopératoire nécessitant un anticoagulant à demi-vie courte",
+                key="raison_avk_risque_hemorragique"
+            )
+
+            raison_reprise_chirurgicale = st.checkbox(
+                "Risque élevé de reprise chirurgicale / drains",
+                key="raison_avk_reprise_chirurgicale"
+            )
+
+            raison_risque_thromboembolique = st.checkbox(
+                "Risque thrombo-embolique considéré comme trop élevé pour attendre "
+                "que les AVK permettent d'obtenir une anticoagulation curative",
+                key="raison_avk_risque_thromboembolique"
+            )
+
+
+        # =====================================================
+        # RELAIS CURATIF POSTOPERATOIRE
+        # =====================================================
+
         if relais_postop_indique:
 
             st.success(
-                " Héparine curative postopératoire indiquée, "
+                "Héparine curative postopératoire indiquée, "
                 "à débuter de préférence 48 à 72 h après l’intervention."
             )
 
             if raison_relais_postop:
                 st.caption(raison_relais_postop)
 
-
         else:
 
             st.info(
-                "Pas d'indication automatique d'héparine curative postopératoire "
-                "retrouvée dans les règles précédentes."
+                "Aucune indication systématique d’héparine curative postopératoire "
+                "selon la situation clinique renseignée."
             )
 
-
             indication_postop_medicale = st.checkbox(
-                "Indication médicale d'héparine curative postopératoire",
+                "Une anticoagulation curative par héparine est néanmoins jugée nécessaire",
                 key="indication_postop_medicale"
             )
 
@@ -5373,130 +5787,79 @@ if avk_detecte:
 
                 relais_postop_indique = True
 
-                st.caption("""
-        - Voie entérale non disponible.
-        - Gestion du risque hémorragique plus simple avec des anticoagulants de demi-vie courte (HBPM, voire HNF), par exemple en présence de drains ou d'un risque élevé de reprise chirurgicale.
-        - Risque thrombo-embolique considéré comme trop élevé pour attendre que les AVK permettent d'obtenir une anticoagulation curative.
-        """)
+                st.caption(
+                    "À envisager notamment si la voie entérale est indisponible, "
+                    "si un anticoagulant à demi-vie courte est préférable, ou si le "
+                    "risque thromboembolique ne permet pas d’attendre l’efficacité de l’AVK."
+                )
+
+                st.success(
+                    "Héparine curative postopératoire indiquée, "
+                    "à débuter de préférence 48 à 72 h après l’intervention."
+                )
 
 
+        # =====================================================
+        # SI AVK REPRIS + RELAIS CURATIF
+        # =====================================================
+
+        inr_ge_2_postop = False
+        chevauchement_non_acceptable = False
 
         if relais_postop_indique:
 
-            st.markdown(
-                "**En attendant la reprise de l’anticoagulation curative**"
+            # Conséquence automatique de la règle :
+            # ce n'est plus une case à cocher.
+            inr_ge_2_postop = True
+
+            st.success(
+                "Arrêter l’héparine curative dès le premier INR ≥ 2."
             )
 
-            col_fleche, col_question = st.columns([0.06, 0.94])
+            chevauchement_postop = st.radio(
+                "Le chevauchement AVK + héparine curative est-il acceptable "
+                "pendant la première semaine postopératoire ?",
+                ["Oui", "Non"],
+                key="chevauchement_avk_heparine_postop"
+            )
 
-            with col_fleche:
-                st.markdown(
-                    """
-                    <div style="
-                        width: 28px;
-                        height: 28px;
-                        border: 2px solid #16883a;
-                        border-radius: 50%;
-                        color: #16883a;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 20px;
-                        font-weight: bold;
-                         margin-top: 6px;
-                    ">
-                        →
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
+            chevauchement_non_acceptable = (
+                chevauchement_postop == "Non"
+            )
 
-            with col_question:
-                thromboprophylaxie_indiquee = st.checkbox(
-                    "Thromboprophylaxie veineuse indiquée en attendant la reprise de l’anticoagulation curative",
-                    key="thromboprophylaxie_indiquee"
+            if chevauchement_non_acceptable:
+
+                st.warning(
+                    "Adaptation de la reprise de l'AVK nécessaire : "
+                    "la reprise de l'AVK peut être différée de quelques jours "
+                    "après le début de l'héparine curative. "
+                    "Le délai doit être individualisé."
                 )
 
 
-            if reprise_avk_24h_bool:
+        # =====================================================
+        # THROMBOPROPHYLAXIE
+        # =====================================================
 
-                st.markdown(
-                    "**Compléments si reprise de l’AVK possible dans les 24 premières heures**"
-                )
+        thromboprophylaxie_postop = st.radio(
+            "Thromboprophylaxie veineuse indiquée en attendant la reprise "
+            "de l’anticoagulation curative ?",
+            ["Non", "Oui"],
+            key="thromboprophylaxie_postop_avk"
+        )
 
-                # ---- AVK repris et INR ≥ 2 --
-                col_fleche, col_question = st.columns([0.06, 0.94])
+        thromboprophylaxie_indiquee = (
+            thromboprophylaxie_postop == "Oui"
+        )
 
-                with col_fleche:
-                    st.markdown(
-                        """
-                        <div style="
-                            width: 28px;
-                            height: 28px;
-                            border: 2px solid #16883a;
-                            border-radius: 50%;
-                            color: #16883a;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 20px;
-                            font-weight: bold;
-                            margin-top: 6px;
-                        ">
-                            →
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+        if thromboprophylaxie_indiquee:
 
-            if reprise_avk_24h_bool and relais_postop_indique:
+            st.success(
+                "Réaliser la thromboprophylaxie selon les modalités habituelles "
+                "et l'interrompre dès que l'anticoagulation devient curative."
+            )
 
-                with col_question:
-                    inr_ge_2_postop = st.checkbox(
-                        "Si AVK repris et héparine curative et premier INR ≥ 2, alors arrêter héparine",
-                        key="inr_ge_2_postop"
-                    )
 
-                # ---- Chevauchement héparine + AVK ----
-                col_fleche, col_question = st.columns([0.06, 0.94])
-
-                with col_fleche:
-                    st.markdown(
-                        """
-                        <div style="
-                            width: 28px;
-                            height: 28px;
-                            border: 2px solid #16883a;
-                            border-radius: 50%;
-                            color: #16883a;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 20px;
-                            font-weight: bold;
-                            margin-top: 6px;
-                        ">
-                            →
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-                with col_question:
-                    chevauchement_non_acceptable = st.checkbox(
-                        "Chevauchement héparine curative + AVK jugé non acceptable pendant la première semaine",
-                        key="chevauchement_non_acceptable"
-                    )
-
-                    if chevauchement_non_acceptable:
-                        st.caption(
-                            "Situations possibles : PTH, chirurgie du rachis, "
-                            "cure d’éventration complexe..."
-                        )
-
-            else:
-                inr_ge_2_postop = False
- 
 
 # =========================
 # CONTEXTE PATIENT / CHIRURGIE
@@ -5695,6 +6058,12 @@ dose_heparine = None
 ctx = {
     "type_chir_neuro": "NEUROCHIR_INTRACRANIENNE" if val_upper(spe) in ["NEUROCHIRURGIE", "RACHIS"] else None,
     "type_chir": type_chir,
+    "specialite_chir": spe,
+    "groupe_chir": grp,
+    "acte_chir": acte_nom,
+    "type_alr_affichage": type_alr_affichage,
+
+
     "is_neuro": is_neuro,
     "alr": type_alr,
     "ind_sraa": ind_sraa if ind_sraa else "",
@@ -5807,6 +6176,27 @@ ctx = {
     "inr_non_connu": inr_disponible != "Oui",
     
     }
+
+
+stent_aap_strategie_personnalisee = (
+    ctx.get("bitherapie_aap") is True
+    and (
+        ctx.get("stent_1m") is True
+        or ctx.get("stent_6m_haut_risque") is True
+    )
+    and ctx.get("r_hem_aap") in [
+        "INTERMEDIAIRE",
+        "ELEVE",
+        "IMPORTANT",
+        "MAJEUR"
+    ]
+)
+
+ctx["stent_aap_strategie_personnalisee"] = stent_aap_strategie_personnalisee
+
+
+
+
 
 schema_relais = construire_schema_relais(ctx)
 
@@ -6005,6 +6395,7 @@ ctx["poids_inf_50"] = bool(
 
 indication_aod = ""
 FA_ATCD_AVC_ischemique = False
+FA_tres_haut_risque_thromboembolique = False
 FA_delai_depuis_AVC_ischemique_mois = None
 procedure_differable_sans_risque_vital_fonctionnel = False
 FA_coronaropathie = False
@@ -6046,8 +6437,18 @@ if aod_detecte:
             FA_ATCD_AVC_ischemique_ui == "Oui"
         )
 
-                
 
+        FA_tres_haut_risque_thromboembolique_ui = st.radio(
+            "Situation exceptionnelle de FA considérée à très haut risque thromboembolique ?",
+            ["Non", "Oui"],
+            key="FA_tres_haut_risque_thromboembolique"
+        )
+
+        FA_tres_haut_risque_thromboembolique = (
+            FA_tres_haut_risque_thromboembolique_ui == "Oui"
+        )
+
+              
         if FA_ATCD_AVC_ischemique:
             FA_delai_AVC_ui = st.radio(
                 "Délai depuis l'AVC ischémique",
@@ -6119,11 +6520,19 @@ if aod_detecte:
 
             with st.popover("Critère(s) de MTEV complexe"):
 
-                if st.checkbox("SAPL", key="MTEV_SAPL"):
+                if st.checkbox(
+                    "Syndrome des antiphospholipides (SAPL)",
+                    key="MTEV_SAPL"
+                ):
                     MTEV_critere_complexe.append("SAPL")
 
-                if st.checkbox("HTP-TEC", key="MTEV_HTP_TEC"):
+                if st.checkbox(
+                    "Hypertension pulmonaire thromboembolique chronique (HTP-TEC)",
+                    key="MTEV_HTP_TEC"
+                ):
                     MTEV_critere_complexe.append("HTP-TEC")
+
+
 
                 if st.checkbox(
                     "Histoire clinique ou familiale inhabituelle suggérant un risque thromboembolique élevé",
@@ -6291,19 +6700,18 @@ if aod_detecte:
             unsafe_allow_html=True
         )
 
-      
-        col_vide, col_postop_aod = st.columns([0.06, 0.94])
+        heparine_curative_indiquee = True
+  
+        st.success(
+            "Initier une anticoagulation par héparine à dose curative "
+            "(HBPM de préférence à l’HNF), idéalement entre H48 et H72 postopératoires."
+        )
 
-        with col_postop_aod:
-            thromboprophylaxie_indiquee_aod = st.checkbox(
-                "Thromboprophylaxie veineuse indiquée en attendant la reprise de l’anticoagulation curative",
-                key="thromboprophylaxie_indiquee_aod"
-            )
+        thromboprophylaxie_indiquee_aod = st.checkbox(
+            "Thromboprophylaxie veineuse indiquée en attendant la reprise de l’anticoagulation curative",
+            key="thromboprophylaxie_indiquee_aod"
+        )
 
-            heparine_curative_indiquee = st.checkbox(
-                "Héparine curative indiquée",
-                key="heparine_curative_indiquee"
-            ) 
 
 
 
@@ -6311,6 +6719,8 @@ if aod_detecte:
 ctx["indication_aod"] = indication_aod
 
 ctx["FA_ATCD_AVC_ischemique"] = FA_ATCD_AVC_ischemique
+
+ctx["FA_tres_haut_risque_thromboembolique"] = FA_tres_haut_risque_thromboembolique
 
 ctx["FA_AVC_moins_3_mois"] = (
     FA_ATCD_AVC_ischemique
@@ -6325,6 +6735,13 @@ ctx["procedure_differable_sans_risque_vital_fonctionnel"] = (
 
 ctx["FA_coronaropathie"] = FA_coronaropathie
 ctx["aap_detecte"] = aap_detecte
+ctx["FA_coronaropathie_aap"] = (
+    ctx.get("indication_aod") == "FA"
+    and FA_coronaropathie
+    and bool(aap_detecte)
+)
+
+
 ctx["MTEV_cas_complexe"] = MTEV_cas_complexe
 ctx["MTEV_critere_complexe"] = MTEV_critere_complexe
 
@@ -6607,10 +7024,159 @@ if avk_detecte and date_op:
         f"Intervention prévue le {date_op.strftime('%d/%m/%Y')}"
     )
 
+message_strategie_aod_ajoute = False
+message_strategie_aap_stent_ajoute = False
+message_strategie_avk_mtev_complexe_ajoute = False
+
+
 for r in resultats:
     action = str(r["Action"]).upper().strip()
     date_txt = str(r["Date"]).upper().strip()
     note = str(r.get("Note", "")).lower()
+
+
+
+
+    code_atc = str(r.get("Code ATC", "")).upper().strip()
+
+    situation_mtev_complexe = (
+        ctx.get("MTEV_cas_complexe") is True
+    )
+
+    situation_mtev_moins_1_mois = (
+        ctx.get("MTEV_EP_TVP_proximale_moins_1_mois") is True
+    )
+
+
+    situation_fa_tres_haut_risque = (
+        ctx.get("indication_aod") == "FA"
+        and ctx.get("FA_tres_haut_risque_thromboembolique") is True
+    )
+
+
+    situation_fa_coronaropathie_aap = (
+        ctx.get("indication_aod") == "FA"
+        and ctx.get("FA_coronaropathie") is True
+        and bool(ctx.get("aap_detecte"))
+    )
+
+
+    situation_avk_mtev_complexe = (
+        ctx.get("indication_avk") == "MTEV"
+        and ctx.get("mtev_complexe") is True
+        and normaliser_risque_yaml(ctx.get("r_hem")) in [
+            "ELEVE",
+            "IMPORTANT",
+            "MAJEUR"
+        ]
+    )
+
+    bloquer_calendrier_avk_mtev_complexe = (
+        code_atc.startswith("B01AA")
+        and situation_avk_mtev_complexe
+    )
+
+    if bloquer_calendrier_avk_mtev_complexe:
+
+        if not message_strategie_avk_mtev_complexe_ajoute:
+            lignes_pdf.append(
+                "Situation thromboembolique complexe : la gestion périopératoire de l’AVK "
+                "nécessite une stratégie personnalisée avec le médecin référent."
+            )
+
+            message_strategie_avk_mtev_complexe_ajoute = True
+
+        continue
+
+
+
+
+
+
+
+    bloquer_calendrier_aap_stent = (
+        code_atc.startswith("B01AC")
+        and ctx.get("stent_aap_strategie_personnalisee") is True
+        and not situation_fa_coronaropathie_aap
+        and ctx.get("neuro_ou_neuraxial") is not True
+    )
+
+
+    if bloquer_calendrier_aap_stent:
+
+        if not message_strategie_aap_stent_ajoute:
+            lignes_pdf.append(
+                "En raison de la présence d’un stent coronaire, la gestion périopératoire des "
+                "traitements antiplaquettaires doit être définie avec le cardiologue référent."
+            )
+
+            message_strategie_aap_stent_ajoute = True
+
+        continue
+
+
+
+
+    bloquer_calendrier_aod_strategie_personnalisee = (
+        (
+            code_atc.startswith(("B01AE", "B01AF"))
+            or (
+                situation_fa_coronaropathie_aap
+                and code_atc.startswith("B01AC")
+            )
+        )
+        and (
+            situation_mtev_complexe
+            or situation_mtev_moins_1_mois
+            or situation_fa_tres_haut_risque
+            or situation_fa_coronaropathie_aap
+        )
+        and normaliser_risque_yaml(ctx.get("r_hem")) in [
+            "ELEVE",
+            "IMPORTANT",
+            "MAJEUR"
+        ]
+    )
+
+
+
+    if bloquer_calendrier_aod_strategie_personnalisee:
+
+        if not message_strategie_aod_ajoute:
+
+            if situation_mtev_complexe:
+                lignes_pdf.append(
+                    "Situation thromboembolique complexe : la gestion périopératoire "
+                    "de l’AOD nécessite une stratégie personnalisée avec le médecin référent."
+                )
+
+            elif situation_mtev_moins_1_mois:
+                lignes_pdf.append(
+                    "Risque très élevé de récidive de MTEV : la gestion périopératoire "
+                    "de l’AOD nécessite une stratégie personnalisée et multidisciplinaire."
+                )
+
+            elif situation_fa_tres_haut_risque:
+                lignes_pdf.append(
+                    "La gestion périopératoire de l’AOD nécessite une évaluation "
+                    "individualisée et multidisciplinaire."
+                )
+
+
+            elif situation_fa_coronaropathie_aap:
+                lignes_pdf.append(
+                    "Association de plusieurs traitements antithrombotiques : leur gestion "
+                    "périopératoire nécessite une stratégie personnalisée avec le cardiologue référent."
+                )
+
+
+            message_strategie_aod_ajoute = True
+
+        continue
+
+
+
+
 
     if "ARRET" in action:
         jours = extraire_nb_jours(date_txt)
@@ -7117,12 +7683,12 @@ if resultats:
 
     df_final = pd.DataFrame(resultats)
 
-    def format_lien_unique(liens):
+    def format_liens(liens):
         if not liens:
             return ""
-        return str(liens).split(" | ")[0].strip()
+        return str(liens).strip()
 
-    df_final["Lien"] = df_final["Lien"].apply(format_lien_unique)
+    df_final["Lien"] = df_final["Lien"].apply(format_liens)
 
 
 
@@ -7271,12 +7837,6 @@ if resultats:
 
 
 
-
-
-
-
-
-
         c6.markdown(note_affichee, unsafe_allow_html=True)
 
 
@@ -7284,22 +7844,42 @@ if resultats:
 
         liens_list = [l.strip() for l in liens_bruts.split(" | ") if l.strip()] if liens_bruts else []
 
-        sources_alr = [
-            "https://sfar.org/wp-content/uploads/2026/04/RFE-20.4.2026-deifinitif-et-validei.pdf",
-            "https://journals.lww.com/ejanaesthesiology/fulltext/2022/02000/regional_anaesthesia_in_patients_on_antithrombotic.4.aspx",
-            "https://sfar.org/wp-content/uploads/2019/10/rfe-anesthesie-loco-regionale-perinerveuse.pdf",
-]
-
-        if str(type_alr).upper().strip() in ["SUPERFICIEL", "PROFOND", "NEURAXIAL"]:
-            liens_list.extend(sources_alr)
-
         liens_list = list(dict.fromkeys(liens_list))
 
         if liens_list:
             with c7:
                 with st.popover(f"{len(liens_list)} source(s)"):
                     for j, lien in enumerate(liens_list):
-                        st.link_button(f"Ouvrir source {j+1}", str(lien).strip())
+                        st.link_button(
+                            f"Ouvrir source {j+1}",
+                            str(lien).strip()
+                        )
+
+
+
+                    if (
+                        str(r.get("Code ATC", "")).upper().startswith("B01AC")
+                        and str(ctx.get("specialite_chir", "")).strip().upper() == "OPHTALMO"
+                    ):
+                        with st.expander("Rappel – Ophtalmologie"):
+                            st.write(
+                                "Il n’existe pas de classification consensuelle et exhaustive du risque hémorragique "
+                                "couvrant l’ensemble des interventions ophtalmologiques. La classification retenue dans "
+                                "AI-CARE a donc été construite à partir des recommandations générales de gestion "
+                                "périopératoire des traitements antithrombotiques et de la littérature spécifique à la "
+                                "chirurgie ophtalmologique. Lorsque les données disponibles ne permettaient pas de dégager "
+                                "une conduite consensuelle, le classement reposait sur une synthèse de la littérature "
+                                "complétée par un choix d’experts. Le risque lié à la technique d’anesthésie locorégionale, "
+                                "notamment aux techniques ophtalmologiques à l’aiguille, était traité séparément dans le "
+                                "moteur décisionnel."
+                            )
+
+
+
+
+
+                   
+
         else:
             c7.write("")
 
@@ -7322,7 +7902,72 @@ if resultats:
 
     st.divider()
 
+
+
+    strategie_habituelle_medecin = None
+    medicament_strategie_habituelle = ""
+    atc_strategie_habituelle = ""
+
+    for r in resultats:
+        if r.get("Strategie_habituelle"):
+            strategie_habituelle_medecin = r.get("Strategie_habituelle")
+            medicament_strategie_habituelle = str(
+                r.get("Médicament", "")
+            ).strip()
+            atc_strategie_habituelle = str(
+                r.get("Code ATC", "")
+            ).upper().strip()
+            break
+
+
+
+
+    if strategie_habituelle_medecin:
+        with st.container(border=True):
+            st.markdown("**INFO - stratégie habituelle hors situation complexe**")
+
+            jour_habituel = strategie_habituelle_medecin.get("jour", "")
+
+            if atc_strategie_habituelle.startswith("B01AA"):
+                nom_traitement_habituel = medicament_strategie_habituelle or "AVK"
+
+            elif atc_strategie_habituelle.startswith("B01AC"):
+                nom_traitement_habituel = medicament_strategie_habituelle or "AAP"
+
+            elif atc_strategie_habituelle.startswith(("B01AE", "B01AF")):
+                nom_traitement_habituel = medicament_strategie_habituelle or "AOD"
+
+            else:
+                nom_traitement_habituel = medicament_strategie_habituelle or "traitement"
+
+
+
+
+            if jour_habituel:
+                st.write(
+                    f"À titre de repère, hors situation complexe, la stratégie standard aurait conduit"
+                    f"à une dernière prise de {nom_traitement_habituel} à {jour_habituel}, sans relais héparinique préopératoire."
+                    "Cette stratégie est donnée à titre indicatif et doit être validée pour ce patient."
+                )
+
+
+
+
+
+
+
+            st.write(
+                "Important : cette information est uniquement une aide/valeur de référence pour le médecin. "
+                "Elle ne doit pas être interprétée comme la conduite retenue pour ce patient et ne doit donc "
+                "pas être reportée dans le calendrier patient tant que la stratégie n’a pas été validée."
+            )
+
+
+
     rows = []
+
+
+
 
     for i, r in enumerate(resultats):
         rows.append({
