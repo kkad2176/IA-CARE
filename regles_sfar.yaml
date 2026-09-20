@@ -501,6 +501,28 @@ Maintien possible si intervention courte < 2 h, perturbations du contrôle glyc�
       precision: "Dose d’aspirine < 75 mg/j : posologie atypique, vérifier la prescription."
 
 
+
+    # =============================================
+    # rachis protocol local
+    # ==================================================
+
+    - if: {rachis_aap_specifique: true, prev_secondaire: true, atc_codes: [B01AC01, B01AC06]}
+      action: POURSUITE
+      jour: J0
+      precision: "Aspirine en prévention secondaire : poursuite. Règle issue d’un protocole local, établi sur la base des recommandations en vigueur pour ces interventions rachidiennes spécifiques."
+
+    - if: {rachis_aap_specifique: true, prev_primaire: true, atc_codes: [B01AC01, B01AC06]}
+      action: ARRET
+      jour: J-3
+      precision: "Aspirine en prévention primaire : dernière prise J-3. Règle issue d’un protocole local, établi sur la base des recommandations en vigueur pour ces interventions rachidiennes spécifiques."
+
+    - if: {rachis_aap_specifique: true, atc_codes: [B01AC04]}
+      action: ARRET
+      jour: J-5
+      precision: "Clopidogrel (Plavix) : dernière prise J-5. Règle issue d’un protocole local, établi sur la base des recommandations en vigueur pour ces interventions rachidiennes spécifiques."
+
+
+
     # =========================================================
     # NEUROCHIRURGIE
     # =========================================================
