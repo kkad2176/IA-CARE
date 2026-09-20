@@ -72,6 +72,9 @@ def generer_pdf_patient(
 
     import tempfile, os
     import fitz
+    from reportlab.platypus import Paragraph
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_LEFT
 
     fd, path = tempfile.mkstemp(suffix=".pdf")
     os.close(fd)
@@ -133,15 +136,34 @@ def generer_pdf_patient(
 
     y -= 0.4 * cm
 
-    c.setFont("Helvetica", 11)
+    style_lignes = ParagraphStyle(
+        "style_lignes_patient",
+        fontName="Helvetica",
+        fontSize=11,
+        leading=15,
+        alignment=TA_LEFT
+    )
+
+    largeur_texte = 13.2 * cm
 
     for l in lignes:
-        c.drawString(
-            x,
-            y,
-            f"- {l}"
+        p = Paragraph(
+            f"- {l}",
+            style_lignes
         )
-        y -= 0.75 * cm
+
+        largeur_p, hauteur_p = p.wrap(
+            largeur_texte,
+            h
+        )
+
+        p.drawOn(
+            c,
+            x,
+            y - hauteur_p
+        )
+
+        y -= hauteur_p + 0.35 * cm
 
     y -= 0.4 * cm
 
@@ -168,7 +190,6 @@ def generer_pdf_patient(
 
         c.setFillColorRGB(0, 0, 0)
         y -= 1.4 * cm
-
 
 
 
@@ -2806,6 +2827,7 @@ def moteur_yaml(atc, ctx):
         if (
             atc.startswith("B01AC")
             and ctx.get("type_chir_neuro") == "NEUROCHIR_INTRACRANIENNE"
+            and ctx.get("rachis_aap_specifique") is not True
             and res_cond
         ):
 
@@ -4222,7 +4244,7 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
 def load_data():
     try:
         atc = pd.read_csv(os.path.join(BASE_DIR, "dci_atc.fichier.csv"), sep=";")
-        inter = pd.read_csv(os.path.join(BASE_DIR, "risque.hemorragique2.csv"), sep=";")
+        inter = pd.read_csv(os.path.join(BASE_DIR, "risque-hemorragique2.csv"), sep=";")
         taxo = pd.read_csv(os.path.join(BASE_DIR, "TAXONOMIE-Tableau 1.csv"), sep=";")
         libelles = pd.read_csv(os.path.join(BASE_DIR, "LISTE_FINALE_AVEC_LIBELLES.csv"), sep=";")
         sentinelles = pd.read_csv(os.path.join(BASE_DIR, "Medicaments Sentinelles-Tableau.csv"), sep=";")
@@ -4516,6 +4538,17 @@ with st.sidebar:
             liste_actes if liste_actes else ["Aucune intervention trouvée"],
             key="intervention_chirurgie"
         )
+
+
+        nb_niveaux_arthrodese = None
+
+        if str(acte_nom).strip() == "Arthrodèse":
+            nb_niveaux_arthrodese = st.radio(
+                "Nombre de niveaux concernés par l’arthrodèse ?",
+                ["1 niveau", "2 niveaux", "≥ 3 niveaux"],
+                key="nb_niveaux_arthrodese"
+            )
+
 
 
         type_alr_affichage = st.selectbox(
@@ -4986,7 +5019,7 @@ if aap_detecte and type_alr in ["SUPERFICIEL", "PROFOND"]:
     with placeholder_catheter_perinerveux.container():
         catheter_perinerveux_choix = st.radio(
             "Mise en place d'un cathéter périnerveux ?",
-            ["Non", "Oui"],
+            ["Oui", "Non"],
              horizontal=True,
              key="catheter_perinerveux"
         )
@@ -5413,37 +5446,44 @@ if avk_detecte:
 
         elif indication_avk == "MTEV":
 
-            st.markdown("**Préciser la situation thromboembolique**")
+            st.markdown("**Situation de la MTEV et risque de récidive péri-procédural :**")
 
-            mtev_hr = st.checkbox(
-                "EP ou TVP proximale datant de moins de 3 mois"
+            mtev_situation = st.radio(
+                "Situation de la MTEV",
+                [
+                    "EP ou TVP proximale < 1 mois",
+                    "EP ou TVP proximale de 1 à 3 mois",
+                    "Cas complexe de MTEV",
+                    "Tous les autres cas"
+                ],
+                key="mtev_situation_avk"
+            ) 
+
+            mtev_moins_1_mois = (
+                mtev_situation == "EP ou TVP proximale < 1 mois"
+            )
+
+            mtev_hr = mtev_situation in [
+                "EP ou TVP proximale < 1 mois",
+                "EP ou TVP proximale de 1 à 3 mois"
+            ]
+
+            mtev_complexe = (
+                mtev_situation == "Cas complexe de MTEV"
             )
 
             relais_avk = mtev_hr
 
-
-            if mtev_hr:
-
-                col_vide1, col_question1 = st.columns([0.06, 0.94])
-
-                with col_question1:
-                    mtev_moins_1_mois = st.checkbox(
-                        " EP ou TVP proximale datant de moins de 1 mois",
-                        key="mtev_moins_1_mois"
-                    )
-   
-                col_vide2, col_question2 = st.columns([0.06, 0.94])
-
-                with col_question2:
-                    procedure_differable = st.checkbox(
-                        " La procédure peut être différée sans risque vital ou fonctionnel",
-                        key="procedure_differable_mtev"
-                    )
+            if mtev_moins_1_mois:
+                procedure_differable = st.checkbox(
+                    "La procédure peut être différée sans risque vital ou fonctionnel",
+                    key="procedure_differable_mtev"
+                )
+ 
 
 
-            mtev_complexe = st.checkbox(
-                "Cas complexe de MTEV"
-            )
+
+
 
             if mtev_complexe:
                
@@ -5459,16 +5499,6 @@ if avk_detecte:
                         - Récidive d’EP ou de TVP sous traitement anticoagulant ou précocement après son arrêt 
                         """
                     )
-
-
-
-
-
-            deficit_proteine_c_s = st.checkbox(
-                "Déficit en protéine C ou S",
-                key="deficit_proteine_c_s"
-            )
-
 
 
 
@@ -5624,6 +5654,19 @@ if avk_detecte:
         chevauchement_non_acceptable = False
         thromboprophylaxie_indiquee = False
 
+        if indication_avk == "MTEV":
+            deficit_proteine_c_s = st.radio(
+                "Déficit connu en protéine C ou S ?",
+                ["Oui", "Non"],
+                key="deficit_proteine_c_s_postop"
+            )
+
+            deficit_proteine_c_s = (
+                deficit_proteine_c_s == "Oui"
+            )
+        else:
+            deficit_proteine_c_s = False
+
         reprise_avk_24h = st.radio(
             "Reprise de l'AVK possible dans les 24 premières heures ?",
             ["Oui", "Non"],
@@ -5778,20 +5821,28 @@ if avk_detecte:
                 "selon la situation clinique renseignée."
             )
 
-            indication_postop_medicale = st.checkbox(
-                "Une anticoagulation curative par héparine est néanmoins jugée nécessaire",
+            indication_postop_medicale = st.radio(
+                "Une anticoagulation curative par héparine est-elle néanmoins jugée nécessaire ?",
+                ["Oui", "Non"],
                 key="indication_postop_medicale"
             )
 
-            if indication_postop_medicale:
+            st.markdown(
+                "*<span style='color:gray;'>"
+                "(Ex. : voie entérale indisponible, nécessité d’un anticoagulant à demi-vie courte, "
+                "ou risque thromboembolique ne permettant pas d’attendre l’efficacité de l’AVK.)"
+                "</span>*",
+                unsafe_allow_html=True
+            )
 
+            if indication_postop_medicale == "Oui":
                 relais_postop_indique = True
 
-                st.caption(
-                    "À envisager notamment si la voie entérale est indisponible, "
-                    "si un anticoagulant à demi-vie courte est préférable, ou si le "
-                    "risque thromboembolique ne permet pas d’attendre l’efficacité de l’AVK."
-                )
+
+
+
+
+
 
                 st.success(
                     "Héparine curative postopératoire indiquée, "
@@ -5844,7 +5895,7 @@ if avk_detecte:
         thromboprophylaxie_postop = st.radio(
             "Thromboprophylaxie veineuse indiquée en attendant la reprise "
             "de l’anticoagulation curative ?",
-            ["Non", "Oui"],
+            ["Oui", "Non"],
             key="thromboprophylaxie_postop_avk"
         )
 
@@ -6052,6 +6103,8 @@ def normaliser_risque_yaml(risque):
 voie_heparine = None
 dose_heparine = None
 
+
+
 # =========================
 # CONTEXTE GLOBAL 
 # =========================
@@ -6061,6 +6114,20 @@ ctx = {
     "specialite_chir": spe,
     "groupe_chir": grp,
     "acte_chir": acte_nom,
+
+    "rachis_aap_specifique": (
+        str(acte_nom).strip() in [
+            "Rachis : canal lombaire étroit / libération canalaire",
+            "Rachis : hernie discale",
+        ]
+        or (
+            str(acte_nom).strip() == "Arthrodèse"
+            and nb_niveaux_arthrodese in ["1 niveau", "2 niveaux"]
+        )
+    ),
+
+
+
     "type_alr_affichage": type_alr_affichage,
 
 
@@ -6069,6 +6136,8 @@ ctx = {
     "ind_sraa": ind_sraa if ind_sraa else "",
     "choix_sraa_hta": choix_sraa_hta if choix_sraa_hta else "",
     "indication_aap": indication_aap,
+    "prev_secondaire": type_traitement_aap == "Prévention secondaire",
+    "prev_primaire": type_traitement_aap == "Prévention primaire",
     "aspirine_dose": dose_aspirine,
     "aspirine_sup_100": dose_aspirine > 100,
     "aspirine_sup_200": dose_aspirine > 200,
@@ -6414,10 +6483,10 @@ MTEV_risque_thromboembolique_veineux_tres_eleve = False
 
 if aod_detecte:
     st.divider()
-    st.header("AOD - indication")
+    st.subheader("AOD - indication")
 
     indication_aod = st.radio(
-        "Indication du traitement par AOD",
+        "Indication de l’AOD",
         [
             "FA",
             "MTEV",
@@ -6426,10 +6495,11 @@ if aod_detecte:
         key="indication_aod"
     )
 
+
     if indication_aod == "FA":
         FA_ATCD_AVC_ischemique_ui = st.radio(
             "Antécédent d'AVC ischémique ?",
-            ["Non", "Oui"],
+            ["Oui", "Non"],
             key="FA_ATCD_AVC_ischemique"
         )
 
@@ -6440,7 +6510,7 @@ if aod_detecte:
 
         FA_tres_haut_risque_thromboembolique_ui = st.radio(
             "Situation exceptionnelle de FA considérée à très haut risque thromboembolique ?",
-            ["Non", "Oui"],
+            ["Oui", "Non"],
             key="FA_tres_haut_risque_thromboembolique"
         )
 
@@ -6463,7 +6533,7 @@ if aod_detecte:
             if FA_AVC_moins_3_mois:
                 procedure_differable_ui = st.radio(
                     "La procédure peut-elle être différée sans risque vital ou fonctionnel ?",
-                    ["Non", "Oui"],
+                    ["Oui", "Non"],
                     key="procedure_differable_sans_risque_vital_fonctionnel"
                 )
 
@@ -6477,7 +6547,7 @@ if aod_detecte:
         # =========================
         FA_coronaropathie_ui = st.radio(
             "Coronaropathie associée ?",
-            ["Non", "Oui"],
+            ["Oui", "Non"],
             key="FA_coronaropathie"
         )
 
@@ -6571,7 +6641,7 @@ if aod_detecte:
         if MTEV_situation == "Tous les autres cas":
             MTEV_TVP_distale_symptomatique_moins_1_mois_ui = st.radio(
                 "TVP distale symptomatique datant de moins de 1 mois ?",
-                ["Non", "Oui"],
+                ["Oui", "Non"],
                 key="MTEV_TVP_distale_symptomatique_moins_1_mois"
             )
 
@@ -6594,7 +6664,7 @@ if aod_detecte:
         ):
             MTEV_TVP_distale_procedure_differable_ui = st.radio(
                 "La procédure peut-elle être différée sans risque vital ou fonctionnel ?",
-                ["Non", "Oui"],
+                ["Oui", "Non"],
                 key="MTEV_TVP_distale_procedure_differable"
             )
 
@@ -6611,7 +6681,7 @@ if aod_detecte:
         if MTEV_EP_TVP_proximale_moins_3_mois:
             MTEV_procedure_differable_ui = st.radio(
                 "La procédure peut-elle être différée sans risque vital ou fonctionnel ?",
-                ["Non", "Oui"],
+                ["Oui", "Non"],
                 key="MTEV_procedure_differable_sans_risque_vital_fonctionnel"
             )
 
@@ -6707,10 +6777,25 @@ if aod_detecte:
             "(HBPM de préférence à l’HNF), idéalement entre H48 et H72 postopératoires."
         )
 
-        thromboprophylaxie_indiquee_aod = st.checkbox(
-            "Thromboprophylaxie veineuse indiquée en attendant la reprise de l’anticoagulation curative",
-            key="thromboprophylaxie_indiquee_aod"
+    thromboprophylaxie_aod_choix = st.radio(
+        "En attendant la reprise d’une anticoagulation à dose curative, "
+        "une thromboprophylaxie veineuse postopératoire est-elle indiquée ?",
+        ["Oui", "Non"],
+        key="thromboprophylaxie_indiquee_aod"
+    )
+
+    thromboprophylaxie_indiquee_aod = (
+        thromboprophylaxie_aod_choix == "Oui"
+    )
+ 
+    if thromboprophylaxie_indiquee_aod:
+        st.success(
+            "Réaliser une thromboprophylaxie veineuse selon les indications et modalités habituelles. "
+            "L’interrompre dès la reprise d’une anticoagulation à dose curative."
         )
+
+
+
 
 
 
@@ -6903,7 +6988,7 @@ if imipraminiques_detectes:
 
     atcd_cv_ui = st.radio(
         "Patient avec antécédent cardiovasculaire ?",
-        ["Non", "Oui"],
+        ["Oui", "Non"],
         help="Exemples : infarctus, angor, stent, insuffisance cardiaque, AVC, trouble du rythme."
     )
 
@@ -7304,7 +7389,7 @@ if resultats:
                         cursor:pointer;
                         font-weight:600;
                    ">
-                  Copier vers le presse-papiers
+                  Copier vers le presse-papiers (possibilité de modifier manuellement les consignes)
             </button>
 
             <script>
