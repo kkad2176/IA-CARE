@@ -7913,6 +7913,22 @@ if resultats:
         note_affichee = enrichir_note_avec_dates(r.get("Note", ""), date_op)
 
         if (
+            str(r.get("Code ATC", "")).upper().strip().startswith(("B01AE", "B01AF", "B01AA"))
+            and ctx.get("r_hem") in ["FAIBLE", "NUL"]
+        ):
+            note_affichee += (
+                "<div style='background-color:#e7f3ff; padding:10px; border-radius:8px; "
+                "border-left:4px solid #1f77b4; font-size:13px;'>"
+                "<b>Note :</b> Toutefois, la prise d’autres médicaments interférant avec l’hémostase "
+                "(en particulier antiplaquettaires, fibrinolytiques…), la présence d’une coagulopathie "
+                "congénitale ou acquise ou l’existence d’une comorbidité augmentant le risque hémorragique "
+                "peuvent conduire à choisir l’interruption de l’anticoagulant."
+                "</div>"
+            )
+
+
+
+        if (
             str(r.get("Code ATC", "")).upper().strip().startswith("B01AA")
             and ctx.get("r_hem") not in ["FAIBLE", "NUL"]
         ):
