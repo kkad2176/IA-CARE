@@ -5814,6 +5814,13 @@ if avk_detecte:
             if raison_relais_postop:
                 st.caption(raison_relais_postop)
 
+                if indication_avk == "MTEV" and deficit_proteine_c_s:
+                    st.caption(
+                        "Reco : les patients avec un déficit en protéine C ou S connu "
+                        "nécessitent une prescription d’héparine curative en association "
+                        "à la reprise des AVK (si possible) pour réduire le risque de nécrose cutanée."
+                    )
+
         else:
 
             st.info(
