@@ -383,6 +383,10 @@ def generer_pdf_ordonnance_pharmacie(
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import cm
 
+    from reportlab.platypus import Paragraph
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_LEFT
+
     if not ordonnance_pharmacie:
         return None
 
@@ -4488,9 +4492,38 @@ def inferer_profils_structures(codes_atc_detectes, df_sentinelles_ready, df_prof
 # =========================================================
 with st.sidebar:
     st.header("Dossier Patient")
+
     iep = st.text_input("Numéro IEP")
-    age = st.number_input("Âge", 0, 115, 65)
-    date_op = st.date_input("Date intervention", date.today() + timedelta(days=7))
+
+    age = st.number_input(
+        "Âge",
+        min_value=0,
+        max_value=115,
+        value=65
+    )
+
+    poids_kg = st.number_input(
+        "Poids (kg)",
+        min_value=0.0,
+        max_value=300.0,
+        value=70.0,
+        step=0.5
+    )
+
+    taille_cm = st.number_input(
+        "Taille (cm)",
+        min_value=0.0,
+        max_value=250.0,
+        value=170.0,
+        step=1.0
+    )
+
+    date_op = st.date_input(
+        "Date intervention",
+        date.today() + timedelta(days=7),
+        format="DD/MM/YYYY"
+    )
+
 
 
     st.divider()
@@ -5969,8 +6002,8 @@ if afficher_contexte_diabete:
     type_chir = st.radio(
         "Type de chirurgie",
         [
-            "AMBULATOIRE ou chirurgie courte avec ≤ 1 repas jeûné",
             "chirurgie mineure ou majeure ou avec ≥ 2 repas jeûné",
+            "AMBULATOIRE ou chirurgie courte avec ≤ 1 repas jeûné",
             "URGENCE"
         ],
         key="type_chir_diabete"
@@ -7432,7 +7465,8 @@ if resultats:
         creer_prescription_ide = False
 
       
-        if avk_detecte:
+        if avk_detecte and ordonnance_pharmacie:
+
 
             creer_ordonnance_pharmacie = st.checkbox(
                 "Créer l'ordonnance pharmacie",
