@@ -7432,7 +7432,7 @@ if resultats:
         creer_prescription_ide = False
 
       
-        if avk_detecte 
+        if avk_detecte:
 
             creer_ordonnance_pharmacie = st.checkbox(
                 "Créer l'ordonnance pharmacie",
