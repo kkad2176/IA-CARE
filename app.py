@@ -5241,7 +5241,6 @@ inr_valeur = None
 
 
 
-poids_kg = 0
 indication_avk = ""
 lvad_reprise_24_48h = False
 
@@ -5264,7 +5263,6 @@ inr_ge_2_postop = False
 inr_disponible = "Non"
 inr_valeur = None
 
-poids_kg = 0
 
 reprise_avk_24h = False
 relais_postop_indique = False
@@ -5292,17 +5290,6 @@ reprise_avk_24h_bool = False
 if avk_detecte:
     st.divider()
     st.header("Anti-vitamine K (AVK)")
-
-
-    st.subheader("Poids")
-
-    poids_kg = st.number_input(
-        "Poids du patient (kg) si connu",
-        min_value=0,
-        value=0,
-        step=1,
-        key="poids_kg"
-    )
 
 
 
@@ -6313,7 +6300,7 @@ schema_relais = construire_schema_relais(ctx)
 
 ordonnance_pharmacie = generer_ordonnance_pharmacie(
     schema_relais,
-    poids_kg=ctx.get("poids_kg"),
+    poids_kg=poids_kg,
     date_op=date_op
 )
 
@@ -6321,7 +6308,7 @@ ordonnance_pharmacie = generer_ordonnance_pharmacie(
 
 prescription_ide = generer_prescription_ide(
     schema_relais,
-    poids_kg=ctx.get("poids_kg"),
+    poids_kg=poids_kg,
     date_op=date_op
 )
 # =======================
