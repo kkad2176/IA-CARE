@@ -67,8 +67,10 @@ def generer_pdf_patient(
     scanner_texte="",
     allergies_texte="",
     medecin="",
-    tableau_avk=None
+    tableau_avk=None,
+    frise_patient=None
 ):
+
 
     import tempfile, os
     import fitz
@@ -145,6 +147,132 @@ def generer_pdf_patient(
     )
 
     largeur_texte = 13.2 * cm
+
+
+# ========================================
+# FRISE CALENDRIER
+# ========================================
+
+    if frise_patient:
+
+        evenements = [
+            frise_patient[k]
+            for k in sorted(frise_patient.keys())
+        ]
+
+        nb_cases = len(evenements)
+
+        if nb_cases > 0:
+
+            largeur_totale = 13.2 * cm
+            espace = 0.18 * cm
+
+            largeur_case = (
+                largeur_totale - espace * (nb_cases - 1)
+            ) / nb_cases
+
+            hauteur_case = 2.7 * cm
+
+            for i, evenement in enumerate(evenements):
+
+                x_case = x + i * (largeur_case + espace)
+
+                type_evenement = evenement.get("type", "")
+                jour = evenement.get("jour", "")
+                date_jour = evenement.get("date")
+                consignes = evenement.get("consignes", [])
+
+                #rouge DERNIERE PRISE
+                if type_evenement == "arret":
+                    fond = (1.0, 0.94, 0.94)
+                    bordure = (1.0, 0.65, 0.65)
+                    texte = (0.78, 0.10, 0.10)
+
+                # BLEU  intervention
+                elif type_evenement == "intervention":
+                    fond = (0.93, 0.96, 1.0)
+                    bordure = (0.65, 0.80, 1.0)
+                    texte = (0.03, 0.34, 0.76)
+
+                # VERT = poursuite
+                else:
+                    fond = (0.93, 0.98, 0.94)
+                    bordure = (0.70, 0.90, 0.75)
+                    texte = (0.08, 0.50, 0.22)
+
+                c.setFillColorRGB(*fond)
+                c.setStrokeColorRGB(*bordure)
+
+                c.roundRect(
+                    x_case,
+                    y - hauteur_case,
+                    largeur_case,
+                    hauteur_case,
+                    8,
+                    fill=1,
+                    stroke=1
+                )
+
+                # J-x
+                c.setFillColorRGB(*texte)
+                c.setFont("Helvetica-Bold", 13)
+
+                c.drawCentredString(
+                    x_case + largeur_case / 2,
+                    y - 0.55 * cm,
+                    jour
+                )
+
+                # Date
+                c.setFillColorRGB(0.25, 0.25, 0.25)
+                c.setFont("Helvetica", 8.5)
+
+                if date_jour:
+                    c.drawCentredString(
+                        x_case + largeur_case / 2,
+                        y - 1.0 * cm,
+                        date_jour.strftime("%d/%m/%Y")
+                    )
+
+                # Consigne
+                texte_consigne = "<br/>".join(
+                    str(consigne) for consigne in consignes
+                )
+
+                style_case = ParagraphStyle(
+                    "style_case_patient",
+                    fontName="Helvetica-Bold",
+                    fontSize=8.5,
+                    leading=10,
+                    alignment=1,
+                    textColor=texte
+                )
+
+                p = Paragraph(
+                    texte_consigne,
+                    style_case
+                )
+
+                p.wrapOn(
+                    c,
+                    largeur_case - 0.25 * cm,
+                    1.1 * cm
+                )
+
+                p.drawOn(
+                    c,
+                    x_case + 0.12 * cm,
+                    y - 2.25 * cm
+                )
+
+            y -= hauteur_case + 0.6 * cm
+
+
+
+
+
+
+
 
     for l in lignes:
         p = Paragraph(
@@ -7355,22 +7483,196 @@ if au_moins_un_arret:
 else:
     phrase_pdf = "Aucun arrêt médicamenteux daté à planifier selon les règles actuelles."
 
-lignes_html = ""
 
-for ligne in lignes_pdf:
+
+
+
+# =====================================================
+# FRISE CHRONOLOGIQUE PATIENT
+# =====================================================
+
+frise_patient = {}
+
+if date_op:
+
+    # J0 = intervention
+    frise_patient[0] = {
+        "jour": "J0",
+        "date": date_op,
+        "type": "intervention",
+        "consignes": ["INTERVENTION CHIRURGICALE"]
+    }
+
+    for r in resultats:
+
+        medicament = str(r.get("Médicament", "")).strip()
+        action = str(r.get("Action", "")).upper().strip()
+        jour_txt = str(r.get("Date", "")).upper().strip()
+
+        # On traite uniquement les consignes ayant un jour J-x
+        match = re.search(r"J-(\d+)", jour_txt)
+
+        if not match:
+            continue
+
+        nb_jours = int(match.group(1))
+        cle_jour = -nb_jours
+        date_jour = date_op - timedelta(days=nb_jours)
+
+        if cle_jour not in frise_patient:
+            frise_patient[cle_jour] = {
+                "jour": f"J-{nb_jours}",
+                "date": date_jour,
+                "type": "poursuite",
+                "consignes": []
+            }
+
+        # ARRÊT = dernière prise ce jour-là
+        if action == "ARRET":
+            frise_patient[cle_jour]["type"] = "arret"
+            frise_patient[cle_jour]["consignes"].append(
+                f"Dernière prise de {medicament}"
+            )
+
+        # POURSUITE
+        elif action == "POURSUITE":
+            frise_patient[cle_jour]["consignes"].append(
+                f"Poursuivre {medicament}"
+            )
+
+
+
+# =====================================================
+# frise jours de poursuites avant derniere prise
+# =====================================================
+
+jours_arret = [
+    cle_jour
+    for cle_jour, evenement in frise_patient.items()
+    if evenement["type"] == "arret"
+]
+
+if jours_arret:
+
+    premier_arret = min(jours_arret)
+
+  
+    for cle_jour in range(premier_arret - 2, premier_arret):
+
+        if cle_jour not in frise_patient:
+
+            nb_jours = abs(cle_jour)
+            date_jour = date_op + timedelta(days=cle_jour)
+
+            medicaments_poursuivis = []
+
+            for r in resultats:
+                medicament = str(r.get("Médicament", "")).strip()
+                action = str(r.get("Action", "")).upper().strip()
+                jour_txt = str(r.get("Date", "")).upper().strip()
+
+                match = re.search(r"J-(\d+)", jour_txt)
+
+                if (
+                    medicament
+                    and action == "ARRET"
+                    and match
+                    and cle_jour < -int(match.group(1))
+                ):
+                    medicaments_poursuivis.append(
+                        f"Poursuivre {medicament}"
+                    )
+
+            if medicaments_poursuivis:
+                frise_patient[cle_jour] = {
+                    "jour": f"J-{nb_jours}",
+                    "date": date_jour,
+                    "type": "poursuite",
+                    "consignes": medicaments_poursuivis
+                }
+
+
+lignes_html = """
+<div style="
+    display:flex;
+    gap:12px;
+    align-items:stretch;
+    overflow-x:auto;
+    padding:10px 0 16px 0;
+">
+"""
+
+for cle_jour in sorted(frise_patient.keys()):
+
+    evenement = frise_patient[cle_jour]
+
+    jour = evenement["jour"]
+    date_jour = evenement["date"].strftime("%d/%m/%Y")
+    type_evenement = evenement["type"]
+    consignes = evenement["consignes"]
+
+    if type_evenement == "arret":
+        fond = "#fff0f0"
+        bordure = "#f5b5b5"
+        couleur = "#c62828"
+
+    elif type_evenement == "intervention":
+        fond = "#eef5ff"
+        bordure = "#b8d4ff"
+        couleur = "#0757c2"
+
+    else:
+        fond = "#effaf2"
+        bordure = "#b9e6c3"
+        couleur = "#16813a"
+
+    texte_consignes = "<br>".join(
+        html.escape(str(c)) for c in consignes
+    )
+
     lignes_html += f"""
     <div style="
-        background:#e8f0ff;
-        color:#0b57d0;
-        padding:8px 14px;
-        border-radius:10px;
-        font-weight:700;
-        display:inline-block;
-        margin-bottom:12px;
+        min-width:180px;
+        flex:1;
+        background:{fond};
+        border:1px solid {bordure};
+        border-radius:14px;
+        padding:16px 12px;
+        text-align:center;
     ">
-        {ligne}
-    </div><br>
+
+        <div style="
+            color:{couleur};
+            font-size:25px;
+            font-weight:800;
+        ">
+            {jour}
+        </div>
+
+        <div style="
+            color:#444;
+            font-size:14px;
+            margin:5px 0 18px 0;
+        ">
+            {date_jour}
+        </div>
+
+        <div style="
+            color:{couleur};
+            font-size:16px;
+            font-weight:700;
+            line-height:1.4;
+        ">
+            {texte_consignes}
+        </div>
+
+    </div>
     """
+
+lignes_html += "</div>"
+
+
+
 
 if lignes_html:
     contenu_calendrier = lignes_html + f"<br>{phrase_pdf}"
@@ -7384,11 +7686,11 @@ if resultats:
 
         st.markdown("## :blue[Calendrier Patient]")
 
-        st.markdown(f"""
-        <div class="blue-box">
-            {contenu_calendrier}
-        </div>
-        """, unsafe_allow_html=True)
+        components.html(
+            contenu_calendrier,
+            height=260,
+            scrolling=True
+        )
 
 
         texte_a_copier = "\n".join(lignes_pdf)
@@ -7697,7 +7999,8 @@ if st.button("Générer PDF"):
             scanner_texte,
             allergies_texte,
             medecin,
-            tableau_avk
+            tableau_avk,
+            frise_patient
         )
 
     # =================
