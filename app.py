@@ -153,128 +153,508 @@ def generer_pdf_patient(
 # FRISE CALENDRIER
 # ========================================
 
+
     if frise_patient:
 
-        evenements = [
-            frise_patient[k]
-            for k in sorted(frise_patient.keys())
-        ]
+        jours = sorted(frise_patient.keys())
+        largeur = 13.2 * cm
 
-        nb_cases = len(evenements)
+        medicaments = []
 
-        if nb_cases > 0:
+        for evenement in frise_patient.values():
+            for consigne in evenement.get("consignes", []):
+                for debut in ["Poursuivre ", "Dernière prise de ", "Ne pas prendre "]:
+                    if str(consigne).startswith(debut):
+                        nom = str(consigne)[len(debut):].strip()
+                        if nom and nom not in medicaments:
+                            medicaments.append(nom)
 
-            largeur_totale = 13.2 * cm
-            espace = 0.18 * cm
+        afficher_frise = bool(medicaments)
+      
+       
+        c.setFillColorRGB(0.02, 0.33, 0.67)
+        c.setFont("Helvetica-Bold", 18)
 
-            largeur_case = (
-                largeur_totale - espace * (nb_cases - 1)
-            ) / nb_cases
+        if medicaments:
+            c.setFillColorRGB(0.08, 0.12, 0.22)
+            c.setFont("Helvetica-Bold", 15)
+            c.drawString(x, y, "Mes médicaments, jour par jour")
+        else:
+            c.drawString(x, y, "Calendrier Patient")
 
-            hauteur_case = 2.7 * cm
 
-            for i, evenement in enumerate(evenements):
 
-                x_case = x + i * (largeur_case + espace)
+        if not medicaments:
+            c.setFillColorRGB(0.92, 0.97, 0.93)
+            c.roundRect(
+                x,
+                y - 1.5 * cm,
+                13.2 * cm,
+                1.15 * cm,
+                8,
+                fill=1,
+                stroke=0
+            )
 
-                type_evenement = evenement.get("type", "")
-                jour = evenement.get("jour", "")
-                date_jour = evenement.get("date")
-                consignes = evenement.get("consignes", [])
+            c.setFillColorRGB(0.07, 0.49, 0.20)
+            c.setFont("Helvetica", 12)
+            c.drawString(
+                x + 0.35 * cm,
+                y - 1.1 * cm,
+                "Aucun arrêt médicamenteux à prévoir"
+            )
 
-                #rouge DERNIERE PRISE
-                if type_evenement == "arret":
-                    fond = (1.0, 0.94, 0.94)
-                    bordure = (1.0, 0.65, 0.65)
-                    texte = (0.78, 0.10, 0.10)
+    y -= 1.4 * cm
 
-                # BLEU  intervention
-                elif type_evenement == "intervention":
-                    fond = (0.93, 0.96, 1.0)
-                    bordure = (0.65, 0.80, 1.0)
-                    texte = (0.03, 0.34, 0.76)
 
-                # VERT = poursuite
+
+    if frise_patient and 0 in frise_patient:
+        date_intervention = frise_patient[0]["date"]
+
+        if not medicaments:
+            jours_semaine = [
+                "Lundi", "Mardi", "Mercredi",
+                "Jeudi", "Vendredi", "Samedi", "Dimanche"
+            ]
+
+            date_complete = (
+                f"{jours_semaine[date_intervention.weekday()]} "
+                f"{date_intervention.strftime('%d/%m/%Y')}"
+            )
+
+            c.setFillColorRGB(0.12, 0.32, 0.85)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawString(
+                x,
+                y - 1.85 * cm,
+                f"Intervention prévue le {date_complete}"
+            )
+
+
+    
+
+        if medicaments:
+            x_bloc = x + 9.4 * cm
+            y_bloc = y + 0.45 * cm
+
+            c.setFillColorRGB(0.12, 0.32, 0.85)
+            c.roundRect(
+                x_bloc,
+                y_bloc - 0.65 * cm,
+                3.8 * cm,
+                1.15 * cm,
+                8,
+                fill=1,
+                stroke=0
+            )
+
+            c.setFillColorRGB(1, 1, 1)
+            c.setFont("Helvetica", 9)
+            c.drawString(
+                x_bloc + 0.2 * cm,
+                y_bloc + 0.15 * cm,
+                "Intervention = J0"
+            )
+
+            jours_semaine = [
+                "Lundi", "Mardi", "Mercredi",
+                "Jeudi", "Vendredi", "Samedi", "Dimanche"
+            ]
+
+            date_complete = (
+                f"{jours_semaine[date_intervention.weekday()]} "
+                f"{date_intervention.strftime('%d/%m/%Y')}"
+            )
+
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(
+                x_bloc + 0.2 * cm,
+                y_bloc - 0.25 * cm,
+                date_complete
+            )
+
+
+
+
+
+        y -= 0.3 * cm
+
+        for medicament in medicaments:
+            for j in jours:
+                consignes = frise_patient[j].get("consignes", [])
+
+                if f"Dernière prise de {medicament}" in consignes:
+                    date_prise = frise_patient[j]["date"].strftime("%d/%m/%Y")
+
+                    c.setFillColorRGB(1, 0.94, 0.94)
+                    c.setStrokeColorRGB(0.85, 0.15, 0.25)
+
+                    c.roundRect(
+                        x, y - 0.75 * cm,
+                        largeur, 0.75 * cm,
+                        8, fill=1, stroke=1
+                    )
+
+                    c.setFillColorRGB(0.65, 0.08, 0.18)
+                    c.setStrokeColorRGB(0.65, 0.08, 0.18)
+                    c.setLineWidth(1.5)
+
+                    centre_x = x + 0.4 * cm
+                    centre_y = y - 0.38 * cm
+
+                    triangle = c.beginPath()
+                    triangle.moveTo(centre_x, centre_y + 0.18 * cm)
+                    triangle.lineTo(centre_x - 0.2 * cm, centre_y - 0.17 * cm)
+                    triangle.lineTo(centre_x + 0.2 * cm, centre_y - 0.17 * cm)
+                    triangle.close()
+                    c.drawPath(triangle, stroke=1, fill=0)
+
+                    c.setFont("Helvetica-Bold", 9)
+                    c.drawCentredString(
+                        centre_x,
+                        centre_y - 0.12 * cm,
+                        "!"
+                    )
+
+                    c.setFont("Helvetica-Bold", 10)
+                    c.drawString(
+                        x + 0.85 * cm,
+                        y - 0.48 * cm,
+                        f"{medicament} : dernière prise le {date_prise}"
+                    )
+
+
+
+
+                    y -= 1.1 * cm
+
+
+        y -= 0.25 * cm
+
+        if afficher_frise:
+            y -= 0.25 * cm
+
+            debut_x = x + 2.4 * cm
+            fin_x = x + largeur - 0.1 * cm
+            fleche_y = y
+
+            c.setStrokeColorRGB(0.12, 0.32, 0.85)
+            c.setFillColorRGB(0.12, 0.32, 0.85)
+            c.setLineWidth(3)
+
+            c.line(debut_x, fleche_y, fin_x, fleche_y)
+
+            pointe = c.beginPath()
+            pointe.moveTo(fin_x + 0.12 * cm, fleche_y)
+            pointe.lineTo(fin_x - 0.15 * cm, fleche_y + 0.12 * cm)
+            pointe.lineTo(fin_x - 0.15 * cm, fleche_y - 0.12 * cm)
+            pointe.close()
+
+            c.drawPath(pointe, fill=1, stroke=0)
+
+            y -= 0.35 * cm
+
+
+
+
+
+        largeur_nom = 2.4 * cm
+        espace = 0.08 * cm
+        nb_jours = len(jours)
+        largeur_jour = (largeur - largeur_nom - nb_jours * espace) / nb_jours
+
+        y -= 0.3 * cm
+
+        for i, j in enumerate(jours):
+
+            if not medicaments:
+                continue
+
+            evenement = frise_patient[j]
+            x_jour = x + largeur_nom + i * (largeur_jour + espace)
+
+            if j == 0:
+                fond = (0.12, 0.32, 0.85)
+                couleur = (1, 1, 1)
+            else:
+                fond = (0.94, 0.95, 0.97)
+                couleur = (0.08, 0.12, 0.22)
+
+            c.setFillColorRGB(*fond)
+            c.roundRect(
+                x_jour, y - 1.1 * cm,
+                largeur_jour, 1.1 * cm,
+                6, fill=1, stroke=0
+            )
+
+            c.setFillColorRGB(*couleur)
+            c.setFont("Helvetica-Bold", 11)
+            c.drawCentredString(
+                x_jour + largeur_jour / 2,
+                y - 0.43 * cm,
+                evenement["jour"]
+            )
+
+            c.setFont("Helvetica", 6.5)
+            c.drawCentredString(
+                x_jour + largeur_jour / 2,
+                y - 0.78 * cm,
+                evenement["date"].strftime("%d/%m")
+            )
+
+        y -= 1.25 * cm
+
+        for medicament in medicaments:
+
+            hauteur = 1.4 * cm
+
+            c.setFillColorRGB(0.95, 0.96, 0.98)
+            c.roundRect(
+                x, y - hauteur,
+                largeur_nom - espace, hauteur,
+                6, fill=1, stroke=0
+            )
+
+            style_nom = ParagraphStyle(
+                "nom_medicament",
+                fontName="Helvetica-Bold",
+                fontSize=9,
+                leading=11
+            )
+
+            p_nom = Paragraph(html.escape(medicament), style_nom)
+            _, h_nom = p_nom.wrap(largeur_nom - 0.25 * cm, hauteur)
+
+            p_nom.drawOn(
+                c, x + 0.12 * cm,
+                y - 0.3 * cm - h_nom
+            )
+
+            for i, j in enumerate(jours):
+
+                x_case = x + largeur_nom + i * (largeur_jour + espace)
+                consignes = frise_patient[j].get("consignes", [])
+
+                if f"Dernière prise de {medicament}" in consignes:
+                    fond = (1, 0.72, 0.25)
+                    bordure = (0.85, 0.48, 0.08)
+                    couleur = (0.35, 0.18, 0.0)
+                    texte = "DERNIÈRE<br/>PRISE"
+
+
+       
+
+                elif (
+                    f"Ne pas prendre {medicament}" in consignes
+                    or (
+                        j == 0
+                        and any(
+                            f"Dernière prise de {medicament}"
+                            in frise_patient[k].get("consignes", [])
+                            for k in jours
+                            if k < 0
+                        )
+                    )
+                ):
+                    fond = (0.88, 0.12, 0.25)
+                    bordure = (0.88, 0.12, 0.25)
+                    couleur = (1, 1, 1)
+                    texte = "X<br/>STOP"
+
+
+
+                elif f"Poursuivre {medicament}" in consignes:
+                    fond = (0.88, 0.96, 0.90)
+                    bordure = (0.12, 0.55, 0.28)
+                    couleur = (0.08, 0.42, 0.20)
+                    texte = "&#10003;<br/>PRENDRE"
+
                 else:
-                    fond = (0.93, 0.98, 0.94)
-                    bordure = (0.70, 0.90, 0.75)
-                    texte = (0.08, 0.50, 0.22)
+                    fond = (0.95, 0.96, 0.97)
+                    bordure = (0.85, 0.87, 0.90)
+                    couleur = (0.5, 0.5, 0.5)
+                    texte = "-"
 
                 c.setFillColorRGB(*fond)
                 c.setStrokeColorRGB(*bordure)
 
                 c.roundRect(
-                    x_case,
-                    y - hauteur_case,
-                    largeur_case,
-                    hauteur_case,
-                    8,
-                    fill=1,
-                    stroke=1
-                )
-
-                # J-x
-                c.setFillColorRGB(*texte)
-                c.setFont("Helvetica-Bold", 13)
-
-                c.drawCentredString(
-                    x_case + largeur_case / 2,
-                    y - 0.55 * cm,
-                    jour
-                )
-
-                # Date
-                c.setFillColorRGB(0.25, 0.25, 0.25)
-                c.setFont("Helvetica", 8.5)
-
-                if date_jour:
-                    c.drawCentredString(
-                        x_case + largeur_case / 2,
-                        y - 1.0 * cm,
-                        date_jour.strftime("%d/%m/%Y")
-                    )
-
-                # Consigne
-                texte_consigne = "<br/>".join(
-                    str(consigne) for consigne in consignes
+                    x_case, y - hauteur,
+                    largeur_jour, hauteur,
+                    6, fill=1, stroke=1
                 )
 
                 style_case = ParagraphStyle(
-                    "style_case_patient",
+                    "texte_case",
                     fontName="Helvetica-Bold",
-                    fontSize=8.5,
-                    leading=10,
+                    fontSize=5,
+                    leading=6,
                     alignment=1,
-                    textColor=texte
+                    textColor=couleur,
+                    splitLongWords=0
                 )
 
-                p = Paragraph(
-                    texte_consigne,
-                    style_case
-                )
 
-                p.wrapOn(
-                    c,
-                    largeur_case - 0.25 * cm,
-                    1.1 * cm
-                )
+                p = Paragraph(texte, style_case)
+                _, h_p = p.wrap(largeur_jour - 0.08 * cm, hauteur)
 
                 p.drawOn(
                     c,
-                    x_case + 0.12 * cm,
-                    y - 2.25 * cm
+                    x_case + 0.04 * cm,
+                    y - (hauteur + h_p) / 2
                 )
 
-            y -= hauteur_case + 0.6 * cm
 
 
 
 
+                if f"Dernière prise de {medicament}" in consignes:
+                    centre_x = x_case + largeur_jour / 2
+                    centre_y = y - 0.20 * cm
+
+                    c.setStrokeColorRGB(0.35, 0.18, 0)
+                    c.setLineWidth(1)
+
+                    triangle = c.beginPath()
+                    triangle.moveTo(centre_x, centre_y + 0.11 * cm)
+                    triangle.lineTo(centre_x - 0.11 * cm, centre_y - 0.09 * cm)
+                    triangle.lineTo(centre_x + 0.11 * cm, centre_y - 0.09 * cm)
+                    triangle.close()
+
+                    c.drawPath(triangle, stroke=1, fill=0)
+
+                    c.setFillColorRGB(0.35, 0.18, 0)
+                    c.setFont("Helvetica-Bold", 5)
+                    c.drawCentredString(
+                        centre_x,
+                        centre_y - 0.065 * cm,
+                        "!"
+                    )
 
 
 
 
-    for l in lignes:
+            y -= hauteur + 0.2 * cm
+
+        y -= 0.15 * cm
+
+
+
+        
+
+        if medicaments:
+            c.setFillColorRGB(0.95, 0.96, 0.98)
+            c.roundRect(
+                x, y - 1.2 * cm,
+                largeur_nom - espace, 1.2 * cm,
+                6, fill=1, stroke=0
+            )
+
+            c.setFillColorRGB(0.08, 0.12, 0.22)
+            c.setFont("Helvetica-Bold", 9)
+            c.drawString(x + 0.12 * cm, y - 0.5 * cm, "Autres")
+            c.drawString(x + 0.12 * cm, y - 0.85 * cm, "médicaments")
+
+
+
+    if medicaments:
+        c.setFillColorRGB(0.88, 0.96, 0.90)
+        c.setStrokeColorRGB(0.12, 0.55, 0.28)
+        c.roundRect(
+            x + largeur_nom,
+            y - 1.2 * cm,
+            largeur - largeur_nom,
+            1.2 * cm,
+            6, fill=1, stroke=1
+        )
+
+
+        # Boule verte avec coche blanche
+        cercle_x = x + largeur_nom + 0.48 * cm
+        cercle_y = y - 0.64 * cm
+
+        c.setFillColorRGB(0.04, 0.48, 0.23)
+        c.circle(cercle_x, cercle_y, 0.22 * cm, fill=1, stroke=0)
+
+        c.setStrokeColorRGB(1, 1, 1)
+        c.setLineWidth(1.5)
+
+        coche = c.beginPath()
+        coche.moveTo(cercle_x - 0.10 * cm, cercle_y)
+        coche.lineTo(cercle_x - 0.02 * cm, cercle_y - 0.08 * cm)
+        coche.lineTo(cercle_x + 0.11 * cm, cercle_y + 0.09 * cm)
+        c.drawPath(coche, stroke=1, fill=0)
+
+
+        
+        c.setFillColorRGB(0.08, 0.42, 0.20)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(
+            x + largeur_nom + 0.85 * cm,
+            y - 0.48 * cm,
+            "Poursuivre le reste des médicaments"
+        )
+
+        c.setFont("Helvetica", 8)
+        c.drawString(
+            x + largeur_nom + 0.85 * cm,
+            y - 0.85 * cm,
+            "jusqu'au jour de l'intervention avec un peu d'eau."
+        )
+
+
+        y -= 1.4 * cm
+
+        
+        legendes = [
+            ("Je prends", (0.88, 0.96, 0.90), (0.12, 0.55, 0.28)),
+            ("Dernière prise", (1, 0.72, 0.25), (0.85, 0.48, 0.08)),
+            ("Je ne prends pas", (0.88, 0.12, 0.25), (0.88, 0.12, 0.25)),
+            ("Jour de l'opération", (0.12, 0.32, 0.85), (0.12, 0.32, 0.85))
+        ]
+
+        x_legende = x
+
+         
+        for libelle, fond, bordure in legendes:
+            c.setFillColorRGB(*fond)
+            c.setStrokeColorRGB(*bordure)
+            c.setLineWidth(1)
+
+            c.roundRect(
+                x_legende,
+                y - 0.18 * cm,
+                0.25 * cm,
+                0.25 * cm,
+                3,
+                fill=1,
+                stroke=1
+            )
+
+            c.setFillColorRGB(0.12, 0.15, 0.22)
+            c.setFont("Helvetica", 7)
+            c.drawString(
+                x_legende + 0.35 * cm,
+                y - 0.11 * cm,
+                libelle
+            )
+
+            largeur_libelle = c.stringWidth(
+                libelle, "Helvetica", 7
+            )
+
+            x_legende += 0.35 * cm + largeur_libelle + 0.35 * cm
+
+        y -= 0.65 * cm
+
+        y -= 0.35 * cm
+
+ 
+
+    for l in []:
+
+
+
         p = Paragraph(
             f"- {l}",
             style_lignes
@@ -294,31 +674,6 @@ def generer_pdf_patient(
         y -= hauteur_p + 0.35 * cm
 
     y -= 0.4 * cm
-
-    if phrase:
-
-        c.setFillColorRGB(0.91, 0.95, 1.0)
-        c.roundRect(
-            x,
-            y - 0.35 * cm,
-            13.5 * cm,
-            1.0 * cm,
-            8,
-            fill=1,
-            stroke=0
-        )
-
-        c.setFillColorRGB(0.12, 0.35, 0.66)
-        c.setFont("Helvetica", 9.5)
-        c.drawString(
-            x + 0.3 * cm,
-            y,
-            phrase
-        )
-
-        c.setFillColorRGB(0, 0, 0)
-        y -= 1.4 * cm
-
 
 
 # =====================================================
@@ -7475,7 +7830,6 @@ for r in resultats:
 
 
 
-
 phrase_pdf = ""
 
 if au_moins_un_arret:
@@ -7592,84 +7946,149 @@ if jours_arret:
                 }
 
 
+
+for r in resultats:
+    medicament = str(r.get("Médicament", "")).strip()
+    action = str(r.get("Action", "")).upper().strip()
+    jour_txt = str(r.get("Date", "")).upper().strip()
+
+    match = re.search(r"J-(\d+)", jour_txt)
+
+    if date_op and medicament and action == "ARRET" and match:
+        dernier_jour = -int(match.group(1))
+
+        for j in range(dernier_jour + 1, 0):
+
+            if j not in frise_patient:
+                frise_patient[j] = {
+                    "jour": f"J-{abs(j)}",
+                    "date": date_op + timedelta(days=j),
+                    "type": "arret",
+                    "consignes": []
+                }
+
+            consigne = f"Ne pas prendre {medicament}"
+
+            if consigne not in frise_patient[j]["consignes"]:
+                frise_patient[j]["consignes"].append(consigne)
+
+
+jours_tries = sorted(frise_patient.keys())
+
+
+medicaments_frise = []
+
+for evenement in frise_patient.values():
+    for consigne in evenement["consignes"]:
+        texte = str(consigne)
+        for prefixe in ("Dernière prise de ", "Poursuivre "):
+            if texte.startswith(prefixe):
+                medicament = texte[len(prefixe):].strip()
+                if medicament and medicament not in medicaments_frise:
+                    medicaments_frise.append(medicament)
+
 lignes_html = """
-<div style="
-    display:flex;
-    gap:12px;
-    align-items:stretch;
-    overflow-x:auto;
-    padding:10px 0 16px 0;
+<div style="overflow-x:auto;padding:12px 0;">
+<table style="
+    width:100%;
+    border-collapse:separate;
+    border-spacing:8px;
+    table-layout:auto;
+    min-width:1250px;
+    font-family:Arial,sans-serif;
 ">
+<tr>
+    <th style="min-width:150px;text-align:left;color:#172033;">
+        Médicaments
+    </th>
 """
 
-for cle_jour in sorted(frise_patient.keys()):
 
+for cle_jour in jours_tries:
     evenement = frise_patient[cle_jour]
-
-    jour = evenement["jour"]
+    jour = html.escape(str(evenement["jour"]))
     date_jour = evenement["date"].strftime("%d/%m/%Y")
-    type_evenement = evenement["type"]
-    consignes = evenement["consignes"]
 
-    if type_evenement == "arret":
-        fond = "#fff0f0"
-        bordure = "#f5b5b5"
-        couleur = "#c62828"
-
-    elif type_evenement == "intervention":
-        fond = "#eef5ff"
-        bordure = "#b8d4ff"
-        couleur = "#0757c2"
-
-    else:
-        fond = "#effaf2"
-        bordure = "#b9e6c3"
-        couleur = "#16813a"
-
-    texte_consignes = "<br>".join(
-        html.escape(str(c)) for c in consignes
-    )
+    fond = "#2052d8" if cle_jour == 0 else "#f1f3f6"
+    couleur = "#ffffff" if cle_jour == 0 else "#172033"
 
     lignes_html += f"""
-    <div style="
-        min-width:180px;
-        flex:1;
+    <th style="
+        min-width:110px;
         background:{fond};
-        border:1px solid {bordure};
-        border-radius:14px;
-        padding:16px 12px;
+        color:{couleur};
+        border-radius:12px;
+        padding:12px 8px;
         text-align:center;
     ">
-
-        <div style="
-            color:{couleur};
-            font-size:25px;
-            font-weight:800;
-        ">
-            {jour}
-        </div>
-
-        <div style="
-            color:#444;
-            font-size:14px;
-            margin:5px 0 18px 0;
-        ">
-            {date_jour}
-        </div>
-
-        <div style="
-            color:{couleur};
-            font-size:16px;
-            font-weight:700;
-            line-height:1.4;
-        ">
-            {texte_consignes}
-        </div>
-
-    </div>
+        <div style="font-size:22px;font-weight:800;">{jour}</div>
+        <div style="font-size:12px;">{date_jour}</div>
+    </th>
     """
 
-lignes_html += "</div>"
+lignes_html += "</tr>"
+
+
+for medicament in medicaments_frise:
+
+    nom_html = html.escape(medicament)
+
+    lignes_html += f"""
+    <tr>
+        <td style="
+            background:#f5f6f8;
+            border-radius:12px;
+            padding:14px;
+            font-weight:700;
+            color:#172033;
+        ">{nom_html}</td>
+    """
+
+    for cle_jour in jours_tries:
+        evenement = frise_patient[cle_jour]
+        consignes = evenement["consignes"]
+
+        derniere_prise = f"Dernière prise de {medicament}"
+        poursuite = f"Poursuivre {medicament}"
+
+
+        if derniere_prise in consignes:
+            fond = "#ffedc0"
+            couleur = "#8a4b00"
+            texte = "⚠ DERNIÈRE PRISE"
+
+        elif f"Ne pas prendre {medicament}" in consignes:
+            fond = "#dc2445"
+            couleur = "#ffffff"
+            texte = "✕ STOP"
+
+        elif poursuite in consignes:
+            fond = "#e7f5eb"
+            couleur = "#16803d"
+            texte = "✓ PRENDRE"
+
+        else:
+            fond = "#f3f4f6"
+            couleur = "#7b8190"
+            texte = "—"
+        
+
+        lignes_html += f"""
+        <td style="
+            background:{fond};
+            color:{couleur};
+            border-radius:12px;
+            padding:18px 8px;
+            text-align:center;
+            font-size:14px;
+            font-weight:800;
+        ">{texte}</td>
+        """
+
+    lignes_html += "</tr>"
+
+lignes_html += "</table></div>"
+
 
 
 
@@ -7686,12 +8105,15 @@ if resultats:
 
         st.markdown("## :blue[Calendrier Patient]")
 
-        components.html(
-            contenu_calendrier,
-            height=260,
-            scrolling=True
-        )
-
+       
+        if au_moins_un_arret:
+            components.html(
+                contenu_calendrier,
+                height=260,
+                scrolling=True
+            )
+        else:
+            st.success("Aucun arrêt médicamenteux à prévoir")
 
         texte_a_copier = "\n".join(lignes_pdf)
 
