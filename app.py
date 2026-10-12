@@ -686,10 +686,13 @@ def generer_pdf_patient(
 
         c.setFillColorRGB(0, 0, 0)
         c.setFont("Helvetica-Bold", 11)
+       
+        nom_schema = medicaments[0] if medicaments else ""
+
         c.drawString(
             x,
             y,
-            "Schéma thérapeutique préopératoire"
+            f"Schéma thérapeutique préopératoire – {nom_schema}"
         )
 
         y -= 0.55 * cm
