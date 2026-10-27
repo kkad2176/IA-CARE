@@ -6586,6 +6586,21 @@ if corticoides_connus and not hydrocortisone_topique:
         st.warning("MODÉRÉ-ÉLEVÉ")
 
 
+
+
+    with st.expander("Rappel – Corticoïdes"):
+        st.write(
+            "Il n’existe pas de classification consensuelle et exhaustive du stress chirurgical "
+            "couvrant l’ensemble des interventions. La classification retenue dans AI-CARE a été "
+            "construite à partir de la littérature sur la réponse physiologique au stress opératoire "
+            "et la supplémentation périopératoire en corticoïdes, notamment des recommandations "
+            "de l’ESE et de l’Endocrine Society de 2024. Lorsque les données ne permettaient pas "
+            "de classer clairement une intervention, le classement reposait sur une synthèse de "
+            "la littérature complétée par un choix d’experts. Cette classification, utilisée pour "
+            "guider la supplémentation, reste donc discutable et évolutive."
+        )
+
+
     chirurgie_courte = False
     post_op_jeun_sup_24h = False
     reprise_precoce = False
@@ -8712,7 +8727,7 @@ if resultats:
                             str(lien).strip()
                         )
 
-
+                    
 
                     if (
                         str(r.get("Code ATC", "")).upper().startswith("B01AC")
@@ -8732,10 +8747,6 @@ if resultats:
                             )
 
 
-
-
-
-                   
 
         else:
             c7.write("")
