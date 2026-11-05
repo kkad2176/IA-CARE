@@ -4687,8 +4687,15 @@ def detecter_medicaments_depuis_texte(txt, ref, atc_map, classe_map, ctx):
         elif atc.startswith("B01AC"):
             ctx_med["r_hem"] = ctx.get("r_hem_aap")
 
+        
+        elif atc.startswith("M01A"):
+            ctx_med["r_hem"] = ctx.get("r_hem_aod_avk")
+
         else:
             ctx_med["r_hem"] = ""
+
+
+
 
         ans = moteur_global(atc, ctx_med)
 
@@ -8598,14 +8605,20 @@ st.divider()
 
 
 if resultats:
+    ains_detecte = any(
+        code.startswith("M01A")
+        for code in codes_atc_detectes_upper
+    )
 
-    afficher_risque_aod_avk = aod_detecte or avk_detecte
+    afficher_risque_aod_avk = aod_detecte or avk_detecte or ains_detecte
     afficher_risque_aap = aap_detecte
 
     colonnes = ["Patient", "Date chirurgie"]
 
+
+
     if afficher_risque_aod_avk:
-        colonnes.append("Risque AOD/AVK")
+        colonnes.append("Risque AOD/AVK/AINS")
 
     if afficher_risque_aap:
         colonnes.append("Risque AAP")
@@ -8628,7 +8641,7 @@ if resultats:
 
     if afficher_risque_aod_avk:
         with cols[i]:
-            st.markdown("**Risque AOD/AVK**")
+            st.markdown("**Risque AOD/AVK/AINS**")
             st.markdown(f"### {risque_aod_avk}")
         i += 1
 
